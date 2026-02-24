@@ -50,10 +50,11 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Warte auf Start...</span>
+                <span id="status-text" class="text-slate-400">Initialisierung...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
+            <button id="manual-init-btn" onclick="pushToCloud()" class="hidden text-[8px] bg-blue-600 text-white p-1 px-2 rounded mt-1 uppercase font-black">Daten erzwingen (Erster Start)</button>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
@@ -86,7 +87,6 @@
             <!-- RECHNER -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div class="lg:col-span-3 space-y-5">
-                    <!-- ... (Inhalt identisch zu vorher) ... -->
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
                             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Konfiguration</h2>
@@ -141,7 +141,6 @@
                 </div>
 
                 <div class="lg:col-span-2">
-                    <!-- ... (Zusammenfassung identisch) ... -->
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-8 shadow-2xl border border-darkBorder">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
                         <div class="space-y-4 text-xs mb-8">
@@ -274,24 +273,27 @@
         };
 
         const initSync = async () => {
-            updateStatus("Initialisierung...", "bg-slate-400 animate-pulse");
+            updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
 
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
-                updateStatus("Keys fehlen", "bg-red-500", "Kopiere deine echten Keys in den Code!");
+                updateStatus("Keys fehlen", "bg-red-500", "API-Konfiguration unvollständig.");
                 render();
                 return;
             }
 
             try {
-                // 1. App initialisieren
-                updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // 2. Auth starten
-                updateStatus("Authentifizierung...", "bg-blue-400 animate-pulse");
-                
+                // Timeout für Datenbank-Verbindung (falls DB leer ist)
+                const dbTimeout = setTimeout(() => {
+                    if (document.getElementById('status-text').innerText === "Verbinde DB...") {
+                        updateStatus("Cloud Leer?", "bg-amber-500", "Verbindung steht, aber keine Daten gefunden.");
+                        document.getElementById('manual-init-btn').classList.remove('hidden');
+                    }
+                }, 8000);
+
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
@@ -300,6 +302,7 @@
                         const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
+                            clearTimeout(dbTimeout);
                             if (snap.exists()) {
                                 const data = snap.data();
                                 stones = data.stones || stones;
@@ -308,15 +311,16 @@
                                 localStorage.setItem('ls_config', JSON.stringify(config));
                                 updateStatus("Cloud Aktiv", "bg-green-500");
                                 document.getElementById('error-display').classList.add('hidden');
+                                document.getElementById('manual-init-btn').classList.add('hidden');
                                 render();
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Daten gefunden. Bitte Admin -> Upload.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Bitte Admin -> Upload nutzen.");
+                                document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
-                            console.error("Firestore Error:", err);
-                            // Prüfen ob es ein Domain-Fehler ist
-                            const msg = err.code === 'permission-denied' ? "Rechte verweigert! Regeln prüfen." : err.message;
+                            clearTimeout(dbTimeout);
+                            const msg = err.code === 'permission-denied' ? "Rechte verweigert! Firestore Regeln prüfen." : err.message;
                             updateStatus("Firestore Fehler", "bg-red-500", msg);
                             render();
                         });
@@ -326,8 +330,7 @@
                 await signInAnonymously(auth);
 
             } catch (e) {
-                console.error("Gesamt-Fehler:", e);
-                updateStatus("Abbruch", "bg-red-600", "Technischer Fehler: " + e.message);
+                updateStatus("Abbruch", "bg-red-600", e.message);
                 render();
             }
         };
@@ -341,15 +344,16 @@
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
                 await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
-                showAlert("Daten in Cloud gespeichert!");
+                showAlert("Daten erfolgreich synchronisiert!");
+                updateStatus("Cloud Aktiv", "bg-green-500");
+                document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
-                console.error("Upload Error:", e);
-                showAlert("Fehler beim Speichern!");
-                updateStatus("Cloud Fehler", "bg-red-500", "Prüfe deine Firestore-Regeln.");
+                showAlert("Upload fehlgeschlagen!");
+                updateStatus("Cloud Fehler", "bg-red-500", "Schreibzugriff verweigert.");
             }
         };
 
-        // --- REST DER FUNKTIONEN (unverändert) ---
+        // --- Standard UI Funktionen ---
         window.checkAdminPass = () => {
             const input = document.getElementById('adminPassInput').value;
             if (input === (config.adminPass || "1234")) {
@@ -457,7 +461,7 @@
         window.addStone = () => {
             stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
             render();
-            showAlert("Neuer Stein in Liste aufgenommen.");
+            showAlert("Neuer Stein hinzugefügt.");
         };
 
         const render = () => {

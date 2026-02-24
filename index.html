@@ -48,9 +48,12 @@
 
     <div id="app" class="max-w-4xl mx-auto">
         <!-- Cloud Sync Status Bar -->
-        <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-            <span id="status-text" class="text-slate-400">Verbindung wird aufgebaut...</span>
-            <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
+        <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
+            <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
+                <span id="status-text" class="text-slate-400">Initialisierung...</span>
+                <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
+            </div>
+            <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
@@ -64,7 +67,7 @@
                     <h1 class="text-3xl font-black flex items-center tracking-tighter select-none">
                         LithoScale <span class="pro-badge">PRO</span>
                     </h1>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Team Cloud Sync Active</p>
+                    <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Team Cloud Sync</p>
                 </div>
             </div>
             <div class="flex items-center gap-4 w-full md:w-auto">
@@ -216,7 +219,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- DEINE API KEYS HIER EINTRAGEN ---
@@ -229,19 +232,10 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const internalAppId = 'lithoscale-team-sync-v1'; // Einmalig vergeben für deine Datenbank
+        const internalAppId = 'lithoscale-team-sync-v1';
         
-        // Initialisierung nur wenn Config vorhanden
         let app, auth, db;
-        if (firebaseConfig.apiKey) {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getFirestore(app);
-        } else {
-            console.warn("Bitte Firebase API Keys im Code hinterlegen!");
-        }
-
-        // Standard-Werte (werden nur beim allerersten Start genutzt)
+        
         const DEFAULTS = {
             stones: [
                 { name: "Nero Assoluto 2cm", price: 245, isDekton: false },
@@ -257,11 +251,16 @@
         let currentUser = null;
         let adminAuth = false;
 
-        const updateStatus = (text, colorClass) => {
+        const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
             const elIcon = document.getElementById('status-icon');
+            const elErr = document.getElementById('error-display');
             if (elText) elText.innerText = text;
             if (elIcon) elIcon.className = `w-2 h-2 rounded-full ${colorClass}`;
+            if (debugMsg && elErr) {
+                elErr.innerText = debugMsg;
+                elErr.classList.remove('hidden');
+            }
         };
 
         const showAlert = (msg) => {
@@ -272,61 +271,67 @@
             setTimeout(() => box && box.classList.add('hidden'), 4000);
         };
 
-        // --- AUTH & SYNC ---
         const initSync = async () => {
-            if (!db) {
-                updateStatus("Offline-Modus", "bg-blue-400");
+            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
+                updateStatus("Keys fehlen", "bg-red-500", "Kein API Key im Code hinterlegt.");
                 render();
                 return;
             }
 
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
-                    
-                    onSnapshot(docRef, (snap) => {
-                        if (snap.exists()) {
-                            const data = snap.data();
-                            stones = data.stones || stones;
-                            config = data.config || config;
-                            // Lokales Backup
-                            localStorage.setItem('ls_stones', JSON.stringify(stones));
-                            localStorage.setItem('ls_config', JSON.stringify(config));
-                            updateStatus("Cloud Aktiv", "bg-green-500");
-                            render();
-                        } else {
-                            updateStatus("Cloud Bereit", "bg-amber-500");
-                            render();
-                        }
-                    }, (err) => {
-                        updateStatus("Sync Fehler", "bg-red-500");
-                        render();
-                    });
-                }
-            });
-
             try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
+                        
+                        onSnapshot(docRef, (snap) => {
+                            if (snap.exists()) {
+                                const data = snap.data();
+                                stones = data.stones || stones;
+                                config = data.config || config;
+                                localStorage.setItem('ls_stones', JSON.stringify(stones));
+                                localStorage.setItem('ls_config', JSON.stringify(config));
+                                updateStatus("Cloud Aktiv", "bg-green-500");
+                                document.getElementById('error-display').classList.add('hidden');
+                                render();
+                            } else {
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Daten in der Cloud. Bitte Upload im Admin-Bereich nutzen.");
+                                render();
+                            }
+                        }, (err) => {
+                            console.error("Firestore Error:", err);
+                            updateStatus("Rechte-Fehler", "bg-red-500", "Firebase Zugriff verweigert. Regeln prüfen!");
+                            render();
+                        });
+                    }
+                });
+
                 await signInAnonymously(auth);
             } catch (e) {
-                updateStatus("Lokal Modus", "bg-blue-400");
+                console.error("Init Error:", e);
+                updateStatus("Lokal Modus", "bg-blue-400", e.message);
                 render();
             }
         };
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Verbindung zur Cloud möglich.");
+                showAlert("Keine Cloud-Verbindung!");
                 return;
             }
             updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
                 await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
-                showAlert("Alle Team-Geräte wurden aktualisiert!");
+                showAlert("Daten in Cloud gespeichert!");
             } catch (e) {
-                showAlert("Fehler: Schreibrechte verweigert.");
-                updateStatus("Cloud Fehler", "bg-red-500");
+                console.error("Upload Error:", e);
+                showAlert("Fehler beim Speichern!");
+                updateStatus("Cloud Fehler", "bg-red-500", "Upload fehlgeschlagen. Datenbank-Regeln?");
             }
         };
 
@@ -491,7 +496,6 @@
             document.getElementById('moonIcon').classList.toggle('hidden', isD);
         };
 
-        // Theme Init
         const t = localStorage.getItem('ls_theme');
         if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
             document.documentElement.classList.add('dark');

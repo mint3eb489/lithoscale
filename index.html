@@ -226,7 +226,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG ---
+        // --- FIREBASE CONFIG (Platzhalter) ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -239,54 +239,22 @@
         const internalAppId = 'lithoscale-team-sync-v1';
         
         let app, auth, db;
-        
+        let lastLocalUpdate = 0; // Merkt sich, wann DU zuletzt lokal etwas geändert hast
+
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
                 { name: "Dekton Morpheus", price: 652, isDekton: true },
                 { name: "Steel Grey 226", price: 226, isDekton: false },
                 { name: "Dekton Laurent", price: 456, isDekton: true },
-                { name: "Dekton Kairos", price: 384, isDekton: true },
-                { name: "Dekton Domoos", price: 576, isDekton: true },
-                { name: "Café Imperial", price: 275, isDekton: false },
-                { name: "Breccia Imperiale", price: 395, isDekton: false },
-                { name: "Dekton Albarium", price: 576, isDekton: true },
-                { name: "Dekton Sandik", price: 576, isDekton: true },
-                { name: "Dekton Adia", price: 576, isDekton: true },
-                { name: "Dekton Opera", price: 641, isDekton: true },
-                { name: "Dekton Reverie", price: 641, isDekton: true },
-                { name: "Via Lattea", price: 275, isDekton: false },
-                { name: "Dekton Lunar 22", price: 379, isDekton: true },
-                { name: "Tropical Storm", price: 395, isDekton: false },
-                { name: "Dekton Entzo", price: 641, isDekton: true },
-                { name: "Dekton Sirius PROMO", price: 380, isDekton: true },
-                { name: "Dekton Eter PROMO", price: 360, isDekton: true },
-                { name: "Dekton Danae", price: 384, isDekton: true },
-                { name: "Dekton Aeris", price: 384, isDekton: true },
-                { name: "Dekton REM PROMO", price: 465, isDekton: true },
-                { name: "Mont Blanc 542 poliert", price: 542, isDekton: false },
-                { name: "Dekton Sasea PG1", price: 495, isDekton: true },
-                { name: "Dekton Nacre PG1", price: 495, isDekton: true },
-                { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false },
-                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true },
+                { name: "Taj Mahal poliert", price: 495, isDekton: false },
                 { name: "Nero Assoluto", price: 245, isDekton: false }
             ],
-            config: { 
-                factor: 1.5, 
-                measure: 100, 
-                delivery: 700, 
-                gluing: 250, 
-                natEdge: 15, 
-                dekEdge: 20, 
-                natCut: 137, 
-                dekCut: 177, 
-                miter: 45, 
-                adminPass: "1234" 
-            }
+            config: { factor: 1.5, measure: 100, delivery: 700, gluing: 250, natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177, miter: 45, adminPass: "1234" }
         };
 
         const configLabels = {
-            factor: "VK-Kalkulationsfaktor (z.B. 1.5)",
+            factor: "VK-Kalkulationsfaktor",
             measure: "Preis Aufmaß (Pauschal)",
             delivery: "Preis Montage (Pauschal)",
             gluing: "Preis Verkleben (Pauschal)",
@@ -302,7 +270,7 @@
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
         let activeServices = { measure: false, delivery: false };
         let currentUser = null;
-        let isUploading = false; // Flag um Sprünge während des Uploads zu verhindern
+        let isUploading = false;
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
@@ -343,18 +311,21 @@
                         const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
-                            // Ignoriere Snapshots, während wir gerade selbst hochladen, um "Springen" zu verhindern
                             if (isUploading) return;
 
                             if (snap.exists()) {
                                 const data = snap.data();
-                                stones = data.stones || stones;
-                                config = data.config || config;
-                                localStorage.setItem('ls_stones', JSON.stringify(stones));
-                                localStorage.setItem('ls_config', JSON.stringify(config));
-                                updateStatus("Cloud Aktiv", "bg-green-500");
-                                document.getElementById('error-display').classList.add('hidden');
-                                render();
+                                
+                                // WICHTIG: Nur übernehmen, wenn die Daten aus der Cloud NEUER sind als unsere letzte lokale Eingabe
+                                if (data.updated && data.updated > lastLocalUpdate) {
+                                    stones = data.stones || stones;
+                                    config = data.config || config;
+                                    localStorage.setItem('ls_stones', JSON.stringify(stones));
+                                    localStorage.setItem('ls_config', JSON.stringify(config));
+                                    updateStatus("Cloud Aktiv", "bg-green-500");
+                                    document.getElementById('error-display').classList.add('hidden');
+                                    render();
+                                }
                             } else {
                                 updateStatus("Cloud Leer", "bg-amber-500");
                                 render();
@@ -381,14 +352,25 @@
             }
             isUploading = true;
             updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
+            const timestamp = Date.now();
+            
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
-                await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
+                await setDoc(docRef, { 
+                    stones, 
+                    config, 
+                    updated: timestamp, 
+                    editor: currentUser.uid 
+                });
+                
+                lastLocalUpdate = timestamp; // Unsere Version ist nun die aktuellste bekannte
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
+                
                 showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
             } catch (e) {
+                console.error(e);
                 showAlert("Upload fehlgeschlagen!");
                 updateStatus("Fehler", "bg-red-500");
             } finally {
@@ -396,12 +378,18 @@
             }
         };
 
+        // Hilfsfunktion: Wird bei jedem Tastendruck aufgerufen
+        window.markLocalUpdate = () => {
+            lastLocalUpdate = Date.now();
+        };
+
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = stones[sel.value];
+            const stone = stones[sel.selectedIndex];
             if (!stone) return;
 
+            // KORREKTUR: Raten-Zuordnung (isDekton Check)
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
             
@@ -468,7 +456,7 @@
         };
 
         window.switchTab = (t) => {
-            if (t === 'admin' && typeof adminAuth === 'undefined') {
+            if (t === 'admin' && typeof window.adminAuth === 'undefined') {
                 document.getElementById('admin-gate').classList.remove('hidden');
                 return;
             }
@@ -476,6 +464,9 @@
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
             document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+            
+            // WICHTIG: Beim Tab-Wechsel einmal alles neu zeichnen
+            render();
         };
 
         window.checkAdminPass = () => {
@@ -483,7 +474,6 @@
                 window.adminAuth = true;
                 document.getElementById('admin-gate').classList.add('hidden');
                 switchTab('admin');
-                render();
             } else { showAlert("Passwort falsch!"); }
         };
 
@@ -491,41 +481,41 @@
 
         window.addStone = () => {
             stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
+            markLocalUpdate();
             render();
         };
 
         const render = () => {
             const sel = document.getElementById('stoneSelect');
+            if (!sel) return;
             const curIdx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
             sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
             if (curIdx < stones.length) sel.selectedIndex = curIdx;
 
-            // Admin Fields (Parameter)
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
                 fieldsContainer.innerHTML = Object.keys(config).map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
                         <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" 
-                            oninput="config['${k}']=this.type==='number'?parseFloat(this.value):this.value;" 
+                            oninput="config['${k}']=this.type==='number'?parseFloat(this.value):this.value; markLocalUpdate();" 
                             class="input-field text-sm font-mono">
                     </div>
                 `).join('');
             }
 
-            // Material Katalog
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
                 tableContainer.innerHTML = stones.map((s, i) => `
-                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
-                        <input value="${s.name}" oninput="stones[${i}].name=this.value;" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
+                        <input value="${s.name}" oninput="stones[${i}].name=this.value; markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="number" value="${s.price}" oninput="stones[${i}].price=parseFloat(this.value); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
-                            <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
+                            <input type="number" value="${s.price}" oninput="stones[${i}].price=parseFloat(this.value); markLocalUpdate(); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
+                            <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; markLocalUpdate(); render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
                                 ${s.isDekton?'Dekton':'Naturstein'}
                             </button>
-                            <button onclick="stones.splice(${i},1); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
+                            <button onclick="stones.splice(${i},1); markLocalUpdate(); render();" class="text-red-500 px-3 font-bold">✕</button>
                         </div>
                     </div>
                 `).join('');

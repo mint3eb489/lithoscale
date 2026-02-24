@@ -50,7 +50,7 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Prüfe Cloud...</span>
+                <span id="status-text" class="text-slate-400">Status unbekannt</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-2 px-3 rounded-lg border border-red-500/20 max-w-[250px] text-right"></div>
@@ -197,7 +197,7 @@
 
         <!-- Password Modal -->
         <div id="admin-gate" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm items-center justify-center hidden p-4">
-            <div class="card p-8 max-sm w-full shadow-2xl modal-fade">
+            <div class="card p-8 max-w-sm w-full shadow-2xl modal-fade">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -226,7 +226,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG (Platzhalter) ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -236,12 +236,12 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const appId = 'lithoscale-pro-team-v1';
+        const internalAppId = 'lithoscale-pro-team-v1';
         
-        let app, auth, db;
-        let lastLocalUpdate = 0; 
+        let app, auth, db, unsubCloud;
         let isUploading = false;
-        let adminAuth = false;
+        let isAdminActive = false;
+        let lastLocalUpdate = 0;
 
         const DEFAULTS = {
             stones: [
@@ -288,13 +288,10 @@
             miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
-        // Cache-Validierung: Falls weniger als 10 Steine da sind, erzwinge DEFAULTS
-        let cachedStones = JSON.parse(localStorage.getItem('ls_stones'));
-        let stones = (cachedStones && cachedStones.length > 10) ? cachedStones : DEFAULTS.stones;
+        // Initialize state
+        let stones = JSON.parse(localStorage.getItem('ls_stones')) || DEFAULTS.stones;
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
-        
         let activeServices = { measure: false, delivery: false };
-        let currentUser = null;
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
@@ -316,9 +313,9 @@
             setTimeout(() => box && box.classList.add('hidden'), 4000);
         };
 
-        const initSync = async () => {
+        const initFirebase = async () => {
             if (!firebaseConfig.apiKey) {
-                updateStatus("Keys fehlen", "bg-red-500", "Firebase Keys fehlen.");
+                updateStatus("Keys fehlen", "bg-red-500", "Keine API-Konfiguration gefunden.");
                 render();
                 return;
             }
@@ -328,47 +325,50 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                onAuthStateChanged(auth, async (user) => {
+                onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
-                        updateStatus("Prüfe Cloud...", "bg-blue-500 animate-pulse");
-                        
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'doc');
-                        
-                        onSnapshot(docRef, (snap) => {
-                            // Wenn wir gerade im Admin-Tab tippen oder hochladen, ignorieren wir die Cloud
-                            if (isUploading || adminAuth) return;
-
-                            if (snap.exists()) {
-                                const data = snap.data();
-                                // Nur übernehmen, wenn Cloud-Daten NEUER sind oder lokal nichts da ist
-                                if (!data.updated || data.updated > lastLocalUpdate) {
-                                    stones = data.stones || stones;
-                                    config = data.config || config;
-                                    localStorage.setItem('ls_stones', JSON.stringify(stones));
-                                    localStorage.setItem('ls_config', JSON.stringify(config));
-                                    updateStatus("Cloud Aktiv", "bg-green-500");
-                                    document.getElementById('error-display').classList.add('hidden');
-                                    document.getElementById('manual-init-btn').classList.add('hidden');
-                                    render();
-                                }
-                            } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Datenbank auf Server leer.");
-                                document.getElementById('manual-init-btn').classList.remove('hidden');
-                                render();
-                            }
-                        }, (err) => {
-                            updateStatus("Fehler", "bg-red-500", "DB-Fehler: " + err.message);
-                            render();
-                        });
+                        startCloudListener();
                     } else {
-                        await signInAnonymously(auth);
+                        signInAnonymously(auth);
                     }
                 });
             } catch (e) {
-                updateStatus("Abbruch", "bg-red-600", e.message);
+                updateStatus("Fehler", "bg-red-600", e.message);
                 render();
             }
+        };
+
+        const startCloudListener = () => {
+            if (unsubCloud) unsubCloud();
+            
+            updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
+            const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
+            
+            unsubCloud = onSnapshot(docRef, (snap) => {
+                // Wir ignorieren die Cloud, während wir gerade im Admin-Bereich tippen
+                if (isUploading || isAdminActive) return;
+
+                if (snap.exists()) {
+                    const data = snap.data();
+                    if (!data.updated || data.updated > lastLocalUpdate) {
+                        stones = data.stones || stones;
+                        config = data.config || config;
+                        localStorage.setItem('ls_stones', JSON.stringify(stones));
+                        localStorage.setItem('ls_config', JSON.stringify(config));
+                        updateStatus("Cloud Aktiv", "bg-green-500");
+                        document.getElementById('manual-init-btn').classList.add('hidden');
+                        render();
+                    }
+                } else {
+                    updateStatus("Cloud Leer", "bg-amber-500", "Datenbank ist noch leer.");
+                    document.getElementById('manual-init-btn').classList.remove('hidden');
+                    render();
+                }
+            }, (err) => {
+                updateStatus("Error", "bg-red-500", err.message);
+                render();
+            });
         };
 
         window.pushToCloud = async () => {
@@ -382,18 +382,12 @@
             const ts = Date.now();
             
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'doc');
+                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
+                await setDoc(docRef, { 
+                    stones, config, updated: ts, editor: currentUser.uid 
+                });
                 
-                const payload = { 
-                    stones: stones, 
-                    config: config, 
-                    updated: ts, 
-                    editor: currentUser.uid 
-                };
-
-                await setDoc(docRef, payload);
-                
-                lastLocalUpdate = ts; 
+                lastLocalUpdate = ts;
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
                 
@@ -402,14 +396,14 @@
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Fehler", "bg-red-500", "Upload-Fehler: " + e.message);
+                updateStatus("Fehler", "bg-red-500", e.message);
             } finally {
                 isUploading = false;
             }
         };
 
-        // Erzwingt DEFAULTS und schiebt sie in die Cloud
         window.resetAndForceSync = () => {
+            localStorage.clear();
             stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
             config = JSON.parse(JSON.stringify(DEFAULTS.config));
             lastLocalUpdate = Date.now();
@@ -417,12 +411,11 @@
             render();
         };
 
-        // Wird bei jeder Änderung im Admin-Tab aufgerufen
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(stones));
             localStorage.setItem('ls_config', JSON.stringify(config));
-            // Sofort Rechner neu kalkulieren
+            // Wir berechnen sofort im Speicher neu
             window.calculate();
         };
 
@@ -498,7 +491,7 @@
         };
 
         window.switchTab = (t) => {
-            if (t === 'admin' && !adminAuth) {
+            if (t === 'admin' && !isAdminActive) {
                 document.getElementById('admin-gate').classList.remove('hidden');
                 return;
             }
@@ -507,16 +500,16 @@
             document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             
-            // Wenn wir den Admin-Tab verlassen, setzen wir adminAuth auf false, um Snapshots wieder zuzulassen
             if (t === 'calc') {
-                adminAuth = false;
+                isAdminActive = false; // Cloud-Hören wieder aktivieren
+                startCloudListener();
             }
             render();
         };
 
         window.checkAdminPass = () => {
             if (document.getElementById('adminPassInput').value === config.adminPass) {
-                adminAuth = true;
+                isAdminActive = true; // Cloud-Hören blockieren
                 document.getElementById('admin-gate').classList.add('hidden');
                 switchTab('admin');
             } else { showAlert("Passwort falsch!"); }
@@ -560,7 +553,7 @@
                             <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; markLocalUpdate(); render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
                                 ${s.isDekton?'Dekton':'Naturstein'}
                             </button>
-                            <button onclick="stones.splice(${i},1); markLocalUpdate(); render();" class="text-red-500 px-3 font-bold">✕</button>
+                            <button onclick="stones.splice(${i},1); markLocalUpdate(); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
                         </div>
                     </div>
                 `).join('');
@@ -582,7 +575,7 @@
             document.getElementById('moonIcon').classList.add('hidden');
         }
 
-        initSync();
+        initFirebase();
     </script>
 </body>
 </html>

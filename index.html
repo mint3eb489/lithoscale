@@ -293,9 +293,9 @@
             miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
-        // Initialize state
-        let stones = JSON.parse(localStorage.getItem('ls_stones')) || DEFAULTS.stones;
-        let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
+        // Initialize state globally so inline HTML handlers can access them
+        window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
+        window.config = JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config));
         let activeServices = { measure: false, delivery: false };
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
@@ -321,7 +321,7 @@
         const initFirebase = async () => {
             if (!activeConfig.apiKey && typeof __firebase_config === 'undefined') {
                 updateStatus("Keys fehlen", "bg-red-500", "Keine API-Konfiguration gefunden.");
-                render();
+                window.render();
                 return;
             }
 
@@ -345,7 +345,7 @@
             } catch (e) {
                 console.error("Auth Error:", e);
                 updateStatus("Auth-Fehler", "bg-red-600", "Anonymer Login in Firebase aktivieren!");
-                render();
+                window.render();
             }
         };
 
@@ -365,23 +365,23 @@
                     const serverTime = data.updated || 1; 
                     
                     if (serverTime > lastLocalUpdate) {
-                        stones = data.stones || stones;
-                        config = data.config || config;
+                        window.stones = data.stones || window.stones;
+                        window.config = data.config || window.config;
                         lastLocalUpdate = serverTime;
-                        localStorage.setItem('ls_stones', JSON.stringify(stones));
-                        localStorage.setItem('ls_config', JSON.stringify(config));
+                        localStorage.setItem('ls_stones', JSON.stringify(window.stones));
+                        localStorage.setItem('ls_config', JSON.stringify(window.config));
                         updateStatus("Cloud Aktiv", "bg-green-500");
                         document.getElementById('manual-init-btn').classList.add('hidden');
-                        render();
+                        window.render();
                     }
                 } else {
                     updateStatus("Cloud Leer", "bg-amber-500", "Datenbank ist noch leer.");
                     document.getElementById('manual-init-btn').classList.remove('hidden');
-                    render();
+                    window.render();
                 }
             }, (err) => {
                 updateStatus("Error", "bg-red-500", err.message);
-                render();
+                window.render();
             });
         };
 
@@ -398,12 +398,12 @@
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
                 await setDoc(docRef, { 
-                    stones, config, updated: ts, editor: currentUser.uid 
+                    stones: window.stones, config: window.config, updated: ts, editor: currentUser.uid 
                 });
                 
                 lastLocalUpdate = ts;
-                localStorage.setItem('ls_stones', JSON.stringify(stones));
-                localStorage.setItem('ls_config', JSON.stringify(config));
+                localStorage.setItem('ls_stones', JSON.stringify(window.stones));
+                localStorage.setItem('ls_config', JSON.stringify(window.config));
                 
                 showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
@@ -426,37 +426,37 @@
 
         window.factoryResetCloud = async () => {
             if(!confirm("Möchtest du wirklich die Cloud überschreiben und die 28 Standard-Steine wiederherstellen?")) return;
-            stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
-            config = JSON.parse(JSON.stringify(DEFAULTS.config));
-            markLocalUpdate();
+            window.stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
+            window.config = JSON.parse(JSON.stringify(DEFAULTS.config));
+            window.markLocalUpdate();
             await window.pushToCloud();
-            render();
+            window.render();
         };
 
         window.resetAndForceSync = () => {
             localStorage.clear();
-            stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
-            config = JSON.parse(JSON.stringify(DEFAULTS.config));
+            window.stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
+            window.config = JSON.parse(JSON.stringify(DEFAULTS.config));
             lastLocalUpdate = Date.now();
             window.pushToCloud();
-            render();
+            window.render();
         };
 
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
-            localStorage.setItem('ls_stones', JSON.stringify(stones));
-            localStorage.setItem('ls_config', JSON.stringify(config));
+            localStorage.setItem('ls_stones', JSON.stringify(window.stones));
+            localStorage.setItem('ls_config', JSON.stringify(window.config));
             window.calculate(); // Wir berechnen sofort im Speicher neu
         };
 
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = stones[sel.selectedIndex];
+            const stone = window.stones[sel.selectedIndex];
             if (!stone) return;
 
-            const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
-            const cutRate = stone.isDekton ? config.dekCut : config.natCut;
+            const edgeRate = stone.isDekton ? window.config.dekEdge : window.config.natEdge;
+            const cutRate = stone.isDekton ? window.config.dekCut : window.config.natCut;
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
@@ -470,7 +470,7 @@
             const sumMat = sqm * stone.price;
             const sumEdge = lfm * edgeRate;
             const sumCut = (flush + under) * cutRate;
-            const sumExtra = (miter * (config.miter || 0)) + (glue ? config.gluing : 0) + (activeServices.measure ? config.measure : 0) + (activeServices.delivery ? config.delivery : 0);
+            const sumExtra = (miter * (window.config.miter || 0)) + (glue ? window.config.gluing : 0) + (activeServices.measure ? window.config.measure : 0) + (activeServices.delivery ? window.config.delivery : 0);
 
             const ek = sumMat + sumEdge + sumCut + sumExtra;
             const fmt = v => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
@@ -480,7 +480,7 @@
             document.getElementById('resCut').innerText = fmt(sumCut);
             document.getElementById('resExtra').innerText = fmt(sumExtra);
             document.getElementById('totalEK').innerText = fmt(ek);
-            document.getElementById('totalVK').innerText = fmt(ek * config.factor);
+            document.getElementById('totalVK').innerText = fmt(ek * window.config.factor);
         };
 
         window.toggleService = (service) => {
@@ -534,39 +534,39 @@
                 isAdminActive = false; // Cloud-Hören wieder aktivieren
                 startCloudListener();
             }
-            render();
+            window.render();
         };
 
         window.checkAdminPass = () => {
-            if (document.getElementById('adminPassInput').value === config.adminPass) {
+            if (document.getElementById('adminPassInput').value === window.config.adminPass) {
                 isAdminActive = true; 
                 document.getElementById('admin-gate').classList.add('hidden');
-                switchTab('admin');
+                window.switchTab('admin');
             } else { showAlert("Passwort falsch!"); }
         };
 
         window.closeAdminGate = () => document.getElementById('admin-gate').classList.add('hidden');
 
         window.addStone = () => {
-            stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
-            markLocalUpdate();
-            render();
+            window.stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
+            window.markLocalUpdate();
+            window.render();
         };
 
-        const render = () => {
+        window.render = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
             const curIdx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
-            sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
-            if (curIdx < stones.length) sel.selectedIndex = curIdx;
+            sel.innerHTML = window.stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
+            if (curIdx < window.stones.length) sel.selectedIndex = curIdx;
 
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
-                fieldsContainer.innerHTML = Object.keys(config).map(k => `
+                fieldsContainer.innerHTML = Object.keys(window.config).map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
-                        <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" 
-                            oninput="config['${k}']=this.type==='number'?(parseFloat(this.value)||0):this.value; markLocalUpdate();" 
+                        <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${window.config[k]}" 
+                            oninput="window.config['${k}']=this.type==='number'?(parseFloat(this.value)||0):this.value; window.markLocalUpdate();" 
                             class="input-field text-sm font-mono">
                     </div>
                 `).join('');
@@ -574,16 +574,16 @@
 
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
-                tableContainer.innerHTML = stones.map((s, i) => `
+                tableContainer.innerHTML = window.stones.map((s, i) => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
-                        <input value="${s.name}" oninput="stones[${i}].name=this.value; markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                        <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="number" value="${s.price}" oninput="stones[${i}].price=parseFloat(this.value)||0; markLocalUpdate(); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
-                            <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; markLocalUpdate(); render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
+                            <input type="number" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value)||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
+                            <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
                                 ${s.isDekton?'Dekton':'Naturstein'}
                             </button>
-                            <button onclick="stones.splice(${i},1); markLocalUpdate(); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
+                            <button onclick="window.stones.splice(${i},1); window.markLocalUpdate(); window.render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
                         </div>
                     </div>
                 `).join('');

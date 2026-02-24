@@ -95,15 +95,15 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div class="md:col-span-2">
                                 <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Steinart</label>
-                                <select id="stoneSelect" class="input-field mt-1" onchange="calculate()"></select>
+                                <select id="stoneSelect" class="input-field mt-1" onchange="window.calculate()"></select>
                             </div>
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Fläche (m²)</label>
-                                <input type="number" id="sqmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono text-center" oninput="calculate()">
+                                <input type="text" inputmode="decimal" id="sqmInput" placeholder="0,00" class="input-field mt-1 font-mono text-center" oninput="window.calculate()">
                             </div>
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Kante (Lfm)</label>
-                                <input type="number" id="lfmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono text-center" oninput="calculate()">
+                                <input type="text" inputmode="decimal" id="lfmInput" placeholder="0,00" class="input-field mt-1 font-mono text-center" oninput="window.calculate()">
                             </div>
                         </div>
                     </div>
@@ -128,7 +128,7 @@
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="number" id="miterInput" placeholder="Gehrung (Lfm)" step="0.01" class="input-field font-mono text-center" oninput="calculate()">
+                                <input type="text" inputmode="decimal" id="miterInput" placeholder="Gehrung (Lfm)" class="input-field font-mono text-center" oninput="window.calculate()">
                                 <label id="gluingLabel" class="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all border-slate-200 dark:border-darkBorder h-[54px]">
                                     <input type="checkbox" id="gluingCheck" class="hidden" onchange="toggleGlue()">
                                     <span class="text-[10px] font-black uppercase tracking-widest">Verkleben</span>
@@ -298,6 +298,17 @@
         window.config = JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config));
         let activeServices = { measure: false, delivery: false };
 
+        // Globale Hilfsfunktion für sicheres Speichern von Zahlen (auch mit deutschem Komma)
+        window.updateConfig = (key, value, isNumber) => {
+            if (isNumber) {
+                let safeVal = value.replace(',', '.');
+                window.config[key] = parseFloat(safeVal) || 0;
+            } else {
+                window.config[key] = value;
+            }
+            window.markLocalUpdate();
+        };
+
         const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
             const elIcon = document.getElementById('status-icon');
@@ -460,9 +471,14 @@
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
-            const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
-            const lfm = parseFloat(document.getElementById('lfmInput').value) || 0;
-            const miter = parseFloat(document.getElementById('miterInput').value) || 0;
+            const getVal = (id) => {
+                const el = document.getElementById(id);
+                return el ? (parseFloat(el.value.replace(',', '.')) || 0) : 0;
+            };
+
+            const sqm = getVal('sqmInput');
+            const lfm = getVal('lfmInput');
+            const miter = getVal('miterInput');
             const flush = parseInt(document.getElementById('flushCount').innerText);
             const under = parseInt(document.getElementById('underCount').innerText);
             const glue = document.getElementById('gluingCheck').checked;
@@ -565,8 +581,8 @@
                 fieldsContainer.innerHTML = Object.keys(window.config).map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
-                        <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${window.config[k]}" 
-                            oninput="window.config['${k}']=this.type==='number'?(parseFloat(this.value)||0):this.value; window.markLocalUpdate();" 
+                        <input type="${k === 'adminPass' ? 'text' : 'text'}" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
+                            oninput="window.updateConfig('${k}', this.value, ${k !== 'adminPass'})" 
                             class="input-field text-sm font-mono">
                     </div>
                 `).join('');
@@ -579,7 +595,7 @@
                         <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="number" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value)||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
+                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
                             <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
                                 ${s.isDekton?'Dekton':'Naturstein'}
                             </button>

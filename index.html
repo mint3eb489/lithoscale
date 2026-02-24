@@ -50,7 +50,7 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Verbinde...</span>
+                <span id="status-text" class="text-slate-400">Initialisierung...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
@@ -74,7 +74,7 @@
             <div class="flex items-center gap-4 w-full md:w-auto">
                 <button onclick="toggleTheme()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm">
                     <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
-                    <svg id="moonIcon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8 8.001 0 1010.586 10.586z"></path></svg>
+                    <svg id="moonIcon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 </button>
                 <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm flex-1">
                     <button onclick="switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest text-[10px]">Rechner</button>
@@ -224,9 +224,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- DEINE API KEYS HIER EINTRAGEN ---
+        // --- FIREBASE CONFIG (Hier deine Keys eintragen) ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -236,23 +236,60 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const appId = 'lithoscale-pro-team-v1';
+        const internalAppId = 'lithoscale-pro-team-v1';
         
         let app, auth, db;
         let lastLocalUpdate = 0; 
         let isUploading = false;
 
+        // Vollständiger Katalog aus deinen Screenshots
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
                 { name: "Dekton Morpheus", price: 652, isDekton: true },
+                { name: "Steel Grey 226", price: 226, isDekton: false },
+                { name: "Dekton Laurent", price: 456, isDekton: true },
+                { name: "Dekton Kairos", price: 384, isDekton: true },
+                { name: "Dekton Domoos", price: 576, isDekton: true },
+                { name: "Café Imperial", price: 275, isDekton: false },
+                { name: "Breccia Imperiale", price: 395, isDekton: false },
+                { name: "Dekton Albarium", price: 576, isDekton: true },
+                { name: "Dekton Sandik", price: 576, isDekton: true },
+                { name: "Dekton Adia", price: 576, isDekton: true },
+                { name: "Dekton Opera", price: 641, isDekton: true },
+                { name: "Dekton Reverie", price: 641, isDekton: true },
+                { name: "Via Lattea", price: 275, isDekton: false },
+                { name: "Dekton Lunar 22", price: 379, isDekton: true },
+                { name: "Tropical Storm", price: 395, isDekton: false },
+                { name: "Dekton Entzo", price: 641, isDekton: true },
+                { name: "Dekton Sirius PROMO", price: 380, isDekton: true },
+                { name: "Dekton Eter PROMO", price: 360, isDekton: true },
+                { name: "Dekton Danae", price: 384, isDekton: true },
+                { name: "Dekton Aeris", price: 384, isDekton: true },
+                { name: "Dekton REM PROMO", price: 465, isDekton: true },
+                { name: "Mont Blanc 542 poliert", price: 542, isDekton: false },
+                { name: "Dekton Sasea PG1", price: 495, isDekton: true },
+                { name: "Dekton Nacre PG1", price: 495, isDekton: true },
+                { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false },
+                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true },
                 { name: "Nero Assoluto", price: 245, isDekton: false }
             ],
-            config: { factor: 1.5, measure: 100, delivery: 700, gluing: 250, natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177, miter: 45, adminPass: "1234" }
+            config: { 
+                factor: 1.5, 
+                measure: 100, 
+                delivery: 700, 
+                gluing: 250, 
+                natEdge: 15, 
+                dekEdge: 20, 
+                natCut: 137, 
+                dekCut: 177, 
+                miter: 45, 
+                adminPass: "1234" 
+            }
         };
 
         const configLabels = {
-            factor: "VK-Kalkulationsfaktor",
+            factor: "VK-Kalkulationsfaktor (z.B. 1.5)",
             measure: "Preis Aufmaß (Pauschal)",
             delivery: "Preis Montage (Pauschal)",
             gluing: "Preis Verkleben (Pauschal)",
@@ -290,8 +327,8 @@
         };
 
         const initSync = async () => {
-            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
-                updateStatus("Keys fehlen", "bg-red-500", "API-Konfiguration prüfen.");
+            if (!firebaseConfig.apiKey) {
+                updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
                 render();
                 return;
             }
@@ -306,15 +343,15 @@
                         currentUser = user;
                         updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
                         
-                        // KORREKTER PFAD: artifacts/{appId}/public/data/settings/active
-                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'active');
+                        // Pfad: artifacts/{appId}/public/data/settings/active
+                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
                         
                         onSnapshot(docRef, (snap) => {
                             if (isUploading) return;
 
                             if (snap.exists()) {
                                 const data = snap.data();
-                                // Nur aktualisieren, wenn Cloud-Daten NEUER sind oder lokal gar nichts da ist
+                                // Nur aktualisieren, wenn Cloud-Daten NEUER sind
                                 if (!data.updated || data.updated > lastLocalUpdate) {
                                     stones = data.stones || stones;
                                     config = data.config || config;
@@ -326,12 +363,12 @@
                                     render();
                                 }
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Daten in der Cloud gefunden.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Bitte UPLOAD CLOUD nutzen.");
                                 document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
-                            updateStatus("Fehler", "bg-red-500", "Snapshot-Fehler: " + err.message);
+                            updateStatus("Fehler", "bg-red-500", "DB-Fehler: " + err.message);
                             render();
                         });
                     } else {
@@ -346,7 +383,7 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Verbindung!");
+                showAlert("Keine Cloud-Verbindung!");
                 return;
             }
             
@@ -355,11 +392,10 @@
             const timestamp = Date.now();
             
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'active');
+                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
                 
-                // Wir schicken die aktuellen Variablen stones & config
                 const payload = { 
-                    stones: JSON.parse(JSON.stringify(stones)), // Tiefenkopie zur Sicherheit
+                    stones: JSON.parse(JSON.stringify(stones)), 
                     config: JSON.parse(JSON.stringify(config)), 
                     updated: timestamp, 
                     editor: currentUser.uid 
@@ -367,17 +403,16 @@
 
                 await setDoc(docRef, payload);
                 
-                // Sofort lokal bestätigen
                 lastLocalUpdate = timestamp; 
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
                 
-                showAlert("Cloud erfolgreich aktualisiert!");
+                showAlert("Cloud aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Fehler", "bg-red-500", "Upload-Error: " + e.message);
+                updateStatus("Fehler", "bg-red-500", "Upload-Fehler: " + e.message);
                 console.error("Upload Error:", e);
             } finally {
                 isUploading = false;
@@ -386,7 +421,6 @@
 
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
-            // Jedes Mal wenn getippt wird, speichern wir lokal zwischen
             localStorage.setItem('ls_stones', JSON.stringify(stones));
             localStorage.setItem('ls_config', JSON.stringify(config));
         };
@@ -398,7 +432,7 @@
             if (!stone) return;
 
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
-            const cutRate = stone.isDekton ? config.dekCut : config.natCut; // KORREKTUR: Dekton Cut für Dekton Stein
+            const cutRate = stone.isDekton ? config.dekCut : config.natCut;
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
@@ -411,7 +445,7 @@
 
             const sumMat = sqm * stone.price;
             const sumEdge = lfm * edgeRate;
-            const sumCut = (flush + under) * (stone.isDekton ? config.dekCut : config.natCut); // Direkte Prüfung
+            const sumCut = (flush + under) * cutRate;
             const sumExtra = (miter * (config.miter || 0)) + (glue ? config.gluing : 0) + (activeServices.measure ? config.measure : 0) + (activeServices.delivery ? config.delivery : 0);
 
             const ek = sumMat + sumEdge + sumCut + sumExtra;

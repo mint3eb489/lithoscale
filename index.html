@@ -240,7 +240,6 @@
         
         let app, auth, db;
         
-        // --- DEFAULTS AUS SCREENSHOT & VORGABEN ---
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
@@ -303,7 +302,7 @@
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
         let activeServices = { measure: false, delivery: false };
         let currentUser = null;
-        let adminAuth = false;
+        let isUploading = false; // Flag um Sprünge während des Uploads zu verhindern
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
@@ -326,8 +325,6 @@
         };
 
         const initSync = async () => {
-            updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
-
             if (!firebaseConfig.apiKey) {
                 updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
                 render();
@@ -339,14 +336,6 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                const dbTimeout = setTimeout(() => {
-                    const status = document.getElementById('status-text').innerText;
-                    if (status === "Verbinde DB...") {
-                        updateStatus("Warte...", "bg-amber-500", "Keine Antwort von der DB.");
-                        document.getElementById('manual-init-btn').classList.remove('hidden');
-                    }
-                }, 10000);
-
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
@@ -354,7 +343,9 @@
                         const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
-                            clearTimeout(dbTimeout);
+                            // Ignoriere Snapshots, während wir gerade selbst hochladen, um "Springen" zu verhindern
+                            if (isUploading) return;
+
                             if (snap.exists()) {
                                 const data = snap.data();
                                 stones = data.stones || stones;
@@ -363,15 +354,12 @@
                                 localStorage.setItem('ls_config', JSON.stringify(config));
                                 updateStatus("Cloud Aktiv", "bg-green-500");
                                 document.getElementById('error-display').classList.add('hidden');
-                                document.getElementById('manual-init-btn').classList.add('hidden');
                                 render();
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Nutze Admin -> Upload.");
-                                document.getElementById('manual-init-btn').classList.remove('hidden');
+                                updateStatus("Cloud Leer", "bg-amber-500");
                                 render();
                             }
                         }, (err) => {
-                            clearTimeout(dbTimeout);
                             updateStatus("Fehler", "bg-red-500", err.message);
                             render();
                         });
@@ -391,16 +379,20 @@
                 showAlert("Keine Verbindung!");
                 return;
             }
+            isUploading = true;
             updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
                 await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
-                showAlert("Cloud aktualisiert!");
+                localStorage.setItem('ls_stones', JSON.stringify(stones));
+                localStorage.setItem('ls_config', JSON.stringify(config));
+                showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
-                document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
                 updateStatus("Fehler", "bg-red-500");
+            } finally {
+                isUploading = false;
             }
         };
 
@@ -410,7 +402,6 @@
             const stone = stones[sel.value];
             if (!stone) return;
 
-            // Logik: Kanten und Ausschnitte je nach Steintyp
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
             
@@ -477,7 +468,7 @@
         };
 
         window.switchTab = (t) => {
-            if (t === 'admin' && !adminAuth) {
+            if (t === 'admin' && typeof adminAuth === 'undefined') {
                 document.getElementById('admin-gate').classList.remove('hidden');
                 return;
             }
@@ -489,9 +480,10 @@
 
         window.checkAdminPass = () => {
             if (document.getElementById('adminPassInput').value === config.adminPass) {
-                adminAuth = true;
+                window.adminAuth = true;
                 document.getElementById('admin-gate').classList.add('hidden');
                 switchTab('admin');
+                render();
             } else { showAlert("Passwort falsch!"); }
         };
 
@@ -508,28 +500,36 @@
             sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
             if (curIdx < stones.length) sel.selectedIndex = curIdx;
 
-            document.getElementById('admin-fields').innerHTML = Object.keys(config).map(k => `
-                <div>
-                    <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
-                    <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" 
-                        onchange="config['${k}']=this.type==='number'?parseFloat(this.value):this.value;" 
-                        class="input-field text-sm font-mono">
-                </div>
-            `).join('');
-
-            document.getElementById('admin-table').innerHTML = stones.map((s, i) => `
-                <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
-                    <input value="${s.name}" onchange="stones[${i}].name=this.value; render();" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
-                    <div class="flex items-center gap-2">
-                        <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                        <input type="number" value="${s.price}" onchange="stones[${i}].price=parseFloat(this.value); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
-                        <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
-                            ${s.isDekton?'Dekton':'Naturstein'}
-                        </button>
-                        <button onclick="stones.splice(${i},1); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
+            // Admin Fields (Parameter)
+            const fieldsContainer = document.getElementById('admin-fields');
+            if (fieldsContainer) {
+                fieldsContainer.innerHTML = Object.keys(config).map(k => `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
+                        <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" 
+                            oninput="config['${k}']=this.type==='number'?parseFloat(this.value):this.value;" 
+                            class="input-field text-sm font-mono">
                     </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
+
+            // Material Katalog
+            const tableContainer = document.getElementById('admin-table');
+            if (tableContainer) {
+                tableContainer.innerHTML = stones.map((s, i) => `
+                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
+                        <input value="${s.name}" oninput="stones[${i}].name=this.value;" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                        <div class="flex items-center gap-2">
+                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
+                            <input type="number" value="${s.price}" oninput="stones[${i}].price=parseFloat(this.value); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
+                            <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
+                                ${s.isDekton?'Dekton':'Naturstein'}
+                            </button>
+                            <button onclick="stones.splice(${i},1); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
             window.calculate();
         };
 

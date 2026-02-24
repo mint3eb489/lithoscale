@@ -240,7 +240,7 @@
         
         let app, auth, db;
         
-        // --- DEFAULTS AUS SCREENSHOT ---
+        // --- DEFAULTS AUS SCREENSHOT & VORGABEN ---
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
@@ -326,6 +326,8 @@
         };
 
         const initSync = async () => {
+            updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
+
             if (!firebaseConfig.apiKey) {
                 updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
                 render();
@@ -408,8 +410,10 @@
             const stone = stones[sel.value];
             if (!stone) return;
 
+            // Logik: Kanten und Ausschnitte je nach Steintyp
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
+            
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
             const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
@@ -500,9 +504,9 @@
 
         const render = () => {
             const sel = document.getElementById('stoneSelect');
-            const curVal = sel.value;
+            const curIdx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
             sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
-            if (curVal < stones.length) sel.value = curVal;
+            if (curIdx < stones.length) sel.selectedIndex = curIdx;
 
             document.getElementById('admin-fields').innerHTML = Object.keys(config).map(k => `
                 <div>
@@ -535,6 +539,13 @@
             document.getElementById('sunIcon').classList.toggle('hidden', !isD);
             document.getElementById('moonIcon').classList.toggle('hidden', isD);
         };
+        
+        const t = localStorage.getItem('ls_theme');
+        if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('sunIcon').classList.remove('hidden');
+            document.getElementById('moonIcon').classList.add('hidden');
+        }
 
         initSync();
     </script>

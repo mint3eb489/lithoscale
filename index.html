@@ -174,20 +174,23 @@
                 <div class="card p-6 bg-blue-600/5 border border-blue-500/20 rounded-2xl flex items-center justify-between">
                     <div>
                         <h2 class="text-lg font-black text-blue-600">Cloud-Management</h2>
-                        <p class="text-xs text-slate-500">Preise hier ändern und mit "UPLOAD" für alle Geräte freigeben.</p>
+                        <p class="text-xs text-slate-500">Änderungen hier speichern, um sie im Team zu synchronisieren.</p>
                     </div>
                     <button onclick="pushToCloud()" id="btn-push" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 active:scale-95 transition-all">UPLOAD CLOUD</button>
                 </div>
                 
-                <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] ml-2">Globale Variablen & Sicherheit</h3>
-                <div id="admin-fields" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-                
-                <div class="card p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-black uppercase text-xs tracking-widest text-slate-400">Material-Katalog (Cloud)</h2>
-                        <button onclick="addStone()" class="bg-slate-100 dark:bg-white/5 px-4 py-2 rounded-lg text-blue-500 font-bold text-[10px] uppercase tracking-widest hover:bg-blue-500 hover:text-white transition-all">+ Stein hinzufügen</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Preis-Parameter</h3>
+                        <div id="admin-fields" class="space-y-4"></div>
                     </div>
-                    <div id="admin-table" class="space-y-3"></div>
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Material-Katalog</h3>
+                        <div class="flex justify-end mb-4">
+                            <button onclick="addStone()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all">+ Stein hinzufügen</button>
+                        </div>
+                        <div id="admin-table" class="space-y-3 overflow-y-auto max-h-[600px] pr-2"></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -223,7 +226,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- DEINE API KEYS HIER EINTRAGEN ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -237,13 +240,63 @@
         
         let app, auth, db;
         
+        // --- DEFAULTS AUS SCREENSHOT ---
         const DEFAULTS = {
             stones: [
-                { name: "Nero Assoluto 2cm", price: 245, isDekton: false },
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
-                { name: "Dekton Laurent", price: 456, isDekton: true }
+                { name: "Dekton Morpheus", price: 652, isDekton: true },
+                { name: "Steel Grey 226", price: 226, isDekton: false },
+                { name: "Dekton Laurent", price: 456, isDekton: true },
+                { name: "Dekton Kairos", price: 384, isDekton: true },
+                { name: "Dekton Domoos", price: 576, isDekton: true },
+                { name: "Café Imperial", price: 275, isDekton: false },
+                { name: "Breccia Imperiale", price: 395, isDekton: false },
+                { name: "Dekton Albarium", price: 576, isDekton: true },
+                { name: "Dekton Sandik", price: 576, isDekton: true },
+                { name: "Dekton Adia", price: 576, isDekton: true },
+                { name: "Dekton Opera", price: 641, isDekton: true },
+                { name: "Dekton Reverie", price: 641, isDekton: true },
+                { name: "Via Lattea", price: 275, isDekton: false },
+                { name: "Dekton Lunar 22", price: 379, isDekton: true },
+                { name: "Tropical Storm", price: 395, isDekton: false },
+                { name: "Dekton Entzo", price: 641, isDekton: true },
+                { name: "Dekton Sirius PROMO", price: 380, isDekton: true },
+                { name: "Dekton Eter PROMO", price: 360, isDekton: true },
+                { name: "Dekton Danae", price: 384, isDekton: true },
+                { name: "Dekton Aeris", price: 384, isDekton: true },
+                { name: "Dekton REM PROMO", price: 465, isDekton: true },
+                { name: "Mont Blanc 542 poliert", price: 542, isDekton: false },
+                { name: "Dekton Sasea PG1", price: 495, isDekton: true },
+                { name: "Dekton Nacre PG1", price: 495, isDekton: true },
+                { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false },
+                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true },
+                { name: "Nero Assoluto", price: 245, isDekton: false }
             ],
-            config: { factor: 1.5, measure: 150, delivery: 850, gluing: 250, natEdge: 18, dekEdge: 25, natCut: 145, dekCut: 185, miter: 55, adminPass: "1234" }
+            config: { 
+                factor: 1.5, 
+                measure: 100, 
+                delivery: 700, 
+                gluing: 250, 
+                natEdge: 15, 
+                dekEdge: 20, 
+                natCut: 137, 
+                dekCut: 177, 
+                miter: 45, 
+                adminPass: "1234" 
+            }
+        };
+
+        const configLabels = {
+            factor: "VK-Kalkulationsfaktor (z.B. 1.5)",
+            measure: "Preis Aufmaß (Pauschal)",
+            delivery: "Preis Montage (Pauschal)",
+            gluing: "Preis Verkleben (Pauschal)",
+            natEdge: "Kante Naturstein (€/Lfm)",
+            dekEdge: "Kante Dekton (€/Lfm)",
+            natCut: "Ausschnitt Natur (€/Stk)",
+            dekCut: "Ausschnitt Dekton (€/Stk)",
+            miter: "Gehrung (€/Lfm)",
+            adminPass: "Admin Passwort"
         };
 
         let stones = JSON.parse(localStorage.getItem('ls_stones')) || DEFAULTS.stones;
@@ -273,10 +326,8 @@
         };
 
         const initSync = async () => {
-            updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
-
-            if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
-                updateStatus("Keys fehlen", "bg-red-500", "Bitte API-Keys im Code hinterlegen.");
+            if (!firebaseConfig.apiKey) {
+                updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
                 render();
                 return;
             }
@@ -286,11 +337,10 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Timeout-Sicherung (falls Firestore gar nicht antwortet)
                 const dbTimeout = setTimeout(() => {
                     const status = document.getElementById('status-text').innerText;
                     if (status === "Verbinde DB...") {
-                        updateStatus("Warte...", "bg-amber-500", "Verbindung steht, aber keine Antwort von der DB. Hast du schon Daten hochgeladen?");
+                        updateStatus("Warte...", "bg-amber-500", "Keine Antwort von der DB.");
                         document.getElementById('manual-init-btn').classList.remove('hidden');
                     }
                 }, 10000);
@@ -299,8 +349,6 @@
                     if (user) {
                         currentUser = user;
                         updateStatus("Verbinde DB...", "bg-blue-500 animate-pulse");
-                        
-                        // KORREKTER PFAD: artifacts/{appId}/public/data/config/settings (6 Elemente)
                         const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
@@ -316,15 +364,13 @@
                                 document.getElementById('manual-init-btn').classList.add('hidden');
                                 render();
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten gefunden. Bitte Admin -> Upload nutzen.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Nutze Admin -> Upload.");
                                 document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
                             clearTimeout(dbTimeout);
-                            console.error("Firestore Error:", err);
-                            const msg = err.code === 'permission-denied' ? "Zugriff verweigert! Regeln prüfen." : err.message;
-                            updateStatus("Fehler", "bg-red-500", msg);
+                            updateStatus("Fehler", "bg-red-500", err.message);
                             render();
                         });
                     }
@@ -333,7 +379,6 @@
                 await signInAnonymously(auth);
 
             } catch (e) {
-                console.error("Init Error:", e);
                 updateStatus("Abbruch", "bg-red-600", e.message);
                 render();
             }
@@ -346,48 +391,15 @@
             }
             updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
             try {
-                // KORREKTER PFAD: artifacts/{appId}/public/data/config/settings
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
-                await setDoc(docRef, { 
-                    stones, 
-                    config, 
-                    updated: Date.now(), 
-                    editor: currentUser.uid 
-                });
-                showAlert("Erfolgreich synchronisiert!");
+                await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
+                showAlert("Cloud aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
-                console.error("Upload Error:", e);
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Fehler", "bg-red-500", "Check Firestore Regeln!");
+                updateStatus("Fehler", "bg-red-500");
             }
-        };
-
-        // --- Standard Kalkulations-Funktionen ---
-        window.checkAdminPass = () => {
-            const input = document.getElementById('adminPassInput').value;
-            if (input === (config.adminPass || "1234")) {
-                adminAuth = true;
-                document.getElementById('admin-gate').classList.add('hidden');
-                document.getElementById('adminPassInput').value = '';
-                showAdminTab();
-            } else {
-                showAlert("Passwort falsch!");
-                document.getElementById('adminPassInput').value = '';
-            }
-        };
-
-        window.closeAdminGate = () => {
-            document.getElementById('admin-gate').classList.add('hidden');
-            switchTab('calc');
-        };
-
-        const showAdminTab = () => {
-            document.getElementById('tab-calc').classList.add('hidden');
-            document.getElementById('tab-admin').classList.remove('hidden');
-            document.getElementById('btn-calc').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
-            document.getElementById('btn-admin').className = 'tab-btn active-tab uppercase tracking-widest text-[10px]';
         };
 
         window.calculate = () => {
@@ -395,21 +407,26 @@
             if (!sel) return;
             const stone = stones[sel.value];
             if (!stone) return;
+
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
+            
             const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
             const lfm = parseFloat(document.getElementById('lfmInput').value) || 0;
             const miter = parseFloat(document.getElementById('miterInput').value) || 0;
             const flush = parseInt(document.getElementById('flushCount').innerText);
             const under = parseInt(document.getElementById('underCount').innerText);
             const glue = document.getElementById('gluingCheck').checked;
+
             const sumMat = sqm * stone.price;
             const sumEdge = lfm * edgeRate;
             const sumCut = (flush + under) * cutRate;
             const sumExtra = (miter * (config.miter || 0)) + (glue ? config.gluing : 0) + (activeServices.measure ? config.measure : 0) + (activeServices.delivery ? config.delivery : 0);
+
             const ek = sumMat + sumEdge + sumCut + sumExtra;
             const fmt = v => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
+
             document.getElementById('resMat').innerText = fmt(sumMat);
             document.getElementById('resEdge').innerText = fmt(sumEdge);
             document.getElementById('resCut').innerText = fmt(sumCut);
@@ -451,8 +468,6 @@
             document.getElementById('gluingCheck').checked = false;
             activeServices.measure = false;
             activeServices.delivery = false;
-            document.getElementById('btn-measure').className = 'py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase';
-            document.getElementById('btn-delivery').className = 'py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase';
             toggleGlue();
             window.calculate();
         };
@@ -460,7 +475,6 @@
         window.switchTab = (t) => {
             if (t === 'admin' && !adminAuth) {
                 document.getElementById('admin-gate').classList.remove('hidden');
-                document.getElementById('adminPassInput').focus();
                 return;
             }
             document.getElementById('tab-calc').classList.toggle('hidden', t !== 'calc');
@@ -469,43 +483,49 @@
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
         };
 
+        window.checkAdminPass = () => {
+            if (document.getElementById('adminPassInput').value === config.adminPass) {
+                adminAuth = true;
+                document.getElementById('admin-gate').classList.add('hidden');
+                switchTab('admin');
+            } else { showAlert("Passwort falsch!"); }
+        };
+
+        window.closeAdminGate = () => document.getElementById('admin-gate').classList.add('hidden');
+
         window.addStone = () => {
             stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
             render();
-            showAlert("Neuer Stein hinzugefügt.");
         };
 
         const render = () => {
             const sel = document.getElementById('stoneSelect');
-            if (!sel) return;
-            const curIdx = sel.value || 0;
+            const curVal = sel.value;
             sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
-            if (curIdx < stones.length) sel.value = curIdx;
-            const fieldsEl = document.getElementById('admin-fields');
-            if (fieldsEl) {
-                fieldsEl.innerHTML = Object.keys(config).map(k => `
-                    <div class="card p-4 dark:bg-darkCard">
-                        <label class="text-[9px] font-black text-slate-500 uppercase mb-1 block tracking-wider">${k === 'adminPass' ? 'Admin Passwort' : k}</label>
-                        <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" onchange="config['${k}']=this.type==='number'?parseFloat(this.value):this.value;" class="input-field text-sm font-mono">
+            if (curVal < stones.length) sel.value = curVal;
+
+            document.getElementById('admin-fields').innerHTML = Object.keys(config).map(k => `
+                <div>
+                    <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
+                    <input type="${k === 'adminPass' ? 'text' : 'number'}" step="0.01" value="${config[k]}" 
+                        onchange="config['${k}']=this.type==='number'?parseFloat(this.value):this.value;" 
+                        class="input-field text-sm font-mono">
+                </div>
+            `).join('');
+
+            document.getElementById('admin-table').innerHTML = stones.map((s, i) => `
+                <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
+                    <input value="${s.name}" onchange="stones[${i}].name=this.value; render();" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                    <div class="flex items-center gap-2">
+                        <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
+                        <input type="number" value="${s.price}" onchange="stones[${i}].price=parseFloat(this.value); calculate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
+                        <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton; render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
+                            ${s.isDekton?'Dekton':'Naturstein'}
+                        </button>
+                        <button onclick="stones.splice(${i},1); render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
                     </div>
-                `).join('');
-            }
-            const tableEl = document.getElementById('admin-table');
-            if (tableEl) {
-                tableEl.innerHTML = stones.map((s, i) => `
-                    <div class="flex flex-col md:flex-row md:items-center gap-3 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
-                        <input value="${s.name}" onchange="stones[${i}].name=this.value;" class="bg-transparent flex-1 font-bold outline-none text-sm px-2 py-1 border-b md:border-b-0 border-slate-200 dark:border-darkBorder">
-                        <div class="flex items-center gap-2">
-                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="number" value="${s.price}" onchange="stones[${i}].price=parseFloat(this.value);" class="bg-white dark:bg-darkCard w-24 text-center font-mono outline-none text-sm border dark:border-darkBorder rounded-lg p-1">
-                            <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton;render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-20">
-                                ${s.isDekton?'Dekton':'Natur'}
-                            </button>
-                            <button onclick="stones.splice(${i},1);render();" class="text-slate-300 hover:text-red-500 px-3 transition-colors text-lg">✕</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+                </div>
+            `).join('');
             window.calculate();
         };
 
@@ -515,13 +535,6 @@
             document.getElementById('sunIcon').classList.toggle('hidden', !isD);
             document.getElementById('moonIcon').classList.toggle('hidden', isD);
         };
-        const t = localStorage.getItem('ls_theme');
-        if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            document.getElementById('sunIcon').classList.remove('hidden');
-            document.getElementById('moonIcon').classList.add('hidden');
-        }
-        document.getElementById('adminPassInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAdminPass(); });
 
         initSync();
     </script>

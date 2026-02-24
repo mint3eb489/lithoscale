@@ -50,11 +50,11 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Initialisierung...</span>
+                <span id="status-text" class="text-slate-400">Suche Cloud...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
-            <button id="manual-init-btn" onclick="pushToCloud()" class="hidden text-[8px] bg-blue-600 text-white p-1 px-2 rounded mt-1 uppercase font-black">Daten erzwingen (Erster Start)</button>
+            <button id="manual-init-btn" onclick="pushToCloud()" class="hidden text-[8px] bg-blue-600 text-white p-1 px-2 rounded mt-1 uppercase font-black shadow-lg">Daten erzwingen (Erster Start)</button>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
@@ -276,7 +276,7 @@
             updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
 
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
-                updateStatus("Keys fehlen", "bg-red-500", "API-Konfiguration unvollständig.");
+                updateStatus("Keys fehlen", "bg-red-500", "Bitte API-Keys im Code hinterlegen.");
                 render();
                 return;
             }
@@ -286,20 +286,22 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // Timeout für Datenbank-Verbindung (falls DB leer ist)
+                // Timeout-Sicherung (falls Firestore gar nicht antwortet)
                 const dbTimeout = setTimeout(() => {
-                    if (document.getElementById('status-text').innerText === "Verbinde DB...") {
-                        updateStatus("Cloud Leer?", "bg-amber-500", "Verbindung steht, aber keine Daten gefunden.");
+                    const status = document.getElementById('status-text').innerText;
+                    if (status === "Verbinde DB...") {
+                        updateStatus("Warte...", "bg-amber-500", "Verbindung steht, aber keine Antwort von der DB. Hast du schon Daten hochgeladen?");
                         document.getElementById('manual-init-btn').classList.remove('hidden');
                     }
-                }, 8000);
+                }, 10000);
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
                         updateStatus("Verbinde DB...", "bg-blue-500 animate-pulse");
                         
-                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
+                        // KORREKTER PFAD: artifacts/{appId}/public/data/config/settings (6 Elemente)
+                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
                             clearTimeout(dbTimeout);
@@ -314,14 +316,15 @@
                                 document.getElementById('manual-init-btn').classList.add('hidden');
                                 render();
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Bitte Admin -> Upload nutzen.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten gefunden. Bitte Admin -> Upload nutzen.");
                                 document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
                             clearTimeout(dbTimeout);
-                            const msg = err.code === 'permission-denied' ? "Rechte verweigert! Firestore Regeln prüfen." : err.message;
-                            updateStatus("Firestore Fehler", "bg-red-500", msg);
+                            console.error("Firestore Error:", err);
+                            const msg = err.code === 'permission-denied' ? "Zugriff verweigert! Regeln prüfen." : err.message;
+                            updateStatus("Fehler", "bg-red-500", msg);
                             render();
                         });
                     }
@@ -330,6 +333,7 @@
                 await signInAnonymously(auth);
 
             } catch (e) {
+                console.error("Init Error:", e);
                 updateStatus("Abbruch", "bg-red-600", e.message);
                 render();
             }
@@ -337,23 +341,30 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Cloud-Verbindung!");
+                showAlert("Keine Verbindung!");
                 return;
             }
             updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
             try {
-                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
-                await setDoc(docRef, { stones, config, updated: Date.now(), editor: currentUser.uid });
-                showAlert("Daten erfolgreich synchronisiert!");
+                // KORREKTER PFAD: artifacts/{appId}/public/data/config/settings
+                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
+                await setDoc(docRef, { 
+                    stones, 
+                    config, 
+                    updated: Date.now(), 
+                    editor: currentUser.uid 
+                });
+                showAlert("Erfolgreich synchronisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
+                console.error("Upload Error:", e);
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Cloud Fehler", "bg-red-500", "Schreibzugriff verweigert.");
+                updateStatus("Fehler", "bg-red-500", "Check Firestore Regeln!");
             }
         };
 
-        // --- Standard UI Funktionen ---
+        // --- Standard Kalkulations-Funktionen ---
         window.checkAdminPass = () => {
             const input = document.getElementById('adminPassInput').value;
             if (input === (config.adminPass || "1234")) {

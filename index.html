@@ -50,11 +50,11 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Initialisierung...</span>
+                <span id="status-text" class="text-slate-400">Verbindung prüfen...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
-            <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
-            <button id="manual-init-btn" onclick="pushToCloud()" class="hidden text-[8px] bg-blue-600 text-white p-1 px-2 rounded mt-1 uppercase font-black shadow-lg">Daten erzwingen (Erster Start)</button>
+            <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-2 px-3 rounded-lg border border-red-500/20 max-w-[250px] text-right"></div>
+            <button id="manual-init-btn" onclick="resetAndPush()" class="hidden text-[8px] bg-blue-600 text-white p-2 px-3 rounded-xl mt-1 uppercase font-black shadow-lg">Katalog-Reset (Alle Steine laden)</button>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
@@ -242,7 +242,6 @@
         let lastLocalUpdate = 0; 
         let isUploading = false;
 
-        // Vollständiger Katalog aus deinen Screenshots
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
@@ -275,32 +274,21 @@
                 { name: "Nero Assoluto", price: 245, isDekton: false }
             ],
             config: { 
-                factor: 1.5, 
-                measure: 100, 
-                delivery: 700, 
-                gluing: 250, 
-                natEdge: 15, 
-                dekEdge: 20, 
-                natCut: 137, 
-                dekCut: 177, 
-                miter: 45, 
-                adminPass: "1234" 
+                factor: 1.5, measure: 100, delivery: 700, gluing: 250, 
+                natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177, 
+                miter: 45, adminPass: "1234" 
             }
         };
 
         const configLabels = {
-            factor: "VK-Kalkulationsfaktor (z.B. 1.5)",
-            measure: "Preis Aufmaß (Pauschal)",
-            delivery: "Preis Montage (Pauschal)",
-            gluing: "Preis Verkleben (Pauschal)",
-            natEdge: "Kante Naturstein (€/Lfm)",
-            dekEdge: "Kante Dekton (€/Lfm)",
-            natCut: "Ausschnitt Natur (€/Stk)",
-            dekCut: "Ausschnitt Dekton (€/Stk)",
-            miter: "Gehrung (€/Lfm)",
-            adminPass: "Admin Passwort"
+            factor: "VK-Faktor (z.B. 1.5)", measure: "Aufmaß (€)", delivery: "Montage (€)",
+            gluing: "Verkleben (€)", natEdge: "Kante Natur (€/Lfm)", dekEdge: "Kante Dekton (€/Lfm)",
+            natCut: "Ausschnitt Natur (€/Stk)", dekCut: "Ausschnitt Dekton (€/Stk)",
+            miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
+        // PRIO: Wir schauen erst, ob LocalStorage DA ist. Falls ja, nutzen wir es.
+        // Wenn du den Reset-Button drückst, löschen wir LocalStorage und erzwingen DEFAULTS.
         let stones = JSON.parse(localStorage.getItem('ls_stones')) || DEFAULTS.stones;
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
         let activeServices = { measure: false, delivery: false };
@@ -328,7 +316,7 @@
 
         const initSync = async () => {
             if (!firebaseConfig.apiKey) {
-                updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
+                updateStatus("Keys fehlen", "bg-red-500", "API-Keys im Code eintragen.");
                 render();
                 return;
             }
@@ -343,15 +331,15 @@
                         currentUser = user;
                         updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
                         
-                        // Pfad: artifacts/{appId}/public/data/settings/active
-                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
+                        // PFAD: artifacts/{appId}/public/data/settings/doc
+                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'doc');
                         
                         onSnapshot(docRef, (snap) => {
                             if (isUploading) return;
 
                             if (snap.exists()) {
                                 const data = snap.data();
-                                // Nur aktualisieren, wenn Cloud-Daten NEUER sind
+                                // Nur übernehmen, wenn Cloud-Daten NEUER sind als unsere letzte lokale Aktion
                                 if (!data.updated || data.updated > lastLocalUpdate) {
                                     stones = data.stones || stones;
                                     config = data.config || config;
@@ -363,12 +351,12 @@
                                     render();
                                 }
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Bitte UPLOAD CLOUD nutzen.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Button unten nutzen.");
                                 document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
-                            updateStatus("Fehler", "bg-red-500", "DB-Fehler: " + err.message);
+                            updateStatus("Fehler", "bg-red-500", "Snapshot Error: " + err.message);
                             render();
                         });
                     } else {
@@ -383,40 +371,40 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Cloud-Verbindung!");
+                showAlert("Keine DB-Verbindung!");
                 return;
             }
-            
             isUploading = true;
             updateStatus("Sende...", "bg-blue-500 animate-pulse");
-            const timestamp = Date.now();
+            const ts = Date.now();
             
             try {
-                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
-                
-                const payload = { 
-                    stones: JSON.parse(JSON.stringify(stones)), 
-                    config: JSON.parse(JSON.stringify(config)), 
-                    updated: timestamp, 
-                    editor: currentUser.uid 
-                };
-
-                await setDoc(docRef, payload);
-                
-                lastLocalUpdate = timestamp; 
+                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'doc');
+                await setDoc(docRef, { 
+                    stones, config, updated: ts, editor: currentUser.uid 
+                });
+                lastLocalUpdate = ts;
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
-                
-                showAlert("Cloud aktualisiert!");
+                showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Fehler", "bg-red-500", "Upload-Fehler: " + e.message);
-                console.error("Upload Error:", e);
+                updateStatus("Fehler", "bg-red-500", "Upload Error: " + e.message);
             } finally {
                 isUploading = false;
             }
+        };
+
+        // Hilfsfunktion: Löscht lokalen Cache und schiebt DEFAULTS hoch
+        window.resetAndPush = () => {
+            localStorage.removeItem('ls_stones');
+            localStorage.removeItem('ls_config');
+            stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
+            config = JSON.parse(JSON.stringify(DEFAULTS.config));
+            lastLocalUpdate = Date.now();
+            window.pushToCloud();
         };
 
         window.markLocalUpdate = () => {
@@ -546,7 +534,7 @@
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
                 tableContainer.innerHTML = stones.map((s, i) => `
-                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
+                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
                         <input value="${s.name}" oninput="stones[${i}].name=this.value; markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>

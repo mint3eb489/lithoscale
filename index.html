@@ -50,7 +50,7 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Initialisierung...</span>
+                <span id="status-text" class="text-slate-400">Warte auf Start...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-1 px-2 rounded-lg border border-red-500/20 max-w-[200px] text-right"></div>
@@ -86,6 +86,7 @@
             <!-- RECHNER -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
                 <div class="lg:col-span-3 space-y-5">
+                    <!-- ... (Inhalt identisch zu vorher) ... -->
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
                             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Konfiguration</h2>
@@ -140,6 +141,7 @@
                 </div>
 
                 <div class="lg:col-span-2">
+                    <!-- ... (Zusammenfassung identisch) ... -->
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-8 shadow-2xl border border-darkBorder">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
                         <div class="space-y-4 text-xs mb-8">
@@ -272,20 +274,29 @@
         };
 
         const initSync = async () => {
+            updateStatus("Initialisierung...", "bg-slate-400 animate-pulse");
+
             if (!firebaseConfig.apiKey || firebaseConfig.apiKey === "DEIN_KEY") {
-                updateStatus("Keys fehlen", "bg-red-500", "Kein API Key im Code hinterlegt.");
+                updateStatus("Keys fehlen", "bg-red-500", "Kopiere deine echten Keys in den Code!");
                 render();
                 return;
             }
 
             try {
+                // 1. App initialisieren
+                updateStatus("Firebase Start...", "bg-amber-400 animate-pulse");
                 app = initializeApp(firebaseConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                // 2. Auth starten
+                updateStatus("Authentifizierung...", "bg-blue-400 animate-pulse");
+                
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
                         currentUser = user;
+                        updateStatus("Verbinde DB...", "bg-blue-500 animate-pulse");
+                        
                         const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings');
                         
                         onSnapshot(docRef, (snap) => {
@@ -299,21 +310,24 @@
                                 document.getElementById('error-display').classList.add('hidden');
                                 render();
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Daten in der Cloud. Bitte Upload im Admin-Bereich nutzen.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Daten gefunden. Bitte Admin -> Upload.");
                                 render();
                             }
                         }, (err) => {
                             console.error("Firestore Error:", err);
-                            updateStatus("Rechte-Fehler", "bg-red-500", "Firebase Zugriff verweigert. Regeln prüfen!");
+                            // Prüfen ob es ein Domain-Fehler ist
+                            const msg = err.code === 'permission-denied' ? "Rechte verweigert! Regeln prüfen." : err.message;
+                            updateStatus("Firestore Fehler", "bg-red-500", msg);
                             render();
                         });
                     }
                 });
 
                 await signInAnonymously(auth);
+
             } catch (e) {
-                console.error("Init Error:", e);
-                updateStatus("Lokal Modus", "bg-blue-400", e.message);
+                console.error("Gesamt-Fehler:", e);
+                updateStatus("Abbruch", "bg-red-600", "Technischer Fehler: " + e.message);
                 render();
             }
         };
@@ -331,11 +345,11 @@
             } catch (e) {
                 console.error("Upload Error:", e);
                 showAlert("Fehler beim Speichern!");
-                updateStatus("Cloud Fehler", "bg-red-500", "Upload fehlgeschlagen. Datenbank-Regeln?");
+                updateStatus("Cloud Fehler", "bg-red-500", "Prüfe deine Firestore-Regeln.");
             }
         };
 
-        // --- ADMIN LOGIN ---
+        // --- REST DER FUNKTIONEN (unverändert) ---
         window.checkAdminPass = () => {
             const input = document.getElementById('adminPassInput').value;
             if (input === (config.adminPass || "1234")) {
@@ -361,33 +375,26 @@
             document.getElementById('btn-admin').className = 'tab-btn active-tab uppercase tracking-widest text-[10px]';
         };
 
-        // --- RECHNER LOGIK ---
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
             const stone = stones[sel.value];
             if (!stone) return;
-
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
-
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
-            
             const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
             const lfm = parseFloat(document.getElementById('lfmInput').value) || 0;
             const miter = parseFloat(document.getElementById('miterInput').value) || 0;
             const flush = parseInt(document.getElementById('flushCount').innerText);
             const under = parseInt(document.getElementById('underCount').innerText);
             const glue = document.getElementById('gluingCheck').checked;
-
             const sumMat = sqm * stone.price;
             const sumEdge = lfm * edgeRate;
             const sumCut = (flush + under) * cutRate;
             const sumExtra = (miter * (config.miter || 0)) + (glue ? config.gluing : 0) + (activeServices.measure ? config.measure : 0) + (activeServices.delivery ? config.delivery : 0);
-
             const ek = sumMat + sumEdge + sumCut + sumExtra;
             const fmt = v => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
-
             document.getElementById('resMat').innerText = fmt(sumMat);
             document.getElementById('resEdge').innerText = fmt(sumEdge);
             document.getElementById('resCut').innerText = fmt(sumCut);
@@ -459,7 +466,6 @@
             const curIdx = sel.value || 0;
             sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
             if (curIdx < stones.length) sel.value = curIdx;
-
             const fieldsEl = document.getElementById('admin-fields');
             if (fieldsEl) {
                 fieldsEl.innerHTML = Object.keys(config).map(k => `
@@ -469,7 +475,6 @@
                     </div>
                 `).join('');
             }
-
             const tableEl = document.getElementById('admin-table');
             if (tableEl) {
                 tableEl.innerHTML = stones.map((s, i) => `
@@ -495,14 +500,12 @@
             document.getElementById('sunIcon').classList.toggle('hidden', !isD);
             document.getElementById('moonIcon').classList.toggle('hidden', isD);
         };
-
         const t = localStorage.getItem('ls_theme');
         if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
             document.documentElement.classList.add('dark');
             document.getElementById('sunIcon').classList.remove('hidden');
             document.getElementById('moonIcon').classList.add('hidden');
         }
-
         document.getElementById('adminPassInput').addEventListener('keypress', (e) => { if (e.key === 'Enter') checkAdminPass(); });
 
         initSync();

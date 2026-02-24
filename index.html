@@ -50,11 +50,11 @@
         <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
-                <span id="status-text" class="text-slate-400">Verbindung prüfen...</span>
+                <span id="status-text" class="text-slate-400">Prüfe Cloud...</span>
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-2 px-3 rounded-lg border border-red-500/20 max-w-[250px] text-right"></div>
-            <button id="manual-init-btn" onclick="resetAndPush()" class="hidden text-[8px] bg-blue-600 text-white p-2 px-3 rounded-xl mt-1 uppercase font-black shadow-lg">Katalog-Reset (Alle Steine laden)</button>
+            <button id="manual-init-btn" onclick="resetAndForceSync()" class="hidden text-[8px] bg-blue-600 text-white p-2 px-3 rounded-xl mt-1 uppercase font-black shadow-lg">Katalog-Reset (Alle Steine laden)</button>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4">
@@ -197,7 +197,7 @@
 
         <!-- Password Modal -->
         <div id="admin-gate" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm items-center justify-center hidden p-4">
-            <div class="card p-8 max-w-sm w-full shadow-2xl modal-fade">
+            <div class="card p-8 max-sm w-full shadow-2xl modal-fade">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
                         <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -224,9 +224,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG (Hier deine Keys eintragen) ---
+        // --- FIREBASE CONFIG (Platzhalter) ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -236,11 +236,12 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const internalAppId = 'lithoscale-pro-team-v1';
+        const appId = 'lithoscale-pro-team-v1';
         
         let app, auth, db;
         let lastLocalUpdate = 0; 
         let isUploading = false;
+        let adminAuth = false;
 
         const DEFAULTS = {
             stones: [
@@ -287,10 +288,11 @@
             miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
-        // PRIO: Wir schauen erst, ob LocalStorage DA ist. Falls ja, nutzen wir es.
-        // Wenn du den Reset-Button drückst, löschen wir LocalStorage und erzwingen DEFAULTS.
-        let stones = JSON.parse(localStorage.getItem('ls_stones')) || DEFAULTS.stones;
+        // Cache-Validierung: Falls weniger als 10 Steine da sind, erzwinge DEFAULTS
+        let cachedStones = JSON.parse(localStorage.getItem('ls_stones'));
+        let stones = (cachedStones && cachedStones.length > 10) ? cachedStones : DEFAULTS.stones;
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
+        
         let activeServices = { measure: false, delivery: false };
         let currentUser = null;
 
@@ -316,7 +318,7 @@
 
         const initSync = async () => {
             if (!firebaseConfig.apiKey) {
-                updateStatus("Keys fehlen", "bg-red-500", "API-Keys im Code eintragen.");
+                updateStatus("Keys fehlen", "bg-red-500", "Firebase Keys fehlen.");
                 render();
                 return;
             }
@@ -329,17 +331,17 @@
                 onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUser = user;
-                        updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
+                        updateStatus("Prüfe Cloud...", "bg-blue-500 animate-pulse");
                         
-                        // PFAD: artifacts/{appId}/public/data/settings/doc
-                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'doc');
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'doc');
                         
                         onSnapshot(docRef, (snap) => {
-                            if (isUploading) return;
+                            // Wenn wir gerade im Admin-Tab tippen oder hochladen, ignorieren wir die Cloud
+                            if (isUploading || adminAuth) return;
 
                             if (snap.exists()) {
                                 const data = snap.data();
-                                // Nur übernehmen, wenn Cloud-Daten NEUER sind als unsere letzte lokale Aktion
+                                // Nur übernehmen, wenn Cloud-Daten NEUER sind oder lokal nichts da ist
                                 if (!data.updated || data.updated > lastLocalUpdate) {
                                     stones = data.stones || stones;
                                     config = data.config || config;
@@ -351,12 +353,12 @@
                                     render();
                                 }
                             } else {
-                                updateStatus("Cloud Leer", "bg-amber-500", "Keine Cloud-Daten. Button unten nutzen.");
+                                updateStatus("Cloud Leer", "bg-amber-500", "Datenbank auf Server leer.");
                                 document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
-                            updateStatus("Fehler", "bg-red-500", "Snapshot Error: " + err.message);
+                            updateStatus("Fehler", "bg-red-500", "DB-Fehler: " + err.message);
                             render();
                         });
                     } else {
@@ -371,46 +373,57 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine DB-Verbindung!");
+                showAlert("Keine Cloud-Verbindung!");
                 return;
             }
+            
             isUploading = true;
             updateStatus("Sende...", "bg-blue-500 animate-pulse");
             const ts = Date.now();
             
             try {
-                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'doc');
-                await setDoc(docRef, { 
-                    stones, config, updated: ts, editor: currentUser.uid 
-                });
-                lastLocalUpdate = ts;
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'doc');
+                
+                const payload = { 
+                    stones: stones, 
+                    config: config, 
+                    updated: ts, 
+                    editor: currentUser.uid 
+                };
+
+                await setDoc(docRef, payload);
+                
+                lastLocalUpdate = ts; 
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
+                
                 showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
-                updateStatus("Fehler", "bg-red-500", "Upload Error: " + e.message);
+                updateStatus("Fehler", "bg-red-500", "Upload-Fehler: " + e.message);
             } finally {
                 isUploading = false;
             }
         };
 
-        // Hilfsfunktion: Löscht lokalen Cache und schiebt DEFAULTS hoch
-        window.resetAndPush = () => {
-            localStorage.removeItem('ls_stones');
-            localStorage.removeItem('ls_config');
+        // Erzwingt DEFAULTS und schiebt sie in die Cloud
+        window.resetAndForceSync = () => {
             stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
             config = JSON.parse(JSON.stringify(DEFAULTS.config));
             lastLocalUpdate = Date.now();
             window.pushToCloud();
+            render();
         };
 
+        // Wird bei jeder Änderung im Admin-Tab aufgerufen
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(stones));
             localStorage.setItem('ls_config', JSON.stringify(config));
+            // Sofort Rechner neu kalkulieren
+            window.calculate();
         };
 
         window.calculate = () => {
@@ -485,7 +498,7 @@
         };
 
         window.switchTab = (t) => {
-            if (t === 'admin' && typeof window.adminAuth === 'undefined') {
+            if (t === 'admin' && !adminAuth) {
                 document.getElementById('admin-gate').classList.remove('hidden');
                 return;
             }
@@ -493,12 +506,17 @@
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
             document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+            
+            // Wenn wir den Admin-Tab verlassen, setzen wir adminAuth auf false, um Snapshots wieder zuzulassen
+            if (t === 'calc') {
+                adminAuth = false;
+            }
             render();
         };
 
         window.checkAdminPass = () => {
             if (document.getElementById('adminPassInput').value === config.adminPass) {
-                window.adminAuth = true;
+                adminAuth = true;
                 document.getElementById('admin-gate').classList.add('hidden');
                 switchTab('admin');
             } else { showAlert("Passwort falsch!"); }

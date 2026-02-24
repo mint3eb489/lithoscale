@@ -223,7 +223,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        // Auth-Import um signInWithCustomToken erweitert für dynamische Umgebungen
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIG ---
@@ -236,9 +237,15 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const internalAppId = 'lithoscale-pro-team-v1';
+        // Fallback für Canvas-Laufzeitumgebung
+        const activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         
+        // Canvas-App-ID Dynamik (verhindert Permission-Denied Fehler)
+        const internalAppId = typeof __app_id !== 'undefined' ? __app_id : 'lithoscale-pro-team-v1';
+        
+        // WICHTIGER FIX: currentUser deklarieren, um ReferenceError im Strict Mode zu verhindern
         let app, auth, db, unsubCloud;
+        let currentUser = null; 
         let isUploading = false;
         let isAdminActive = false;
         let lastLocalUpdate = 0;
@@ -314,23 +321,29 @@
         };
 
         const initFirebase = async () => {
-            if (!firebaseConfig.apiKey) {
+            if (!activeConfig.apiKey && typeof __firebase_config === 'undefined') {
                 updateStatus("Keys fehlen", "bg-red-500", "Keine API-Konfiguration gefunden.");
                 render();
                 return;
             }
 
             try {
-                app = initializeApp(firebaseConfig);
+                app = initializeApp(activeConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
 
+                // WICHTIGER FIX: Warten auf Auth VOR Listener-Initialisierung
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+
+                // Listener nur aufsetzen, wenn Auth steht
                 onAuthStateChanged(auth, (user) => {
+                    currentUser = user; 
                     if (user) {
-                        currentUser = user;
                         startCloudListener();
-                    } else {
-                        signInAnonymously(auth);
                     }
                 });
             } catch (e) {
@@ -394,6 +407,9 @@
                 showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 document.getElementById('manual-init-btn').classList.add('hidden');
+                
+                // Kalkulation direkt nach Upload aktualisieren
+                window.calculate();
             } catch (e) {
                 showAlert("Upload fehlgeschlagen!");
                 updateStatus("Fehler", "bg-red-500", e.message);

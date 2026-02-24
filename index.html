@@ -226,7 +226,7 @@
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG (Platzhalter) ---
+        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -236,21 +236,30 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        const internalAppId = 'lithoscale-team-sync-v1';
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lithoscale-pro-team-v1';
         
         let app, auth, db;
-        let lastLocalUpdate = 0; // Merkt sich, wann DU zuletzt lokal etwas geändert hast
+        let lastLocalUpdate = 0; 
+        let isUploading = false;
 
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false },
                 { name: "Dekton Morpheus", price: 652, isDekton: true },
-                { name: "Steel Grey 226", price: 226, isDekton: false },
-                { name: "Dekton Laurent", price: 456, isDekton: true },
-                { name: "Taj Mahal poliert", price: 495, isDekton: false },
                 { name: "Nero Assoluto", price: 245, isDekton: false }
             ],
-            config: { factor: 1.5, measure: 100, delivery: 700, gluing: 250, natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177, miter: 45, adminPass: "1234" }
+            config: { 
+                factor: 1.5, 
+                measure: 100, 
+                delivery: 700, 
+                gluing: 250, 
+                natEdge: 15, 
+                dekEdge: 20, 
+                natCut: 137, 
+                dekCut: 177, 
+                miter: 45, 
+                adminPass: "1234" 
+            }
         };
 
         const configLabels = {
@@ -270,7 +279,6 @@
         let config = JSON.parse(localStorage.getItem('ls_config')) || DEFAULTS.config;
         let activeServices = { measure: false, delivery: false };
         let currentUser = null;
-        let isUploading = false;
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
             const elText = document.getElementById('status-text');
@@ -294,7 +302,7 @@
 
         const initSync = async () => {
             if (!firebaseConfig.apiKey) {
-                updateStatus("Keys fehlen", "bg-red-500", "Hinterlege deine API-Keys im Code.");
+                updateStatus("Keys fehlen", "bg-red-500", "API-Konfiguration prüfen.");
                 render();
                 return;
             }
@@ -304,41 +312,43 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                onAuthStateChanged(auth, (user) => {
+                onAuthStateChanged(auth, async (user) => {
                     if (user) {
                         currentUser = user;
-                        updateStatus("Verbinde DB...", "bg-blue-500 animate-pulse");
-                        const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
+                        updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
+                        
+                        // KORREKTER PFAD: artifacts/{appId}/public/data/settings/active (6 Segmente)
+                        const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'active');
                         
                         onSnapshot(docRef, (snap) => {
                             if (isUploading) return;
 
                             if (snap.exists()) {
                                 const data = snap.data();
-                                
-                                // WICHTIG: Nur übernehmen, wenn die Daten aus der Cloud NEUER sind als unsere letzte lokale Eingabe
-                                if (data.updated && data.updated > lastLocalUpdate) {
+                                // Nur aktualisieren, wenn Cloud-Daten neuer sind als unsere letzte lokale Änderung
+                                if (!data.updated || data.updated > lastLocalUpdate) {
                                     stones = data.stones || stones;
                                     config = data.config || config;
                                     localStorage.setItem('ls_stones', JSON.stringify(stones));
                                     localStorage.setItem('ls_config', JSON.stringify(config));
                                     updateStatus("Cloud Aktiv", "bg-green-500");
                                     document.getElementById('error-display').classList.add('hidden');
+                                    document.getElementById('manual-init-btn').classList.add('hidden');
                                     render();
                                 }
                             } else {
                                 updateStatus("Cloud Leer", "bg-amber-500");
+                                document.getElementById('manual-init-btn').classList.remove('hidden');
                                 render();
                             }
                         }, (err) => {
                             updateStatus("Fehler", "bg-red-500", err.message);
                             render();
                         });
+                    } else {
+                        await signInAnonymously(auth);
                     }
                 });
-
-                await signInAnonymously(auth);
-
             } catch (e) {
                 updateStatus("Abbruch", "bg-red-600", e.message);
                 render();
@@ -351,11 +361,11 @@
                 return;
             }
             isUploading = true;
-            updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
+            updateStatus("Sende...", "bg-blue-500 animate-pulse");
             const timestamp = Date.now();
             
             try {
-                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'config', 'settings');
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings', 'active');
                 await setDoc(docRef, { 
                     stones, 
                     config, 
@@ -363,24 +373,27 @@
                     editor: currentUser.uid 
                 });
                 
-                lastLocalUpdate = timestamp; // Unsere Version ist nun die aktuellste bekannte
+                lastLocalUpdate = timestamp; 
                 localStorage.setItem('ls_stones', JSON.stringify(stones));
                 localStorage.setItem('ls_config', JSON.stringify(config));
                 
-                showAlert("Cloud erfolgreich aktualisiert!");
+                showAlert("Cloud aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
+                document.getElementById('manual-init-btn').classList.add('hidden');
             } catch (e) {
-                console.error(e);
                 showAlert("Upload fehlgeschlagen!");
                 updateStatus("Fehler", "bg-red-500");
+                console.error("Upload Error:", e);
             } finally {
                 isUploading = false;
             }
         };
 
-        // Hilfsfunktion: Wird bei jedem Tastendruck aufgerufen
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
+            // Sofort lokal speichern, falls Browser abstürzt
+            localStorage.setItem('ls_stones', JSON.stringify(stones));
+            localStorage.setItem('ls_config', JSON.stringify(config));
         };
 
         window.calculate = () => {
@@ -389,7 +402,6 @@
             const stone = stones[sel.selectedIndex];
             if (!stone) return;
 
-            // KORREKTUR: Raten-Zuordnung (isDekton Check)
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
             
@@ -464,8 +476,6 @@
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
             document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
-            
-            // WICHTIG: Beim Tab-Wechsel einmal alles neu zeichnen
             render();
         };
 

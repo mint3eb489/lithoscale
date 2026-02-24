@@ -3,378 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LithoScale PRO | Team Sync</title>
-    
+    <title>SteinKalk Pro Cloud</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        trueBlack: '#000000',
-                        darkCard: '#121212',
-                        darkBorder: '#262626',
-                        gold: { DEFAULT: '#fbbf24' }
-                    }
-                }
-            }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: { colors: { trueBlack: '#000000', darkCard: '#121212', darkBorder: '#262626' } } } }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
-        body { transition: background-color 0.2s; font-family: 'Inter', sans-serif; -webkit-font-smoothing: antialiased; }
-        .input-field { border: 1.5px solid #e2e8f0; border-radius: 0.75rem; padding: 0.8rem; width: 100%; outline: none; font-weight: 600; font-size: 16px; transition: all 0.2s; }
-        .dark .input-field { background-color: #1a1a1a; border-color: #333; color: white; }
-        .input-field:focus { border-color: #fbbf24; }
+        body { transition: background-color 0.2s; -webkit-tap-highlight-color: transparent; }
         .card { background: white; border-radius: 1.25rem; border: 1px solid #e2e8f0; }
-        .dark .card { background: #121212; border-color: #262626; }
-        .pro-badge { display: inline-flex; align-items: center; border: 1.2px solid #fbbf24; color: #fbbf24; border-radius: 5px; padding: 2px 6px; font-size: 0.45em; font-weight: 900; margin-left: 10px; vertical-align: middle; transform: translateY(-2px); }
-        .tab-btn { padding: 0.8rem 1rem; font-weight: 700; font-size: 0.85rem; border-radius: 0.8rem; flex: 1; text-align: center; transition: all 0.2s; }
+        .input-field { border: 1.5px solid #e2e8f0; border-radius: 0.75rem; padding: 0.8rem; width: 100%; outline: none; font-size: 16px; font-weight: 600; }
+        .dark .card { background-color: #121212; border-color: #262626; }
+        .dark .input-field { background-color: #1a1a1a; border-color: #333; color: white; }
+        .badge-dekton { background: #ef4444; color: white; padding: 3px 12px; border-radius: 999px; font-size: 0.7rem; font-weight: 900; }
+        .badge-natur { background: #10b981; color: white; padding: 3px 12px; border-radius: 999px; font-size: 0.7rem; font-weight: 900; }
+        .tab-btn { padding: 0.8rem; font-weight: 700; border-radius: 0.8rem; flex: 1; text-align: center; transition: 0.2s; }
         .active-tab { background: #1a1a1a; color: white; }
-        .dark .active-tab { background: #ffffff; color: #000000; }
+        .dark .active-tab { background: white; color: black; }
         @media print { .no-print { display: none !important; } }
     </style>
 </head>
 <body class="p-3 md:p-8 bg-slate-50 dark:bg-trueBlack text-slate-900 dark:text-slate-100">
-
     <div id="app" class="max-w-4xl mx-auto">
-        <!-- Cloud Sync Status Bar -->
-        <div id="cloud-status" class="fixed top-2 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 rounded-xl shadow-sm border dark:border-darkBorder">
-            <span id="status-text" class="text-slate-400">Suche Cloud...</span>
-            <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400"></div>
-        </div>
-
-        <header class="flex flex-col md:flex-row justify-between items-center mb-10 no-print gap-4">
-            <div class="flex items-center gap-4">
-                <div class="w-14 h-14 bg-black dark:bg-white rounded-2xl flex items-center justify-center shadow-2xl border border-white/10">
-                    <svg class="w-9 h-9 text-blue-500 dark:text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                        <path d="M3 3h18v18H3zM3 9h18M9 3v18" stroke-linecap="round"/>
-                    </svg>
+        <header class="flex flex-col md:flex-row justify-between items-center mb-6 no-print gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 bg-black dark:bg-white rounded-xl flex items-center justify-center shadow-lg">
+                    <svg class="w-8 h-8 text-blue-500 dark:text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3h18v18H3zM3 9h18M9 3v18" stroke-linecap="round"/></svg>
                 </div>
-                <h1 class="text-3xl font-black flex items-center tracking-tighter select-none">
-                    LithoScale <span class="pro-badge">PRO</span>
-                </h1>
+                <div>
+                    <h1 class="text-xl font-black">SteinKalk <span class="text-blue-600">Pro</span></h1>
+                    <p id="status" class="text-slate-400 text-[9px] font-bold uppercase tracking-widest italic">Verbinde Cloud...</p>
+                </div>
             </div>
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <button onclick="toggleTheme()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm">
-                    <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
-                    <svg id="moonIcon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                </button>
-                <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm flex-1">
-                    <button onclick="switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest text-[10px]">Rechner</button>
-                    <button onclick="switchTab('admin')" id="btn-admin" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Admin</button>
-                </div>
+            <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm w-full md:w-auto">
+                <button onclick="switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest">Rechner</button>
+                <button onclick="switchTab('admin')" id="btn-admin" class="tab-btn text-slate-500 uppercase tracking-widest">Admin</button>
             </div>
         </header>
 
-        <div id="main-ui">
-            <!-- RECHNER -->
-            <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
-                <div class="lg:col-span-3 space-y-5">
-                    <div class="card p-6">
-                        <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
-                            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Konfiguration</h2>
-                            <div id="materialBadge"></div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="md:col-span-2">
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Steinart</label>
-                                <select id="stoneSelect" class="input-field mt-1" onchange="calculate()"></select>
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Fläche (m²)</label>
-                                <input type="number" id="sqmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono text-center" oninput="calculate()">
-                            </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Kante (Lfm)</label>
-                                <input type="number" id="lfmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono text-center" oninput="calculate()">
-                            </div>
-                        </div>
+        <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div class="lg:col-span-3 space-y-5">
+                <div class="card p-6">
+                    <div class="flex justify-between items-center mb-5">
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Konfiguration</h2>
+                        <div id="materialBadge"></div>
                     </div>
-
-                    <div class="card p-6">
-                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">Bearbeitungen</h2>
-                        <div class="space-y-4">
-                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
-                                <p class="font-bold text-sm">Flächenbündig</p>
-                                <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="updateCounter('flushCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
-                                    <span id="flushCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="updateCounter('flushCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
-                                <p class="font-bold text-sm">Unterbau</p>
-                                <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="updateCounter('underCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
-                                    <span id="underCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="updateCounter('underCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
-                                </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="number" id="miterInput" placeholder="Gehrung (Lfm)" step="0.01" class="input-field font-mono text-center" oninput="calculate()">
-                                <label id="gluingLabel" class="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 border-slate-200 dark:border-darkBorder h-[54px]">
-                                    <input type="checkbox" id="gluingCheck" class="hidden" onchange="toggleGlue()">
-                                    <span class="text-[10px] font-black uppercase">Verkleben</span>
-                                </label>
-                            </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="md:col-span-2">
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Material</label>
+                            <select id="stoneSelect" class="input-field mt-1" onchange="calculate()"></select>
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Fläche (m²)</label>
+                            <input type="number" id="sqmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono" oninput="calculate()">
+                        </div>
+                        <div>
+                            <label class="text-[10px] font-bold text-slate-500 uppercase ml-1">Kante (Lfm)</label>
+                            <input type="number" id="lfmInput" placeholder="0,00" step="0.01" class="input-field mt-1 font-mono" oninput="calculate()">
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-2">
-                    <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-8 shadow-2xl border border-darkBorder">
-                        <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
-                        <div class="space-y-4 text-xs mb-8">
-                            <div class="flex justify-between font-mono"><span class="text-slate-500">MATERIAL</span><span id="resMat">0,00 €</span></div>
-                            <div class="flex justify-between font-mono"><span class="text-slate-500">KANTEN</span><span id="resEdge">0,00 €</span></div>
-                            <div class="flex justify-between font-mono"><span class="text-slate-500">AUSSCHNITTE</span><span id="resCut">0,00 €</span></div>
-                            <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-2 font-mono"><span class="font-bold uppercase tracking-widest">Service</span><span id="resExtra">0,00 €</span></div>
+                <div class="card p-6">
+                    <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Bearbeitung</h2>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
+                            <span class="text-sm font-bold">Flächenbündig</span>
+                            <div class="flex items-center gap-3">
+                                <button onclick="updateCounter('flushCount', -1)" class="w-8 h-8 bg-white dark:bg-darkCard rounded border dark:border-darkBorder">-</button>
+                                <span id="flushCount" class="font-bold w-4 text-center">0</span>
+                                <button onclick="updateCounter('flushCount', 1)" class="w-8 h-8 bg-white dark:bg-darkCard rounded border dark:border-darkBorder">+</button>
+                            </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-3 mb-8">
-                            <button onclick="toggleService('measure')" id="btn-measure" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Aufmaß</button>
-                            <button onclick="toggleService('delivery')" id="btn-delivery" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Montage</button>
+                        <div class="flex justify-between items-center p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
+                            <span class="text-sm font-bold">Unterbau</span>
+                            <div class="flex items-center gap-3">
+                                <button onclick="updateCounter('underCount', -1)" class="w-8 h-8 bg-white dark:bg-darkCard rounded border dark:border-darkBorder">-</button>
+                                <span id="underCount" class="font-bold w-4 text-center">0</span>
+                                <button onclick="updateCounter('underCount', 1)" class="w-8 h-8 bg-white dark:bg-darkCard rounded border dark:border-darkBorder">+</button>
+                            </div>
                         </div>
-                        <div class="text-center mb-6">
-                            <p class="text-[9px] font-black text-slate-600 uppercase mb-1">Einkaufspreis (EK)</p>
-                            <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter">0,00 €</p>
-                        </div>
-                        <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner">
-                            <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK)</p>
-                            <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter">0,00 €</p>
-                        </div>
-                        <button onclick="window.print()" class="no-print w-full mt-8 bg-white text-black font-black py-4 rounded-xl text-xs uppercase tracking-widest transition-transform active:scale-95">Angebot drucken</button>
                     </div>
                 </div>
             </div>
 
-            <!-- ADMIN -->
-            <div id="tab-admin" class="hidden space-y-6 pb-20 no-print">
-                <div class="card p-6 bg-blue-50 dark:bg-white/5 border border-blue-100 dark:border-darkBorder rounded-2xl flex items-center justify-between">
-                    <div>
-                        <h2 class="text-lg font-black text-blue-900 dark:text-blue-500">Cloud-Management</h2>
-                        <p class="text-xs text-blue-700 dark:text-slate-400">Änderungen werden an alle Geräte gesendet.</p>
+            <div class="lg:col-span-2">
+                <div class="card p-8 bg-black text-white rounded-3xl shadow-2xl border border-darkBorder">
+                    <div class="space-y-4 mb-8 text-xs border-b border-darkBorder pb-6">
+                        <div class="flex justify-between text-slate-500 font-bold"><span>MATERIAL</span><span id="resMat" class="text-slate-200">0,00 €</span></div>
+                        <div class="flex justify-between text-slate-500 font-bold"><span>KANTEN</span><span id="resEdge" class="text-slate-200">0,00 €</span></div>
+                        <div class="flex justify-between text-slate-500 font-bold"><span>AUSSCHNITTE</span><span id="resCut" class="text-slate-200">0,00 €</span></div>
                     </div>
-                    <button onclick="pushToCloud()" id="btn-push" class="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 active:scale-95">UPLOAD</button>
-                </div>
-                
-                <div id="admin-fields" class="grid grid-cols-2 md:grid-cols-4 gap-4"></div>
-                
-                <div class="card p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h2 class="font-black uppercase text-xs tracking-widest text-slate-400">Material-Preise</h2>
-                        <button onclick="addStone()" class="text-blue-500 font-bold text-xs uppercase tracking-widest">+ Hinzufügen</button>
+                    <div class="text-center mb-8">
+                        <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK)</p>
+                        <p id="totalVK" class="font-black text-blue-500 text-5xl tracking-tighter">0,00 €</p>
+                        <p class="text-[9px] text-slate-600 mt-2 italic font-bold uppercase">Inkl. MwSt. & Faktor</p>
                     </div>
-                    <div id="admin-table" class="space-y-2"></div>
+                    <button onclick="window.print()" class="w-full bg-white text-black font-black py-4 rounded-xl uppercase text-xs tracking-widest active:scale-95 transition-all">Angebot drucken</button>
                 </div>
             </div>
         </div>
 
-        <div id="alert-box" class="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] hidden">
-            <div id="alert-content" class="bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl font-bold text-sm border border-white/10"></div>
+        <div id="tab-admin" class="hidden space-y-6 no-print">
+            <div class="card p-6">
+                <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Einstellungen</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[9px] font-bold uppercase text-slate-500">VK-Faktor</label>
+                        <input type="number" id="cfgFactor" step="0.1" class="input-field mt-1" onchange="saveConfig()">
+                    </div>
+                </div>
+            </div>
+            <div class="card p-6">
+                 <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Materialdatenbank</h2>
+                    <button onclick="addStone()" class="bg-blue-600 text-white px-3 py-1 rounded-lg text-[10px] font-bold">+ NEU</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead><tr class="text-slate-400 uppercase font-black border-b border-slate-100 dark:border-darkBorder"><th class="pb-2">Name</th><th class="pb-2">EK/m²</th><th class="pb-2">Typ</th><th class="pb-2 text-right">X</th></tr></thead>
+                        <tbody id="adminStones" class="divide-y divide-slate-50 dark:divide-darkBorder"></tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, onSnapshot, updateDoc, deleteDoc, addDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'lithoscale-v25-final';
-        
+        // --- FIREBASE CONFIG ---
+        const firebaseConfig = {
+    apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
+    authDomain: "lithoscalepro.firebaseapp.com",
+    projectId: "lithoscalepro",
+    storageBucket: "lithoscalepro.firebasestorage.app",
+    messagingSenderId: "1090400345045",
+    appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
+        };
+
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = "stein-kalk-cloud-prod";
 
-        // Fallback-Daten (lokal)
-        const DEFAULTS = {
-            stones: [
-                { name: "Nero Assoluto 2cm", price: 245, isDekton: false },
-                { name: "Marinace Black 2cm", price: 325, isDekton: false },
-                { name: "Steel Grey 226", price: 226, isDekton: false },
-                { name: "Dekton Laurent", price: 456, isDekton: true }
-            ],
-            config: { factor: 1.5, measure: 150, delivery: 850, gluing: 250, natEdge: 18, dekEdge: 25, natCut: 145, dekCut: 185, miter: 55 }
-        };
+        let config = { factor: 1.5, natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177 };
+        let stones = [];
 
-        let stones = JSON.parse(localStorage.getItem('ls_fallback_stones')) || DEFAULTS.stones;
-        let config = JSON.parse(localStorage.getItem('ls_fallback_config')) || DEFAULTS.config;
-        let activeServices = { measure: false, delivery: false };
-
-        const updateStatus = (text, colorClass) => {
-            document.getElementById('status-text').innerText = text;
-            document.getElementById('status-icon').className = `w-2 h-2 rounded-full ${colorClass}`;
-        };
-
-        const showAlert = (msg) => {
-            const box = document.getElementById('alert-box');
-            document.getElementById('alert-content').innerText = msg;
-            box.classList.remove('hidden');
-            setTimeout(() => box.classList.add('hidden'), 3000);
-        };
-
-        // --- CLOUD LOGIC ---
-        const startSync = () => {
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings');
-            
-            onSnapshot(docRef, (snap) => {
-                if (snap.exists()) {
-                    const data = snap.data();
-                    stones = data.stones;
-                    config = data.config;
-                    // Backup im lokalen Speicher für Offline-Fall
-                    localStorage.setItem('ls_fallback_stones', JSON.stringify(stones));
-                    localStorage.setItem('ls_fallback_config', JSON.stringify(config));
-                    updateStatus("Cloud Aktiv", "bg-green-500");
-                    render();
-                } else {
-                    // Falls Cloud leer ist (Erster Start überhaupt)
-                    updateStatus("Cloud Leer", "bg-amber-500");
-                    render();
-                }
-            }, (err) => {
-                console.warn("Sync blocked (Sandbox?)", err);
-                updateStatus("Lokal Modus", "bg-blue-400");
-                render();
-            });
-        };
-
-        window.pushToCloud = async () => {
-            updateStatus("Lade hoch...", "bg-blue-500 animate-pulse");
+        async function init() {
             try {
-                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'settings');
-                await setDoc(docRef, { stones, config, updated: Date.now() });
-                showAlert("Daten in Cloud gespeichert!");
-            } catch (e) {
-                showAlert("Fehler: Cloud-Upload blockiert.");
-                console.error(e);
-            }
-        };
+                await signInAnonymously(auth);
+                onAuthStateChanged(auth, u => {
+                    if (u) {
+                        document.getElementById('status').innerText = "Cloud Online";
+                        document.getElementById('status').classList.remove('text-slate-400');
+                        document.getElementById('status').classList.add('text-green-500');
+                        sync();
+                    }
+                });
+            } catch(e) { document.getElementById('status').innerText = "Offline Modus"; }
+        }
 
-        // --- APP LOGIC ---
+        function sync() {
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'config'), snap => {
+                if (snap.exists()) { config = snap.data(); calculate(); renderAdmin(); }
+                else setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config'), config);
+            });
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'stones'), snap => {
+                stones = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort((a,b) => a.name.localeCompare(b.name));
+                renderSelect();
+                renderAdmin();
+                calculate();
+            });
+        }
+
+        const fmt = v => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
+
         window.calculate = () => {
-            const sel = document.getElementById('stoneSelect');
-            const stone = stones[sel.value];
+            const stone = stones[document.getElementById('stoneSelect').value];
             if (!stone) return;
+            const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
+            const lfm = parseFloat(document.getElementById('lfmInput').value) || 0;
+            const flush = parseInt(document.getElementById('flushCount').innerText);
+            const under = parseInt(document.getElementById('underCount').innerText);
 
             const edgeRate = stone.isDekton ? config.dekEdge : config.natEdge;
             const cutRate = stone.isDekton ? config.dekCut : config.natCut;
 
+            const matEK = sqm * stone.price;
+            const edgeEK = lfm * edgeRate;
+            const cutEK = (flush + under) * cutRate;
+            const totalVK = (matEK + edgeEK + cutEK) * config.factor;
+
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
-            
-            const sqm = parseFloat(document.getElementById('sqmInput').value) || 0;
-            const lfm = parseFloat(document.getElementById('lfmInput').value) || 0;
-            const miter = parseFloat(document.getElementById('miterInput').value) || 0;
-            const flush = parseInt(document.getElementById('flushCount').innerText);
-            const under = parseInt(document.getElementById('underCount').innerText);
-            const glue = document.getElementById('gluingCheck').checked;
-
-            const sumMat = sqm * stone.price;
-            const sumEdge = lfm * edgeRate;
-            const sumCut = (flush + under) * cutRate;
-            const sumExtra = (miter * (config.miter || 0)) + (glue ? config.gluing : 0) + (activeServices.measure ? config.measure : 0) + (activeServices.delivery ? config.delivery : 0);
-
-            const ek = sumMat + sumEdge + sumCut + sumExtra;
-            const fmt = v => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(v);
-
-            document.getElementById('resMat').innerText = fmt(sumMat);
-            document.getElementById('resEdge').innerText = fmt(sumEdge);
-            document.getElementById('resCut').innerText = fmt(sumCut);
-            document.getElementById('resExtra').innerText = fmt(sumExtra);
-            document.getElementById('totalEK').innerText = fmt(ek);
-            document.getElementById('totalVK').innerText = fmt(ek * config.factor);
-        };
-
-        window.toggleService = (service) => {
-            activeServices[service] = !activeServices[service];
-            const btn = document.getElementById(`btn-${service}`);
-            btn.className = activeServices[service] 
-                ? 'py-3 px-2 border border-blue-500 rounded-xl text-[10px] font-bold text-blue-500 uppercase bg-blue-500/10'
-                : 'py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase';
-            window.calculate();
-        };
-
-        window.toggleGlue = () => {
-            const cb = document.getElementById('gluingCheck');
-            const lbl = document.getElementById('gluingLabel');
-            lbl.className = cb.checked 
-                ? 'flex items-center justify-center p-4 border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-[54px]'
-                : 'flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-blue-50 dark:hover:bg-blue-900/10 border-slate-200 dark:border-darkBorder h-[54px]';
-            window.calculate();
+            document.getElementById('resMat').innerText = fmt(matEK);
+            document.getElementById('resEdge').innerText = fmt(edgeEK);
+            document.getElementById('resCut').innerText = fmt(cutEK);
+            document.getElementById('totalVK').innerText = fmt(totalVK);
         };
 
         window.updateCounter = (id, d) => {
             const el = document.getElementById(id);
             el.innerText = Math.max(0, parseInt(el.innerText) + d);
-            window.calculate();
+            calculate();
         };
 
-        window.switchTab = (t) => {
-            document.getElementById('tab-calc').classList.toggle('hidden', t !== 'calc');
-            document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
-            document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab' : 'tab-btn inactive-tab';
-            document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab' : 'tab-btn inactive-tab';
+        window.switchTab = tab => {
+            document.getElementById('tab-calc').classList.toggle('hidden', tab !== 'calc');
+            document.getElementById('tab-admin').classList.toggle('hidden', tab !== 'admin');
+            document.getElementById('btn-calc').className = tab === 'calc' ? 'tab-btn active-tab uppercase tracking-widest' : 'tab-btn inactive-tab uppercase tracking-widest';
+            document.getElementById('btn-admin').className = tab === 'admin' ? 'tab-btn active-tab uppercase tracking-widest' : 'tab-btn inactive-tab uppercase tracking-widest';
         };
 
-        window.addStone = () => {
-            stones.push({ name: "Neuer Stein", price: 0, isDekton: false });
-            render();
-        };
-
-        const render = () => {
+        function renderSelect() {
             const sel = document.getElementById('stoneSelect');
-            const curIdx = sel.value;
-            sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name}</option>`).join('');
-            if (curIdx < stones.length) sel.value = curIdx;
-
-            document.getElementById('admin-fields').innerHTML = Object.keys(config).map(k => `
-                <div class="card p-4 dark:bg-darkCard">
-                    <label class="text-[9px] font-black text-slate-500 uppercase">${k}</label>
-                    <input type="number" step="0.1" value="${config[k]}" onchange="config['${k}']=parseFloat(this.value);" class="input-field mt-1 text-sm">
-                </div>
-            `).join('');
-
-            document.getElementById('admin-table').innerHTML = stones.map((s, i) => `
-                <div class="flex items-center gap-2 p-2 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
-                    <input value="${s.name}" onchange="stones[${i}].name=this.value;" class="bg-transparent flex-1 font-bold outline-none text-sm px-2">
-                    <input type="number" value="${s.price}" onchange="stones[${i}].price=parseFloat(this.value);" class="bg-transparent w-20 text-center font-mono outline-none text-sm border-x dark:border-darkBorder">
-                    <button onclick="stones[${i}].isDekton=!stones[${i}].isDekton;render();" class="text-[8px] font-black px-2 py-1 rounded bg-slate-200 dark:bg-slate-800 uppercase">${s.isDekton?'Dekton':'Natur'}</button>
-                    <button onclick="stones.splice(${i},1);render();" class="text-red-500 px-3">✕</button>
-                </div>
-            `).join('');
-            window.calculate();
-        };
-
-        window.toggleTheme = () => {
-            const isD = document.documentElement.classList.toggle('dark');
-            localStorage.setItem('ls_theme', isD ? 'dark' : 'light');
-            document.getElementById('sunIcon').classList.toggle('hidden', !isD);
-            document.getElementById('moonIcon').classList.toggle('hidden', isD);
-        };
-
-        const t = localStorage.getItem('ls_theme');
-        if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            document.getElementById('sunIcon').classList.remove('hidden');
-            document.getElementById('moonIcon').classList.add('hidden');
+            const cur = sel.value;
+            sel.innerHTML = stones.map((s, i) => `<option value="${i}">${s.name} (${s.price} €/m²)</option>`).join('');
+            if (cur < stones.length) sel.value = cur;
         }
 
-        // Initialisierung
-        (async () => {
-            try {
-                await signInAnonymously(auth);
-                startSync();
-            } catch (e) {
-                console.warn("Auth failed", e);
-                updateStatus("Lokal Modus", "bg-blue-400");
-                render();
-            }
-        })();
+        function renderAdmin() {
+            document.getElementById('cfgFactor').value = config.factor;
+            const body = document.getElementById('adminStones');
+            body.innerHTML = stones.map((s, i) => `
+                <tr>
+                    <td class="py-2"><input type="text" value="${s.name}" class="bg-transparent font-bold w-full" onchange="window.updStone('${s.id}','name',this.value)"></td>
+                    <td><input type="number" value="${s.price}" class="bg-transparent font-mono w-16" onchange="window.updStone('${s.id}','price',parseFloat(this.value))"></td>
+                    <td><select onchange="window.updStone('${s.id}','isDekton',this.value==='t')"><option value="f" ${!s.isDekton?'selected':''}>Natur</option><option value="t" ${s.isDekton?'selected':''}>Dekton</option></select></td>
+                    <td class="text-right"><button onclick="window.delStone('${s.id}')" class="text-red-500 font-bold">X</button></td>
+                </tr>
+            `).join('');
+        }
+
+        window.saveConfig = () => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'config'), { factor: parseFloat(document.getElementById('cfgFactor').value) });
+        window.updStone = (id, f, v) => updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'stones', id), { [f]: v });
+        window.delStone = id => confirm("Löschen?") && deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'stones', id));
+        window.addStone = () => addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'stones'), { name: "Neuer Stein", price: 0, isDekton: false });
+
+        init();
     </script>
 </body>
 </html>

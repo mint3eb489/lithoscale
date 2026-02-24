@@ -226,9 +226,8 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        // Auth-Import um signInWithCustomToken erweitert für dynamische Umgebungen
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // --- FIREBASE CONFIG ---
         const firebaseConfig = {
@@ -240,13 +239,9 @@
     appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
-        // Fallback für Canvas-Laufzeitumgebung
         const activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
-        
-        // Canvas-App-ID Dynamik (verhindert Permission-Denied Fehler)
         const internalAppId = typeof __app_id !== 'undefined' ? __app_id : 'lithoscale-pro-team-v1';
         
-        // WICHTIGER FIX: currentUser deklarieren, um ReferenceError im Strict Mode zu verhindern
         let app, auth, db, unsubCloud;
         let currentUser = null; 
         let isUploading = false;
@@ -320,7 +315,7 @@
             const text = document.getElementById('alert-text');
             if (text) text.innerText = msg;
             if (box) box.classList.remove('hidden');
-            setTimeout(() => box && box.classList.add('hidden'), 4000);
+            setTimeout(() => box && box.classList.add('hidden'), 5000);
         };
 
         const initFirebase = async () => {
@@ -335,14 +330,12 @@
                 auth = getAuth(app);
                 db = getFirestore(app);
 
-                // WICHTIGER FIX: Warten auf Auth VOR Listener-Initialisierung
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
 
-                // Listener nur aufsetzen, wenn Auth steht
                 onAuthStateChanged(auth, (user) => {
                     currentUser = user; 
                     if (user) {
@@ -350,7 +343,8 @@
                     }
                 });
             } catch (e) {
-                updateStatus("Fehler", "bg-red-600", e.message);
+                console.error("Auth Error:", e);
+                updateStatus("Auth-Fehler", "bg-red-600", "Anonymer Login in Firebase aktivieren!");
                 render();
             }
         };
@@ -362,15 +356,18 @@
             const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
             
             unsubCloud = onSnapshot(docRef, (snap) => {
-                // Wir ignorieren die Cloud, während wir gerade im Admin-Bereich tippen
                 if (isUploading || isAdminActive) return;
 
                 if (snap.exists()) {
                     const data = snap.data();
-                    if (!data.updated || data.updated > lastLocalUpdate) {
+                    // FIX: Fehlende Zeitstempel (Legacy Daten) behandeln wir als extrem alt (1)
+                    // So wird verhindert, dass eine fehlerhafte Cloud-Datenbank lokale Eingaben rückgängig macht.
+                    const serverTime = data.updated || 1; 
+                    
+                    if (serverTime > lastLocalUpdate) {
                         stones = data.stones || stones;
                         config = data.config || config;
-                        lastLocalUpdate = data.updated || Date.now(); // WICHTIG: Lokalen Zeitstempel synchronisieren
+                        lastLocalUpdate = serverTime;
                         localStorage.setItem('ls_stones', JSON.stringify(stones));
                         localStorage.setItem('ls_config', JSON.stringify(config));
                         updateStatus("Cloud Aktiv", "bg-green-500");
@@ -390,7 +387,7 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Cloud-Verbindung!");
+                showAlert("Keine Cloud-Verbindung! (Bitte Firebase Auth prüfen)");
                 return;
             }
             
@@ -415,8 +412,13 @@
                 // Kalkulation direkt nach Upload aktualisieren
                 window.calculate();
             } catch (e) {
-                showAlert("Upload fehlgeschlagen: " + e.message);
-                updateStatus("Fehler", "bg-red-500", e.message);
+                // TIEFEN-TRACKING: Falls dein Firebase den Upload ablehnt
+                let errorMsg = e.message;
+                if (errorMsg.toLowerCase().includes("permission")) {
+                    errorMsg = "Berechtigung verweigert! Bitte Firestore-Regeln prüfen (Schreibrechte fehlen).";
+                }
+                showAlert("Upload fehlgeschlagen: " + errorMsg);
+                updateStatus("Fehler", "bg-red-500", errorMsg);
             } finally {
                 isUploading = false;
             }
@@ -444,8 +446,7 @@
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(stones));
             localStorage.setItem('ls_config', JSON.stringify(config));
-            // Wir berechnen sofort im Speicher neu
-            window.calculate();
+            window.calculate(); // Wir berechnen sofort im Speicher neu
         };
 
         window.calculate = () => {
@@ -538,7 +539,7 @@
 
         window.checkAdminPass = () => {
             if (document.getElementById('adminPassInput').value === config.adminPass) {
-                isAdminActive = true; // Cloud-Hören blockieren
+                isAdminActive = true; 
                 document.getElementById('admin-gate').classList.add('hidden');
                 switchTab('admin');
             } else { showAlert("Passwort falsch!"); }

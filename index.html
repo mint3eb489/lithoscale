@@ -68,7 +68,6 @@
                     <h1 class="text-3xl font-black flex items-center tracking-tighter select-none">
                         LithoScale <span class="pro-badge">PRO</span>
                     </h1>
-                    <p class="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Team Cloud Sync</p>
                 </div>
             </div>
             <div class="flex items-center gap-4 w-full md:w-auto">
@@ -85,7 +84,7 @@
 
         <div id="main-ui">
             <!-- RECHNER -->
-            <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+            <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch">
                 <div class="lg:col-span-3 space-y-5">
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
@@ -140,30 +139,34 @@
                     <button onclick="window.resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
                 </div>
 
-                <div class="lg:col-span-2">
-                    <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-8 shadow-2xl border border-darkBorder">
-                        <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
-                        <div class="space-y-4 text-xs mb-8">
-                            <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat">0,00 €</span></div>
-                            <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge">0,00 €</span></div>
-                            <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut">0,00 €</span></div>
-                            <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">Service Total</span><span id="resExtra" class="font-bold">0,00 €</span></div>
-                        </div>
-                        
-                        <div class="grid grid-cols-2 gap-3 mb-8">
-                            <button onclick="window.toggleService('measure')" id="btn-measure" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Aufmaß</button>
-                            <button onclick="window.toggleService('delivery')" id="btn-delivery" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Montage</button>
-                        </div>
-
-                        <div class="text-center mb-6 pt-4 border-t border-white/5">
-                            <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
-                            <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter">0,00 €</p>
+                <div class="lg:col-span-2 h-full">
+                    <div class="p-6 md:p-8 bg-black text-white rounded-3xl h-full flex flex-col shadow-2xl border border-darkBorder">
+                        <div>
+                            <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
+                            <div class="space-y-4 text-xs mb-8">
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat">0,00 €</span></div>
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge">0,00 €</span></div>
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut">0,00 €</span></div>
+                                <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">Gesamtpreis</span><span id="resExtra" class="font-bold">0,00 €</span></div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-3 mb-8">
+                                <button onclick="window.toggleService('measure')" id="btn-measure" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Aufmaß</button>
+                                <button onclick="window.toggleService('delivery')" id="btn-delivery" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Montage</button>
+                            </div>
                         </div>
 
-                        <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner">
-                            <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK Brutto)</p>
-                            <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter">0,00 €</p>
-                            <p class="text-[8px] text-slate-500 mt-2 italic">*Kalkuliert mit aktuellem Faktor</p>
+                        <div class="mt-auto">
+                            <div class="text-center mb-6 pt-4 border-t border-white/5">
+                                <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
+                                <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter">0,00 €</p>
+                            </div>
+
+                            <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner">
+                                <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK Brutto)</p>
+                                <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter">0,00 €</p>
+                                <p class="text-[8px] text-slate-500 mt-2 italic">*Kalkuliert mit aktuellem Faktor</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -182,17 +185,17 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="card p-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                    <div class="card p-6 h-full flex flex-col">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Preis-Parameter</h3>
-                        <div id="admin-fields" class="space-y-4"></div>
+                        <div id="admin-fields" class="space-y-4 flex-1"></div>
                     </div>
-                    <div class="card p-6">
+                    <div class="card p-6 h-full flex flex-col">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Material-Katalog</h3>
                         <div class="flex justify-end mb-4">
                             <button onclick="window.addStone()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all">+ Stein hinzufügen</button>
                         </div>
-                        <div id="admin-table" class="space-y-3 overflow-y-auto max-h-[600px] pr-2"></div>
+                        <div id="admin-table" class="space-y-3 overflow-y-auto flex-1 pr-2 min-h-[400px]"></div>
                     </div>
                 </div>
             </div>

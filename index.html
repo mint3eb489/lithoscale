@@ -114,30 +114,30 @@
                             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
                                 <p class="font-bold text-sm">Flächenbündig</p>
                                 <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="updateCounter('flushCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
+                                    <button onclick="window.updateCounter('flushCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
                                     <span id="flushCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="updateCounter('flushCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
+                                    <button onclick="window.updateCounter('flushCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder">
                                 <p class="font-bold text-sm">Unterbau</p>
                                 <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="updateCounter('underCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
+                                    <button onclick="window.updateCounter('underCount', -1)" class="px-4 py-1 hover:bg-slate-50 font-bold">-</button>
                                     <span id="underCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="updateCounter('underCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
+                                    <button onclick="window.updateCounter('underCount', 1)" class="px-4 py-1 hover:bg-slate-50 font-bold">+</button>
                                 </div>
                             </div>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <input type="text" inputmode="decimal" id="miterInput" placeholder="Gehrung (Lfm)" class="input-field font-mono text-center" oninput="window.calculate()">
                                 <label id="gluingLabel" class="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all border-slate-200 dark:border-darkBorder h-[54px]">
-                                    <input type="checkbox" id="gluingCheck" class="hidden" onchange="toggleGlue()">
+                                    <input type="checkbox" id="gluingCheck" class="hidden" onchange="window.toggleGlue()">
                                     <span class="text-[10px] font-black uppercase tracking-widest">Verkleben</span>
                                 </label>
                             </div>
                         </div>
                     </div>
                     
-                    <button onclick="resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
+                    <button onclick="window.resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
                 </div>
 
                 <div class="lg:col-span-2">
@@ -151,8 +151,8 @@
                         </div>
                         
                         <div class="grid grid-cols-2 gap-3 mb-8">
-                            <button onclick="toggleService('measure')" id="btn-measure" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Aufmaß</button>
-                            <button onclick="toggleService('delivery')" id="btn-delivery" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Montage</button>
+                            <button onclick="window.toggleService('measure')" id="btn-measure" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Aufmaß</button>
+                            <button onclick="window.toggleService('delivery')" id="btn-delivery" class="py-3 px-2 border border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase transition-all">Montage</button>
                         </div>
 
                         <div class="text-center mb-6 pt-4 border-t border-white/5">
@@ -177,8 +177,8 @@
                         <p class="text-xs text-slate-500">Änderungen hier speichern, um sie im Team zu synchronisieren.</p>
                     </div>
                     <div class="flex gap-2">
-                        <button onclick="factoryResetCloud()" class="bg-red-500 text-white px-4 py-3 rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all hidden md:block">Katalog Reset</button>
-                        <button onclick="pushToCloud()" id="btn-push" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 active:scale-95 transition-all">UPLOAD CLOUD</button>
+                        <button onclick="window.factoryResetCloud()" class="bg-red-500 text-white px-4 py-3 rounded-xl font-bold text-xs shadow-lg active:scale-95 transition-all hidden md:block">Katalog Reset</button>
+                        <button onclick="window.pushToCloud()" id="btn-push" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold text-xs shadow-lg shadow-blue-600/20 active:scale-95 transition-all">UPLOAD CLOUD</button>
                     </div>
                 </div>
                 
@@ -190,7 +190,7 @@
                     <div class="card p-6">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Material-Katalog</h3>
                         <div class="flex justify-end mb-4">
-                            <button onclick="addStone()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all">+ Stein hinzufügen</button>
+                            <button onclick="window.addStone()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600 transition-all">+ Stein hinzufügen</button>
                         </div>
                         <div id="admin-table" class="space-y-3 overflow-y-auto max-h-[600px] pr-2"></div>
                     </div>
@@ -210,8 +210,8 @@
                 </div>
                 <input type="password" id="adminPassInput" placeholder="••••" class="input-field text-center text-2xl tracking-widest mb-4" autofocus>
                 <div class="grid grid-cols-2 gap-3">
-                    <button onclick="closeAdminGate()" class="py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-400">Abbrechen</button>
-                    <button onclick="checkAdminPass()" class="py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-blue-600 text-white shadow-lg shadow-blue-600/20">Login</button>
+                    <button onclick="window.closeAdminGate()" class="py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-slate-100 dark:bg-white/5 text-slate-400">Abbrechen</button>
+                    <button onclick="window.checkAdminPass()" class="py-3 rounded-xl font-bold text-xs uppercase tracking-widest bg-blue-600 text-white shadow-lg shadow-blue-600/20">Login</button>
                 </div>
             </div>
         </div>
@@ -229,7 +229,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // --- FIREBASE CONFIG ---
         const firebaseConfig = {
     apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
     authDomain: "lithoscalepro.firebaseapp.com",
@@ -281,7 +280,9 @@
             ],
             config: { 
                 factor: 1.5, measure: 100, delivery: 700, gluing: 250, 
-                natEdge: 15, dekEdge: 20, natCut: 137, dekCut: 177, 
+                natEdge: 15, dekEdge: 20, 
+                natCutUnder: 137, natCutFlush: 137, 
+                dekCutUnder: 177, dekCutFlush: 177, 
                 miter: 45, adminPass: "1234" 
             }
         };
@@ -289,16 +290,33 @@
         const configLabels = {
             factor: "VK-Faktor (z.B. 1.5)", measure: "Aufmaß (€)", delivery: "Montage (€)",
             gluing: "Verkleben (€)", natEdge: "Kante Natur (€/Lfm)", dekEdge: "Kante Dekton (€/Lfm)",
-            natCut: "Ausschnitt Natur (€/Stk)", dekCut: "Ausschnitt Dekton (€/Stk)",
+            natCutUnder: "UB-Ausschnitt Natur (€/Stk)", natCutFlush: "FB-Ausschnitt Natur (€/Stk)",
+            dekCutUnder: "UB-Ausschnitt Dekton (€/Stk)", dekCutFlush: "FB-Ausschnitt Dekton (€/Stk)",
             miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
-        // Initialize state globally so inline HTML handlers can access them
+        const migrateConfig = (cfg) => {
+            if (cfg.natCut !== undefined) {
+                cfg.natCutUnder = cfg.natCutUnder || cfg.natCut;
+                cfg.natCutFlush = cfg.natCutFlush || cfg.natCut;
+                delete cfg.natCut;
+            }
+            if (cfg.dekCut !== undefined) {
+                cfg.dekCutUnder = cfg.dekCutUnder || cfg.dekCut;
+                cfg.dekCutFlush = cfg.dekCutFlush || cfg.dekCut;
+                delete cfg.dekCut;
+            }
+            cfg.natCutUnder = cfg.natCutUnder || 137;
+            cfg.natCutFlush = cfg.natCutFlush || 137;
+            cfg.dekCutUnder = cfg.dekCutUnder || 177;
+            cfg.dekCutFlush = cfg.dekCutFlush || 177;
+            return cfg;
+        };
+
         window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
-        window.config = JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config));
+        window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
 
-        // Globale Hilfsfunktion für sicheres Speichern von Zahlen (auch mit deutschem Komma)
         window.updateConfig = (key, value, isNumber) => {
             if (isNumber) {
                 let safeVal = value.replace(',', '.');
@@ -354,30 +372,23 @@
                     }
                 });
             } catch (e) {
-                console.error("Auth Error:", e);
-                updateStatus("Auth-Fehler", "bg-red-600", "Anonymer Login in Firebase aktivieren!");
+                updateStatus("Auth-Fehler", "bg-red-600", "Firebase Login prüfen!");
                 window.render();
             }
         };
 
         const startCloudListener = () => {
             if (unsubCloud) unsubCloud();
-            
             updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
             const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
-            
             unsubCloud = onSnapshot(docRef, (snap) => {
                 if (isUploading || isAdminActive) return;
-
                 if (snap.exists()) {
                     const data = snap.data();
-                    // FIX: Fehlende Zeitstempel (Legacy Daten) behandeln wir als extrem alt (1)
-                    // So wird verhindert, dass eine fehlerhafte Cloud-Datenbank lokale Eingaben rückgängig macht.
                     const serverTime = data.updated || 1; 
-                    
                     if (serverTime > lastLocalUpdate) {
                         window.stones = data.stones || window.stones;
-                        window.config = data.config || window.config;
+                        window.config = migrateConfig(data.config || window.config);
                         lastLocalUpdate = serverTime;
                         localStorage.setItem('ls_stones', JSON.stringify(window.stones));
                         localStorage.setItem('ls_config', JSON.stringify(window.config));
@@ -398,45 +409,28 @@
 
         window.pushToCloud = async () => {
             if (!db || !currentUser) {
-                showAlert("Keine Cloud-Verbindung! (Bitte Firebase Auth prüfen)");
+                showAlert("Keine Verbindung!");
                 return;
             }
-            
             isUploading = true;
             updateStatus("Sende...", "bg-blue-500 animate-pulse");
             const ts = Date.now();
-            
             try {
                 const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
-                await setDoc(docRef, { 
-                    stones: window.stones, config: window.config, updated: ts, editor: currentUser.uid 
-                });
-                
+                await setDoc(docRef, { stones: window.stones, config: window.config, updated: ts, editor: currentUser.uid });
                 lastLocalUpdate = ts;
                 localStorage.setItem('ls_stones', JSON.stringify(window.stones));
                 localStorage.setItem('ls_config', JSON.stringify(window.config));
-                
                 showAlert("Cloud erfolgreich aktualisiert!");
                 updateStatus("Cloud Aktiv", "bg-green-500");
-                document.getElementById('manual-init-btn').classList.add('hidden');
-                
-                // Kalkulation direkt nach Upload aktualisieren
-                window.calculate();
             } catch (e) {
-                // TIEFEN-TRACKING: Falls dein Firebase den Upload ablehnt
-                let errorMsg = e.message;
-                if (errorMsg.toLowerCase().includes("permission")) {
-                    errorMsg = "Berechtigung verweigert! Bitte Firestore-Regeln prüfen (Schreibrechte fehlen).";
-                }
-                showAlert("Upload fehlgeschlagen: " + errorMsg);
-                updateStatus("Fehler", "bg-red-500", errorMsg);
-            } finally {
-                isUploading = false;
-            }
+                showAlert("Upload fehlgeschlagen!");
+                updateStatus("Fehler", "bg-red-500");
+            } finally { isUploading = false; }
         };
 
         window.factoryResetCloud = async () => {
-            if(!confirm("Möchtest du wirklich die Cloud überschreiben und die 28 Standard-Steine wiederherstellen?")) return;
+            if(!confirm("Katalog zurücksetzen?")) return;
             window.stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
             window.config = JSON.parse(JSON.stringify(DEFAULTS.config));
             window.markLocalUpdate();
@@ -444,20 +438,11 @@
             window.render();
         };
 
-        window.resetAndForceSync = () => {
-            localStorage.clear();
-            window.stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
-            window.config = JSON.parse(JSON.stringify(DEFAULTS.config));
-            lastLocalUpdate = Date.now();
-            window.pushToCloud();
-            window.render();
-        };
-
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(window.stones));
             localStorage.setItem('ls_config', JSON.stringify(window.config));
-            window.calculate(); // Wir berechnen sofort im Speicher neu
+            window.calculate(); 
         };
 
         window.calculate = () => {
@@ -467,7 +452,8 @@
             if (!stone) return;
 
             const edgeRate = stone.isDekton ? window.config.dekEdge : window.config.natEdge;
-            const cutRate = stone.isDekton ? window.config.dekCut : window.config.natCut;
+            const rateFlush = stone.isDekton ? window.config.dekCutFlush : window.config.natCutFlush;
+            const rateUnder = stone.isDekton ? window.config.dekCutUnder : window.config.natCutUnder;
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
@@ -485,7 +471,7 @@
 
             const sumMat = sqm * stone.price;
             const sumEdge = lfm * edgeRate;
-            const sumCut = (flush + under) * cutRate;
+            const sumCut = (flush * rateFlush) + (under * rateUnder);
             const sumExtra = (miter * (window.config.miter || 0)) + (glue ? window.config.gluing : 0) + (activeServices.measure ? window.config.measure : 0) + (activeServices.delivery ? window.config.delivery : 0);
 
             const ek = sumMat + sumEdge + sumCut + sumExtra;
@@ -511,9 +497,7 @@
         window.toggleGlue = () => {
             const cb = document.getElementById('gluingCheck');
             const lbl = document.getElementById('gluingLabel');
-            lbl.className = cb.checked 
-                ? 'flex items-center justify-center p-4 border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-[54px] shadow-inner'
-                : 'flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-[54px]';
+            lbl.className = cb.checked ? 'flex items-center justify-center p-4 border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-[54px] shadow-inner' : 'flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-[54px]';
             window.calculate();
         };
 
@@ -532,7 +516,7 @@
             document.getElementById('gluingCheck').checked = false;
             activeServices.measure = false;
             activeServices.delivery = false;
-            toggleGlue();
+            window.toggleGlue();
             window.calculate();
         };
 
@@ -545,11 +529,7 @@
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
             document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
             document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
-            
-            if (t === 'calc') {
-                isAdminActive = false; // Cloud-Hören wieder aktivieren
-                startCloudListener();
-            }
+            if (t === 'calc') { isAdminActive = false; startCloudListener(); }
             window.render();
         };
 
@@ -581,7 +561,7 @@
                 fieldsContainer.innerHTML = Object.keys(window.config).map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
-                        <input type="${k === 'adminPass' ? 'text' : 'text'}" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
+                        <input type="text" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
                             oninput="window.updateConfig('${k}', this.value, ${k !== 'adminPass'})" 
                             class="input-field text-sm font-mono">
                     </div>
@@ -592,12 +572,12 @@
             if (tableContainer) {
                 tableContainer.innerHTML = window.stones.map((s, i) => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
-                        <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" placeholder="Stein Name" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                        <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
                             <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
                             <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
-                                ${s.isDekton?'Dekton':'Naturstein'}
+                                ${s.isDekton?'Dekton':'Natur'}
                             </button>
                             <button onclick="window.stones.splice(${i},1); window.markLocalUpdate(); window.render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
                         </div>

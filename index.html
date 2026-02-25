@@ -43,6 +43,9 @@
 
         .modal-fade { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        /* Verhindert Layout-Sprünge beim Ticker */
+        .font-mono-tabular { font-variant-numeric: tabular-nums; }
     </style>
 </head>
 <body class="p-3 md:p-8 bg-slate-50 dark:bg-trueBlack text-slate-900 dark:text-slate-100">
@@ -104,14 +107,27 @@
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Fläche (m²)</label>
-                                <input type="text" inputmode="decimal" id="sqmInput" placeholder="0,00" class="input-field mt-1 font-mono text-center" oninput="window.calculate()">
+                        <!-- DYNAMISCHE STÜCKLISTE -->
+                        <div class="mt-8 border-t dark:border-darkBorder pt-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <div>
+                                    <h3 class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Stückliste (Platten)</h3>
+                                    <p class="text-[9px] text-slate-400 font-bold mt-1">Gesamt: <span id="totalSqmDisplay" class="text-blue-500 font-mono-tabular">0,00 m²</span> / <span id="totalLfmDisplay" class="text-blue-500 font-mono-tabular">0,00 Lfm</span></p>
+                                </div>
+                                <button onclick="window.addPart()" class="bg-blue-500 text-white shadow-md hover:scale-105 active:scale-95 transition-all w-8 h-8 rounded-xl flex items-center justify-center font-black pb-0.5">+</button>
                             </div>
-                            <div>
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Kante (Lfm)</label>
-                                <input type="text" inputmode="decimal" id="lfmInput" placeholder="0,00" class="input-field mt-1 font-mono text-center" oninput="window.calculate()">
+                            
+                            <div id="parts-container" class="space-y-3">
+                                <!-- Platten werden hier gerendert -->
+                            </div>
+                            
+                            <div class="mt-4 flex justify-center">
+                                <div class="bg-slate-100 dark:bg-white/5 rounded-lg p-3 text-[8px] font-black text-slate-400 uppercase tracking-widest flex gap-4 text-center">
+                                    <span>V = Vorne (Länge)</span>
+                                    <span>H = Hinten (Länge)</span>
+                                    <span>L = Links (Tiefe)</span>
+                                    <span>R = Rechts (Tiefe)</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -153,10 +169,10 @@
                         <div>
                             <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
                             <div class="space-y-4 text-xs mb-8">
-                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat">0,00 €</span></div>
-                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge">0,00 €</span></div>
-                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut">0,00 €</span></div>
-                                <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">Gesamtpreis</span><span id="resExtra" class="font-bold">0,00 €</span></div>
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat" class="font-mono-tabular">0,00 €</span></div>
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge" class="font-mono-tabular">0,00 €</span></div>
+                                <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut" class="font-mono-tabular">0,00 €</span></div>
+                                <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">Gesamtpreis</span><span id="resExtra" class="font-bold font-mono-tabular">0,00 €</span></div>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-3 mb-8">
@@ -168,12 +184,12 @@
                         <div class="mt-auto">
                             <div class="text-center mb-6 pt-4 border-t border-white/5">
                                 <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
-                                <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter">0,00 €</p>
+                                <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter font-mono-tabular">0,00 €</p>
                             </div>
 
                             <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner">
                                 <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK Brutto)</p>
-                                <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter">0,00 €</p>
+                                <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter font-mono-tabular">0,00 €</p>
                                 <p class="text-[8px] text-slate-500 mt-2 italic">*Kalkuliert mit aktuellem Faktor</p>
                             </div>
                         </div>
@@ -187,7 +203,7 @@
                             <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Gesamtpreis</p>
                             <p class="text-[8px] text-slate-400 italic">VK Brutto</p>
                         </div>
-                        <p id="stickyVK" class="text-2xl font-black text-blue-500 tracking-tighter font-mono">0,00 €</p>
+                        <p id="stickyVK" class="text-2xl font-black text-blue-500 tracking-tighter font-mono font-mono-tabular">0,00 €</p>
                     </div>
                 </div>
             </div>
@@ -339,6 +355,10 @@
         window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
+
+        // INITIALISIERUNG STÜCKLISTE
+        const defaultParts = [{ id: Date.now(), name: "Platte 1", l: "", w: "", edges: { v: true, h: false, l: false, r: false } }];
+        window.parts = JSON.parse(localStorage.getItem('ls_parts')) || JSON.parse(JSON.stringify(defaultParts));
 
         const animState = {};
         
@@ -498,6 +518,110 @@
             window.calculate(); 
         };
 
+        // STÜCKLISTE FUNKTIONEN
+        window.saveParts = () => {
+            localStorage.setItem('ls_parts', JSON.stringify(window.parts));
+        };
+
+        window.addPart = () => {
+            window.parts.push({ id: Date.now(), name: `Platte ${window.parts.length + 1}`, l: "", w: "", edges: { v: true, h: false, l: false, r: false } });
+            window.saveParts();
+            window.renderParts();
+            window.calculate();
+        };
+
+        window.removePart = (id) => {
+            window.parts = window.parts.filter(p => p.id !== id);
+            window.saveParts();
+            window.renderParts();
+            window.calculate();
+        };
+
+        window.updatePart = (id, field, value) => {
+            const p = window.parts.find(p => p.id === id);
+            if (p) {
+                p[field] = value;
+                window.saveParts();
+                
+                // Berechne lokale Werte des einzelnen Parts sofort neu, ohne Fokus zu verlieren
+                const l = parseFloat(String(p.l).replace(',', '.')) || 0;
+                const w = parseFloat(String(p.w).replace(',', '.')) || 0;
+                const sqm = (l * w) / 10000;
+                let lfm = 0;
+                if (p.edges.v) lfm += l / 100;
+                if (p.edges.h) lfm += l / 100;
+                if (p.edges.l) lfm += w / 100;
+                if (p.edges.r) lfm += w / 100;
+                
+                const elSqm = document.getElementById(`part-sqm-${p.id}`);
+                const elLfm = document.getElementById(`part-lfm-${p.id}`);
+                if (elSqm) elSqm.innerText = sqm.toFixed(2).replace('.', ',') + ' m²';
+                if (elLfm) elLfm.innerText = lfm.toFixed(2).replace('.', ',') + ' Lfm';
+                
+                window.calculate(); 
+            }
+        };
+
+        window.toggleEdge = (id, edge) => {
+            const p = window.parts.find(p => p.id === id);
+            if (p) {
+                p.edges[edge] = !p.edges[edge];
+                window.saveParts();
+                window.renderParts(); 
+                window.calculate();
+            }
+        };
+
+        window.renderParts = () => {
+            const container = document.getElementById('parts-container');
+            if (!container) return;
+
+            const html = window.parts.map(p => {
+                const l = parseFloat(String(p.l).replace(',', '.')) || 0;
+                const w = parseFloat(String(p.w).replace(',', '.')) || 0;
+                const sqm = (l * w) / 10000;
+                let lfm = 0;
+                if (p.edges.v) lfm += l / 100;
+                if (p.edges.h) lfm += l / 100;
+                if (p.edges.l) lfm += w / 100;
+                if (p.edges.r) lfm += w / 100;
+
+                return `
+                    <div class="bg-white dark:bg-darkCard p-4 rounded-xl border border-slate-200 dark:border-darkBorder flex flex-col gap-3 relative transition-all shadow-sm">
+                        <div class="flex justify-between items-center">
+                            <input type="text" value="${p.name}" oninput="window.updatePart(${p.id}, 'name', this.value)" class="bg-transparent font-black text-sm outline-none text-slate-700 dark:text-slate-200 focus:text-blue-500 placeholder-slate-400/50 w-2/3" placeholder="Bezeichnung">
+                            ${window.parts.length > 1 ? `<button onclick="window.removePart(${p.id})" class="text-slate-300 hover:text-red-500 transition-colors w-6 h-6 flex items-center justify-center rounded-full hover:bg-red-500/10 font-bold">✕</button>` : ''}
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" inputmode="decimal" value="${p.l}" oninput="window.updatePart(${p.id}, 'l', this.value)" class="input-field py-2 px-3 text-sm font-mono text-center" placeholder="Länge">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">cm</span>
+                            </div>
+                            <span class="text-slate-300 dark:text-slate-600 font-black">×</span>
+                            <div class="relative flex-1">
+                                <input type="text" inputmode="decimal" value="${p.w}" oninput="window.updatePart(${p.id}, 'w', this.value)" class="input-field py-2 px-3 text-sm font-mono text-center" placeholder="Tiefe">
+                                <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">cm</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between mt-1">
+                            <div class="flex gap-1.5">
+                                <button onclick="window.toggleEdge(${p.id}, 'v')" class="w-8 h-8 rounded-lg text-[10px] font-black transition-all ${p.edges.v ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 border-transparent' : 'bg-slate-50 dark:bg-black text-slate-400 border border-slate-200 dark:border-darkBorder hover:bg-slate-100'}">V</button>
+                                <button onclick="window.toggleEdge(${p.id}, 'h')" class="w-8 h-8 rounded-lg text-[10px] font-black transition-all ${p.edges.h ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 border-transparent' : 'bg-slate-50 dark:bg-black text-slate-400 border border-slate-200 dark:border-darkBorder hover:bg-slate-100'}">H</button>
+                                <button onclick="window.toggleEdge(${p.id}, 'l')" class="w-8 h-8 rounded-lg text-[10px] font-black transition-all ${p.edges.l ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 border-transparent' : 'bg-slate-50 dark:bg-black text-slate-400 border border-slate-200 dark:border-darkBorder hover:bg-slate-100'}">L</button>
+                                <button onclick="window.toggleEdge(${p.id}, 'r')" class="w-8 h-8 rounded-lg text-[10px] font-black transition-all ${p.edges.r ? 'bg-blue-500 text-white shadow-md shadow-blue-500/30 border-transparent' : 'bg-slate-50 dark:bg-black text-slate-400 border border-slate-200 dark:border-darkBorder hover:bg-slate-100'}">R</button>
+                            </div>
+                            <div class="text-right flex gap-3">
+                                <p id="part-sqm-${p.id}" class="text-[9px] font-mono text-slate-400 font-bold">${sqm.toFixed(2).replace('.',',')} m²</p>
+                                <p id="part-lfm-${p.id}" class="text-[9px] font-mono text-slate-400 font-bold">${lfm.toFixed(2).replace('.',',')} Lfm</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            container.innerHTML = html;
+        };
+
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
@@ -509,7 +633,6 @@
             const fallbackEl = document.getElementById('stonePreviewFallback');
             if (stone.image && stone.image.trim() !== "") {
                 imgEl.src = 'images/' + stone.image.trim();
-                // Das Onload-Event in HTML kümmert sich um das Einblenden
             } else {
                 imgEl.classList.add('hidden');
                 fallbackEl.classList.remove('hidden');
@@ -522,20 +645,38 @@
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
+            // Berechnung der Stückliste
+            let totalSqm = 0;
+            let totalLfm = 0;
+            
+            window.parts.forEach(p => {
+                const l = parseFloat(String(p.l).replace(',', '.')) || 0;
+                const w = parseFloat(String(p.w).replace(',', '.')) || 0;
+                totalSqm += (l * w) / 10000;
+                
+                if (p.edges.v) totalLfm += l / 100;
+                if (p.edges.h) totalLfm += l / 100;
+                if (p.edges.l) totalLfm += w / 100;
+                if (p.edges.r) totalLfm += w / 100;
+            });
+            
+            const displaySqm = document.getElementById('totalSqmDisplay');
+            const displayLfm = document.getElementById('totalLfmDisplay');
+            if(displaySqm) displaySqm.innerText = totalSqm.toFixed(2).replace('.', ',') + ' m²';
+            if(displayLfm) displayLfm.innerText = totalLfm.toFixed(2).replace('.', ',') + ' Lfm';
+
             const getVal = (id) => {
                 const el = document.getElementById(id);
                 return el ? (parseFloat(el.value.replace(',', '.')) || 0) : 0;
             };
 
-            const sqm = getVal('sqmInput');
-            const lfm = getVal('lfmInput');
             const miter = getVal('miterInput');
             const flush = parseInt(document.getElementById('flushCount').innerText);
             const under = parseInt(document.getElementById('underCount').innerText);
             const glue = document.getElementById('gluingCheck').checked;
 
-            const sumMat = sqm * stone.price;
-            const sumEdge = lfm * edgeRate;
+            const sumMat = totalSqm * stone.price;
+            const sumEdge = totalLfm * edgeRate;
             const sumCut = (flush * rateFlush) + (under * rateUnder);
             const sumExtra = (miter * (window.config.miter || 0)) + (glue ? window.config.gluing : 0) + (activeServices.measure ? window.config.measure : 0) + (activeServices.delivery ? window.config.delivery : 0);
 
@@ -574,8 +715,10 @@
         };
 
         window.resetCalculator = () => {
-            document.getElementById('sqmInput').value = '';
-            document.getElementById('lfmInput').value = '';
+            window.parts = JSON.parse(JSON.stringify(defaultParts));
+            window.saveParts();
+            window.renderParts();
+            
             document.getElementById('miterInput').value = '';
             document.getElementById('flushCount').innerText = '0';
             document.getElementById('underCount').innerText = '0';
@@ -656,6 +799,9 @@
                     </div>
                 `).join('');
             }
+            
+            // Wichtig: Beim generellen Render auch die Stückliste mitzeichnen
+            window.renderParts();
             window.calculate();
         };
 

@@ -85,7 +85,6 @@
 
         <div id="main-ui">
             <!-- RECHNER -->
-            <!-- Mit pb-28 wird auf mobilen Geräten verhindert, dass die Sticky-Leiste den unteren Content verdeckt -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch pb-28 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     <div class="card p-6">
@@ -93,11 +92,19 @@
                             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Konfiguration</h2>
                             <div id="materialBadge"></div>
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                            <div class="md:col-span-2">
+                        
+                        <div class="flex flex-col sm:flex-row gap-5 mb-5">
+                            <div class="w-24 h-24 rounded-xl border border-slate-200 dark:border-darkBorder overflow-hidden shrink-0 bg-slate-50 dark:bg-black flex items-center justify-center relative shadow-inner mx-auto sm:mx-0">
+                                <span id="stonePreviewFallback" class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-tight">Kein<br>Bild</span>
+                                <img id="stonePreviewImg" src="" alt="Stein Vorschau" class="absolute inset-0 w-full h-full object-cover hidden transition-opacity duration-300" onload="this.classList.remove('hidden'); document.getElementById('stonePreviewFallback').classList.add('hidden');" onerror="this.classList.add('hidden'); document.getElementById('stonePreviewFallback').classList.remove('hidden');">
+                            </div>
+                            <div class="flex-1 flex flex-col justify-center">
                                 <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Steinart</label>
                                 <select id="stoneSelect" class="input-field mt-1" onchange="window.calculate()"></select>
                             </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Fläche (m²)</label>
                                 <input type="text" inputmode="decimal" id="sqmInput" placeholder="0,00" class="input-field mt-1 font-mono text-center" oninput="window.calculate()">
@@ -173,7 +180,7 @@
                     </div>
                 </div>
 
-                <!-- Sticky Summary Mobile (nur in tab-calc und nur lg:hidden) -->
+                <!-- Sticky Summary Mobile -->
                 <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-black/90 backdrop-blur-xl border-t dark:border-darkBorder shadow-[0_-10px_40px_rgba(0,0,0,0.1)] z-40 lg:hidden transition-all">
                     <div class="flex justify-between items-center max-w-4xl mx-auto px-2">
                         <div>
@@ -265,34 +272,34 @@
 
         const DEFAULTS = {
             stones: [
-                { name: "Marinace Black 2cm", price: 325, isDekton: false },
-                { name: "Dekton Morpheus", price: 652, isDekton: true },
-                { name: "Steel Grey 226", price: 226, isDekton: false },
-                { name: "Dekton Laurent", price: 456, isDekton: true },
-                { name: "Dekton Kairos", price: 384, isDekton: true },
-                { name: "Dekton Domoos", price: 576, isDekton: true },
-                { name: "Café Imperial", price: 275, isDekton: false },
-                { name: "Breccia Imperiale", price: 395, isDekton: false },
-                { name: "Dekton Albarium", price: 576, isDekton: true },
-                { name: "Dekton Sandik", price: 576, isDekton: true },
-                { name: "Dekton Adia", price: 576, isDekton: true },
-                { name: "Dekton Opera", price: 641, isDekton: true },
-                { name: "Dekton Reverie", price: 641, isDekton: true },
-                { name: "Via Lattea", price: 275, isDekton: false },
-                { name: "Dekton Lunar 22", price: 379, isDekton: true },
-                { name: "Tropical Storm", price: 395, isDekton: false },
-                { name: "Dekton Entzo", price: 641, isDekton: true },
-                { name: "Dekton Sirius PROMO", price: 380, isDekton: true },
-                { name: "Dekton Eter PROMO", price: 360, isDekton: true },
-                { name: "Dekton Danae", price: 384, isDekton: true },
-                { name: "Dekton Aeris", price: 384, isDekton: true },
-                { name: "Dekton REM PROMO", price: 465, isDekton: true },
-                { name: "Mont Blanc 542 poliert", price: 542, isDekton: false },
-                { name: "Dekton Sasea PG1", price: 495, isDekton: true },
-                { name: "Dekton Nacre PG1", price: 495, isDekton: true },
-                { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false },
-                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true },
-                { name: "Nero Assoluto", price: 245, isDekton: false }
+                { name: "Marinace Black 2cm", price: 325, isDekton: false, image: "" },
+                { name: "Dekton Morpheus", price: 652, isDekton: true, image: "" },
+                { name: "Steel Grey 226", price: 226, isDekton: false, image: "" },
+                { name: "Dekton Laurent", price: 456, isDekton: true, image: "" },
+                { name: "Dekton Kairos", price: 384, isDekton: true, image: "" },
+                { name: "Dekton Domoos", price: 576, isDekton: true, image: "" },
+                { name: "Café Imperial", price: 275, isDekton: false, image: "" },
+                { name: "Breccia Imperiale", price: 395, isDekton: false, image: "" },
+                { name: "Dekton Albarium", price: 576, isDekton: true, image: "" },
+                { name: "Dekton Sandik", price: 576, isDekton: true, image: "" },
+                { name: "Dekton Adia", price: 576, isDekton: true, image: "" },
+                { name: "Dekton Opera", price: 641, isDekton: true, image: "" },
+                { name: "Dekton Reverie", price: 641, isDekton: true, image: "" },
+                { name: "Via Lattea", price: 275, isDekton: false, image: "" },
+                { name: "Dekton Lunar 22", price: 379, isDekton: true, image: "" },
+                { name: "Tropical Storm", price: 395, isDekton: false, image: "" },
+                { name: "Dekton Entzo", price: 641, isDekton: true, image: "" },
+                { name: "Dekton Sirius PROMO", price: 380, isDekton: true, image: "" },
+                { name: "Dekton Eter PROMO", price: 360, isDekton: true, image: "" },
+                { name: "Dekton Danae", price: 384, isDekton: true, image: "" },
+                { name: "Dekton Aeris", price: 384, isDekton: true, image: "" },
+                { name: "Dekton REM PROMO", price: 465, isDekton: true, image: "" },
+                { name: "Mont Blanc 542 poliert", price: 542, isDekton: false, image: "" },
+                { name: "Dekton Sasea PG1", price: 495, isDekton: true, image: "" },
+                { name: "Dekton Nacre PG1", price: 495, isDekton: true, image: "" },
+                { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false, image: "" },
+                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true, image: "" },
+                { name: "Nero Assoluto", price: 245, isDekton: false, image: "" }
             ],
             config: { 
                 factor: 1.5, measure: 100, delivery: 700, gluing: 250, 
@@ -333,7 +340,6 @@
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
 
-        // Globale Animationsobjekte für Ticker-Effekt
         const animState = {};
         
         window.animateValue = (id, endVal) => {
@@ -343,19 +349,18 @@
             const startVal = animState[id]?.current || 0;
             if (animState[id]?.req) cancelAnimationFrame(animState[id].req);
 
-            // Keine Animation, wenn sich nichts ändert
             if (Math.abs(startVal - endVal) < 0.01) {
                 el.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(endVal);
                 animState[id] = { current: endVal, req: null };
                 return;
             }
 
-            const duration = 500; // Animationsdauer in ms
+            const duration = 500; 
             const startTime = performance.now();
 
             const step = (currentTime) => {
                 const progress = Math.min((currentTime - startTime) / duration, 1);
-                const ease = 1 - Math.pow(1 - progress, 3); // Ease-Out Effekt
+                const ease = 1 - Math.pow(1 - progress, 3);
                 const current = startVal + (endVal - startVal) * ease;
                 
                 el.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(current);
@@ -499,6 +504,18 @@
             const stone = window.stones[sel.selectedIndex];
             if (!stone) return;
 
+            // Bild laden
+            const imgEl = document.getElementById('stonePreviewImg');
+            const fallbackEl = document.getElementById('stonePreviewFallback');
+            if (stone.image && stone.image.trim() !== "") {
+                imgEl.src = 'images/' + stone.image.trim();
+                // Das Onload-Event in HTML kümmert sich um das Einblenden
+            } else {
+                imgEl.classList.add('hidden');
+                fallbackEl.classList.remove('hidden');
+                imgEl.src = "";
+            }
+
             const edgeRate = stone.isDekton ? window.config.dekEdge : window.config.natEdge;
             const rateFlush = stone.isDekton ? window.config.dekCutFlush : window.config.natCutFlush;
             const rateUnder = stone.isDekton ? window.config.dekCutUnder : window.config.natCutUnder;
@@ -525,15 +542,12 @@
             const ek = sumMat + sumEdge + sumCut + sumExtra;
             const vk = ek * window.config.factor;
 
-            // Animiere alle Berechnungen durch die neue Funktion anstatt harter Text-Zuweisung
             window.animateValue('resMat', sumMat);
             window.animateValue('resEdge', sumEdge);
             window.animateValue('resCut', sumCut);
             window.animateValue('resExtra', sumExtra);
             window.animateValue('totalEK', ek);
             window.animateValue('totalVK', vk);
-            
-            // Auch den Sticky-Footer für mobile Geräte updaten
             window.animateValue('stickyVK', vk);
         };
 
@@ -596,7 +610,7 @@
         window.closeAdminGate = () => document.getElementById('admin-gate').classList.add('hidden');
 
         window.addStone = () => {
-            window.stones.push({ name: "Neuer Stein...", price: 0, isDekton: false });
+            window.stones.push({ name: "Neuer Stein...", price: 0, isDekton: false, image: "" });
             window.markLocalUpdate();
             window.render();
         };
@@ -627,7 +641,10 @@
             if (tableContainer) {
                 tableContainer.innerHTML = window.stones.map((s, i) => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all">
-                        <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" class="bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500">
+                        <div class="flex gap-2">
+                            <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" class="flex-1 bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="Stein Name">
+                            <input value="${s.image || ''}" oninput="window.stones[${i}].image=this.value; window.markLocalUpdate();" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
+                        </div>
                         <div class="flex items-center gap-2">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
                             <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">

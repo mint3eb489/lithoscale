@@ -102,8 +102,15 @@
                                 <img id="stonePreviewImg" src="" alt="Stein Vorschau" class="absolute inset-0 w-full h-full object-cover hidden transition-opacity duration-300" onload="this.classList.remove('hidden'); document.getElementById('stonePreviewFallback').classList.add('hidden');" onerror="this.classList.add('hidden'); document.getElementById('stonePreviewFallback').classList.remove('hidden');">
                             </div>
                             <div class="flex-1 flex flex-col justify-center">
-                                <label class="text-[10px] font-black text-slate-500 uppercase ml-1">Steinart</label>
-                                <select id="stoneSelect" class="input-field mt-1" onchange="window.calculate()"></select>
+                                <div class="flex justify-between items-end mb-2 ml-1">
+                                    <label class="text-[10px] font-black text-slate-500 uppercase">Steinart</label>
+                                    <div class="flex gap-1.5" id="filter-buttons">
+                                        <button onclick="window.setFilter('all')" id="flt-all" class="text-[9px] font-black px-2 py-0.5 rounded-md transition-all uppercase">Alle</button>
+                                        <button onclick="window.setFilter('natur')" id="flt-natur" class="text-[9px] font-black px-2 py-0.5 rounded-md transition-all uppercase">Natur</button>
+                                        <button onclick="window.setFilter('dekton')" id="flt-dekton" class="text-[9px] font-black px-2 py-0.5 rounded-md transition-all uppercase">Dekton</button>
+                                    </div>
+                                </div>
+                                <select id="stoneSelect" class="input-field" onchange="window.calculate()"></select>
                             </div>
                         </div>
 
@@ -355,6 +362,7 @@
         window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
+        window.activeFilter = 'all'; // Standardfilter für Steine
 
         // INITIALISIERUNG STÜCKLISTE
         const defaultParts = [{ id: Date.now(), name: "Platte 1", l: "", w: "", edges: { v: true, h: false, l: false, r: false } }];
@@ -398,6 +406,11 @@
                 window.config[key] = value;
             }
             window.markLocalUpdate();
+        };
+
+        window.setFilter = (type) => {
+            window.activeFilter = type;
+            window.render();
         };
 
         const updateStatus = (text, colorClass, debugMsg = "") => {
@@ -625,7 +638,7 @@
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = window.stones[sel.selectedIndex];
+            const stone = window.stones[sel.value]; // Wichtig: greife über sel.value auf den globalen Index zu
             if (!stone) return;
 
             // Bild laden
@@ -759,14 +772,53 @@
         };
 
         window.render = () => {
+            
+            // Design der Filter-Buttons umschalten
+            const btnAll = document.getElementById('flt-all');
+            const btnNatur = document.getElementById('flt-natur');
+            const btnDekton = document.getElementById('flt-dekton');
+
+            if(btnAll) {
+                btnAll.className = window.activeFilter === 'all'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-slate-500 text-white border border-slate-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-slate-400 border border-slate-300 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer';
+
+                btnNatur.className = window.activeFilter === 'natur'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-emerald-500 text-white border border-emerald-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer';
+
+                btnDekton.className = window.activeFilter === 'dekton'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-red-500 text-white border border-red-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-red-500 border border-red-500/30 hover:bg-red-500/10 cursor-pointer';
+            }
+
             const sel = document.getElementById('stoneSelect');
-            if (!sel) return;
-            const curIdx = sel.selectedIndex >= 0 ? sel.selectedIndex : 0;
-            sel.innerHTML = window.stones.map((s, i) => {
-                const icon = s.isDekton ? '🔴' : '🟢';
-                return `<option value="${i}">${icon} ${s.name}</option>`;
-            }).join('');
-            if (curIdx < window.stones.length) sel.selectedIndex = curIdx;
+            if (sel) {
+                // Aktuellen Stein merken
+                const currentVal = sel.value;
+                
+                sel.innerHTML = window.stones.map((s, i) => {
+                    if (window.activeFilter === 'dekton' && !s.isDekton) return '';
+                    if (window.activeFilter === 'natur' && s.isDekton) return '';
+                    const icon = s.isDekton ? '🔴' : '🟢';
+                    return `<option value="${i}">${icon} ${s.name}</option>`;
+                }).join('');
+
+                // Prüfen, ob der alte Stein nach dem Filtern noch da ist
+                let found = false;
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === currentVal) {
+                        sel.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                
+                // Wenn der alte Stein wegefiltert wurde, nimm einfach den obersten aus der neuen Liste
+                if (!found && sel.options.length > 0) {
+                    sel.selectedIndex = 0;
+                }
+            }
 
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {

@@ -46,6 +46,9 @@
         
         /* Verhindert Layout-Sprünge beim Ticker */
         .font-mono-tabular { font-variant-numeric: tabular-nums; }
+        
+        /* Kundenmodus blendet EK-Preise aus */
+        body.customer-mode .ek-hide { display: none !important; }
     </style>
 </head>
 <body class="p-3 md:p-8 bg-slate-50 dark:bg-trueBlack text-slate-900 dark:text-slate-100">
@@ -75,6 +78,15 @@
                 </div>
             </div>
             <div class="flex items-center gap-4 w-full md:w-auto">
+                <button onclick="window.toggleCustomerMode()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm" title="Kundenmodus umschalten">
+                    <svg id="eyeOpenIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                    <svg id="eyeClosedIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    </svg>
+                </button>
                 <button onclick="toggleTheme()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm">
                     <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
                     <svg id="moonIcon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
@@ -175,11 +187,12 @@
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl h-full flex flex-col shadow-2xl border border-darkBorder">
                         <div>
                             <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
-                            <div class="space-y-4 text-xs mb-8">
+                            
+                            <div class="space-y-4 text-xs mb-8 ek-hide">
                                 <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat" class="font-mono-tabular">0,00 €</span></div>
                                 <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge" class="font-mono-tabular">0,00 €</span></div>
                                 <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut" class="font-mono-tabular">0,00 €</span></div>
-                                <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">Gesamtpreis</span><span id="resExtra" class="font-bold font-mono-tabular">0,00 €</span></div>
+                                <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">SERVICE</span><span id="resExtra" class="font-bold font-mono-tabular">0,00 €</span></div>
                             </div>
                             
                             <div class="grid grid-cols-2 gap-3 mb-8">
@@ -189,7 +202,7 @@
                         </div>
 
                         <div class="mt-auto">
-                            <div class="text-center mb-6 pt-4 border-t border-white/5">
+                            <div class="text-center mb-6 pt-4 border-t border-white/5 ek-hide">
                                 <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
                                 <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter font-mono-tabular">0,00 €</p>
                             </div>
@@ -197,7 +210,7 @@
                             <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner">
                                 <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2">Verkaufspreis (VK Brutto)</p>
                                 <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter font-mono-tabular">0,00 €</p>
-                                <p class="text-[8px] text-slate-500 mt-2 italic">*Kalkuliert mit aktuellem Faktor</p>
+                                <p class="text-[8px] text-slate-500 mt-2 italic ek-hide">*Kalkuliert mit aktuellem Faktor</p>
                             </div>
                         </div>
                     </div>
@@ -229,7 +242,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                    <div class="card p-6 h-full flex flex-col">
+                    <div class="card p-6 h-full flex flex-col ek-hide">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Preis-Parameter</h3>
                         <div id="admin-fields" class="space-y-4 flex-1"></div>
                     </div>
@@ -244,8 +257,8 @@
             </div>
         </div>
 
-        <!-- Password Modal -->
-        <div id="admin-gate" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm items-center justify-center hidden p-4">
+        <!-- Password Modal (Mittig fixiert) -->
+        <div id="admin-gate" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
             <div class="card p-8 max-w-sm w-full shadow-2xl modal-fade">
                 <div class="text-center mb-6">
                     <div class="w-16 h-16 bg-blue-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -362,9 +375,8 @@
         window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
-        window.activeFilter = 'all'; // Standardfilter für Steine
+        window.activeFilter = 'all'; 
 
-        // INITIALISIERUNG STÜCKLISTE
         const defaultParts = [{ id: Date.now(), name: "Platte 1", l: "", w: "", edges: { v: true, h: false, l: false, r: false } }];
         window.parts = JSON.parse(localStorage.getItem('ls_parts')) || JSON.parse(JSON.stringify(defaultParts));
 
@@ -531,7 +543,6 @@
             window.calculate(); 
         };
 
-        // STÜCKLISTE FUNKTIONEN
         window.saveParts = () => {
             localStorage.setItem('ls_parts', JSON.stringify(window.parts));
         };
@@ -556,7 +567,6 @@
                 p[field] = value;
                 window.saveParts();
                 
-                // Berechne lokale Werte des einzelnen Parts sofort neu, ohne Fokus zu verlieren
                 const l = parseFloat(String(p.l).replace(',', '.')) || 0;
                 const w = parseFloat(String(p.w).replace(',', '.')) || 0;
                 const sqm = (l * w) / 10000;
@@ -638,10 +648,9 @@
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = window.stones[sel.value]; // Wichtig: greife über sel.value auf den globalen Index zu
+            const stone = window.stones[sel.value];
             if (!stone) return;
 
-            // Bild laden
             const imgEl = document.getElementById('stonePreviewImg');
             const fallbackEl = document.getElementById('stonePreviewFallback');
             if (stone.image && stone.image.trim() !== "") {
@@ -658,7 +667,6 @@
             
             document.getElementById('materialBadge').innerHTML = stone.isDekton ? '<span class="badge-dekton">DEKTON</span>' : '<span class="badge-natur">NATURSTEIN</span>';
             
-            // Berechnung der Stückliste
             let totalSqm = 0;
             let totalLfm = 0;
             
@@ -773,7 +781,6 @@
 
         window.render = () => {
             
-            // Design der Filter-Buttons umschalten
             const btnAll = document.getElementById('flt-all');
             const btnNatur = document.getElementById('flt-natur');
             const btnDekton = document.getElementById('flt-dekton');
@@ -794,7 +801,6 @@
 
             const sel = document.getElementById('stoneSelect');
             if (sel) {
-                // Aktuellen Stein merken
                 const currentVal = sel.value;
                 
                 sel.innerHTML = window.stones.map((s, i) => {
@@ -804,7 +810,6 @@
                     return `<option value="${i}">${icon} ${s.name}</option>`;
                 }).join('');
 
-                // Prüfen, ob der alte Stein nach dem Filtern noch da ist
                 let found = false;
                 for (let i = 0; i < sel.options.length; i++) {
                     if (sel.options[i].value === currentVal) {
@@ -814,7 +819,6 @@
                     }
                 }
                 
-                // Wenn der alte Stein wegefiltert wurde, nimm einfach den obersten aus der neuen Liste
                 if (!found && sel.options.length > 0) {
                     sel.selectedIndex = 0;
                 }
@@ -841,20 +845,26 @@
                             <input value="${s.image || ''}" oninput="window.stones[${i}].image=this.value; window.markLocalUpdate();" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
                         </div>
                         <div class="flex items-center gap-2">
-                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs">
-                            <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24">
+                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1 ek-hide">EK €/m²</label>
+                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs ek-hide">
+                            <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 ek-hide">
                                 ${s.isDekton?'Dekton':'Natur'}
                             </button>
-                            <button onclick="window.stones.splice(${i},1); window.markLocalUpdate(); window.render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform">✕</button>
+                            <button onclick="window.stones.splice(${i},1); window.markLocalUpdate(); window.render();" class="text-red-500 px-3 font-bold hover:scale-110 transition-transform ek-hide">✕</button>
                         </div>
                     </div>
                 `).join('');
             }
             
-            // Wichtig: Beim generellen Render auch die Stückliste mitzeichnen
             window.renderParts();
             window.calculate();
+        };
+
+        window.toggleCustomerMode = () => {
+            const isC = document.body.classList.toggle('customer-mode');
+            localStorage.setItem('ls_customer', isC ? '1' : '0');
+            document.getElementById('eyeOpenIcon').classList.toggle('hidden', isC);
+            document.getElementById('eyeClosedIcon').classList.toggle('hidden', !isC);
         };
 
         window.toggleTheme = () => {
@@ -864,13 +874,27 @@
             document.getElementById('moonIcon').classList.toggle('hidden', isD);
         };
         
-        const t = localStorage.getItem('ls_theme');
-        if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
-            document.documentElement.classList.add('dark');
-            document.getElementById('sunIcon').classList.remove('hidden');
-            document.getElementById('moonIcon').classList.add('hidden');
-        }
+        // Initialisierungen
+        const initUIStates = () => {
+            const t = localStorage.getItem('ls_theme');
+            if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                document.getElementById('sunIcon').classList.remove('hidden');
+                document.getElementById('moonIcon').classList.add('hidden');
+            }
+            
+            const c = localStorage.getItem('ls_customer');
+            if (c === '1') {
+                document.body.classList.add('customer-mode');
+                document.getElementById('eyeOpenIcon').classList.add('hidden');
+                document.getElementById('eyeClosedIcon').classList.remove('hidden');
+            } else {
+                document.getElementById('eyeOpenIcon').classList.remove('hidden');
+                document.getElementById('eyeClosedIcon').classList.add('hidden');
+            }
+        };
 
+        initUIStates();
         initFirebase();
     </script>
 </body>

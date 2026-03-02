@@ -89,23 +89,34 @@
                     </h1>
                 </div>
             </div>
-            <div class="flex items-center gap-4 w-full md:w-auto">
-                <button onclick="window.toggleCustomerMode()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm transition-all active:scale-95" title="Kundenmodus umschalten">
-                    <svg id="eyeOpenIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                    <svg id="eyeClosedIcon" class="w-5 h-5 text-blue-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                    </svg>
-                </button>
-                <button onclick="toggleTheme()" class="p-4 bg-white dark:bg-darkCard rounded-2xl border dark:border-darkBorder shadow-sm transition-all active:scale-95">
-                    <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
-                    <svg id="moonIcon" class="w-5 h-5 text-slate-700" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
-                </button>
+            <div class="flex items-center gap-2 md:gap-4 w-full md:w-auto">
+                <!-- Neue Tool-Bar: Kundenmodus, Admin, Darkmode -->
+                <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm shrink-0">
+                    <button onclick="window.toggleCustomerMode()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Kundenmodus">
+                        <svg id="eyeOpenIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                        <svg id="eyeClosedIcon" class="w-5 h-5 text-blue-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                    </button>
+                    <button onclick="window.requestAdmin()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Admin">
+                        <svg id="btn-admin-icon" class="w-5 h-5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                    </button>
+                    <button onclick="toggleTheme()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Design wechseln">
+                        <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
+                        <svg id="moonIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                    </button>
+                </div>
+                
+                <!-- Haupt-Tabs -->
                 <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm flex-1">
                     <button onclick="switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest text-[10px]">Rechner</button>
-                    <button onclick="switchTab('admin')" id="btn-admin" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Admin</button>
+                    <button onclick="switchTab('gallery')" id="btn-gallery" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Galerie</button>
                 </div>
             </div>
         </header>
@@ -123,7 +134,7 @@
                         
                         <div class="flex flex-col sm:flex-row gap-5 mb-5">
                             <!-- Vorschau Container mit Lightbox-Trigger -->
-                            <div class="w-40 h-40 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl border border-slate-200 dark:border-darkBorder overflow-hidden shrink-0 bg-slate-50 dark:bg-black flex items-center justify-center relative shadow-inner mx-auto sm:mx-0 group cursor-pointer" onclick="window.openLightbox()" title="Bild vergrößern">
+                            <div class="w-40 h-40 sm:w-32 sm:h-32 md:w-36 md:h-36 rounded-xl border border-slate-200 dark:border-darkBorder overflow-hidden shrink-0 bg-slate-50 dark:bg-black flex items-center justify-center relative shadow-inner mx-auto sm:mx-0 group cursor-pointer" onclick="window.openLightbox(document.getElementById('stonePreviewImg').src)" title="Bild vergrößern">
                                 <span id="stonePreviewFallback" class="text-[9px] font-black text-slate-400 uppercase tracking-widest text-center leading-tight">Kein<br>Bild</span>
                                 <img id="stonePreviewImg" src="" alt="Stein Vorschau" class="absolute inset-0 w-full h-full object-cover hidden transition-transform duration-500 group-hover:scale-110" onload="this.classList.remove('hidden'); document.getElementById('stonePreviewFallback').classList.add('hidden');" onerror="this.classList.add('hidden'); document.getElementById('stonePreviewFallback').classList.remove('hidden');">
                                 <div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
@@ -274,10 +285,25 @@
                         </div>
                     </div>
                 </div>
-
             </div>
 
-            <!-- ADMIN -->
+            <!-- NEU: GALERIE TAB -->
+            <div id="tab-gallery" class="hidden pb-20 space-y-10">
+                <div>
+                    <h2 class="text-xl font-black mb-6 flex items-center gap-3 tracking-tight">
+                        <span class="w-3.5 h-3.5 rounded-full bg-red-500 shadow-lg shadow-red-500/40"></span> Dekton
+                    </h2>
+                    <div id="gallery-dekton" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+                </div>
+                <div>
+                    <h2 class="text-xl font-black mb-6 flex items-center gap-3 tracking-tight mt-12 border-t dark:border-darkBorder pt-10">
+                        <span class="w-3.5 h-3.5 rounded-full bg-emerald-500 shadow-lg shadow-emerald-500/40"></span> Naturstein
+                    </h2>
+                    <div id="gallery-natur" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6"></div>
+                </div>
+            </div>
+
+            <!-- ADMIN TAB (Nur sichtbar nach Login via Icon) -->
             <div id="tab-admin" class="hidden space-y-6 pb-20">
                 <div class="card p-6 bg-blue-600/5 border border-blue-500/20 rounded-2xl flex items-center justify-between">
                     <div>
@@ -290,18 +316,17 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                    <div class="card p-6 ek-hide sticky top-10">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                    <div class="card p-6 h-full flex flex-col ek-hide">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Preis-Parameter</h3>
-                        <div id="admin-fields" class="space-y-4"></div>
+                        <div id="admin-fields" class="space-y-4 flex-1"></div>
                     </div>
-                    <div class="card p-6">
+                    <div class="card p-6 h-full flex flex-col">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Material-Katalog</h3>
                         <div class="flex justify-end mb-4">
                             <button onclick="window.addStone()" class="bg-blue-500 text-white px-4 py-2 rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-blue-600 active:scale-95 transition-all">+ Stein hinzufügen</button>
                         </div>
-                        <!-- Admin Grid Layout -->
-                        <div id="admin-table" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+                        <div id="admin-table" class="space-y-3 overflow-y-auto flex-1 pr-2 min-h-[400px]"></div>
                     </div>
                 </div>
             </div>
@@ -363,6 +388,7 @@
         let isUploading = false;
         let isAdminActive = false;
         let lastLocalUpdate = 0;
+        let lastTab = 'calc'; // Speichert den letzten regulären Tab (Rechner oder Galerie)
 
         const DEFAULTS = {
             stones: [
@@ -826,30 +852,52 @@
             window.calculate();
         };
 
-        window.switchTab = (t) => {
-            if (t === 'admin' && !isAdminActive) {
+        window.requestAdmin = () => {
+            if (isAdminActive) {
+                window.switchTab('admin');
+            } else {
                 document.getElementById('admin-gate').classList.remove('hidden');
-                return;
             }
+        };
+
+        window.switchTab = (t) => {
+            if (t !== 'admin') window.lastTab = t;
+
             document.getElementById('tab-calc').classList.toggle('hidden', t !== 'calc');
+            document.getElementById('tab-gallery').classList.toggle('hidden', t !== 'gallery');
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
-            document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
-            document.getElementById('btn-admin').className = t === 'admin' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+            
+            // Tab-Buttons updaten
+            if (t === 'calc' || t === 'gallery') {
+                document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-gallery').className = t === 'gallery' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-admin-icon').classList.remove('text-blue-500');
+            } else if (t === 'admin') {
+                document.getElementById('btn-calc').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-gallery').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-admin-icon').classList.add('text-blue-500');
+            }
+
             if (t === 'calc') { isAdminActive = false; startCloudListener(); }
             window.render();
-            // Scroll Event Trigger nach Tab-Wechsel für Header
-            window.dispatchEvent(new Event('scroll'));
+            window.dispatchEvent(new Event('scroll')); // Für Sticky Header
         };
 
         window.checkAdminPass = () => {
             if (document.getElementById('adminPassInput').value === window.config.adminPass) {
                 isAdminActive = true; 
                 document.getElementById('admin-gate').classList.add('hidden');
+                document.getElementById('adminPassInput').value = '';
                 window.switchTab('admin');
             } else { showAlert("Passwort falsch!"); }
         };
 
-        window.closeAdminGate = () => document.getElementById('admin-gate').classList.add('hidden');
+        window.closeAdminGate = () => {
+            document.getElementById('admin-gate').classList.add('hidden');
+            document.getElementById('adminPassInput').value = '';
+            // Optisch und funktionell wieder auf den vorherigen Tab springen
+            window.switchTab(window.lastTab);
+        };
 
         window.addStone = () => {
             window.stones.push({ name: "Neuer Stein...", price: 0, isDekton: false, image: "" });
@@ -857,8 +905,21 @@
             window.render();
         };
 
+        window.selectFromGallery = (index) => {
+            window.activeFilter = 'all'; // Filter zurücksetzen, damit der Stein auf jeden Fall auswählbar ist
+            window.render(); 
+            const sel = document.getElementById('stoneSelect');
+            if (sel) {
+                sel.value = index;
+                window.calculate();
+                window.switchTab('calc');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        };
+
         window.render = () => {
             
+            // Rechner Dropdown
             const btnAll = document.getElementById('flt-all');
             const btnNatur = document.getElementById('flt-natur');
             const btnDekton = document.getElementById('flt-dekton');
@@ -902,6 +963,41 @@
                 }
             }
 
+            // Galerie Tab
+            const dektonContainer = document.getElementById('gallery-dekton');
+            const naturContainer = document.getElementById('gallery-natur');
+            
+            if (dektonContainer && naturContainer) {
+                let dektonHtml = '';
+                let naturHtml = '';
+                
+                window.stones.forEach((s, i) => {
+                    const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
+                    const card = `
+                        <div class="card overflow-hidden group cursor-pointer hover:border-blue-500 hover:shadow-lg transition-all" onclick="window.selectFromGallery(${i})">
+                            <div class="aspect-square bg-slate-100 dark:bg-black relative overflow-hidden flex items-center justify-center border-b border-slate-200 dark:border-darkBorder">
+                                ${imgStr ? `
+                                <img src="${imgStr}" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy">
+                                <button onclick="event.stopPropagation(); window.openLightbox('${imgStr}')" class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm hover:bg-black/70 shadow-lg">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                </button>
+                                ` : `<span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kein Bild</span>`}
+                            </div>
+                            <div class="p-3 md:p-4">
+                                <p class="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200" title="${s.name}">${s.name}</p>
+                                <p class="text-[10px] md:text-xs font-mono font-bold text-slate-500 mt-1 ek-hide">${new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(s.price)} / m²</p>
+                            </div>
+                        </div>
+                    `;
+                    if (s.isDekton) dektonHtml += card;
+                    else naturHtml += card;
+                });
+                
+                dektonContainer.innerHTML = dektonHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Dekton Steine vorhanden.</p>';
+                naturContainer.innerHTML = naturHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Natursteine vorhanden.</p>';
+            }
+
+            // Admin Parameter
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
                 fieldsContainer.innerHTML = Object.keys(window.config).map(k => `
@@ -914,6 +1010,7 @@
                 `).join('');
             }
 
+            // Admin Stein-Liste
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
                 tableContainer.innerHTML = window.stones.map((s, i) => `
@@ -975,9 +1072,8 @@
             }
         };
 
-        // --- NEU: Lightbox Logik ---
-        window.openLightbox = () => {
-            const imgSrc = document.getElementById('stonePreviewImg').src;
+        // --- Lightbox Logik (erweitert für Galerie) ---
+        window.openLightbox = (imgSrc) => {
             if (!imgSrc || imgSrc.endsWith('index.html')) return; // Kein Bild vorhanden
             
             const lb = document.getElementById('lightbox');
@@ -986,7 +1082,6 @@
             lbImg.src = imgSrc;
             lb.classList.remove('hidden');
             
-            // Verzögerung für weiche CSS-Transition
             setTimeout(() => {
                 lb.classList.remove('opacity-0');
                 lbImg.classList.remove('scale-95');
@@ -1007,12 +1102,11 @@
             }, 300);
         };
 
-        // --- NEU: Sticky Header Scroll-Logik (Mobile) ---
+        // --- Sticky Header Scroll-Logik (Mobile) ---
         window.addEventListener('scroll', () => {
             const isCalcTab = !document.getElementById('tab-calc').classList.contains('hidden');
             const stickyHeader = document.getElementById('sticky-mat-info');
             
-            // Ab 220px Scroll-Tiefe (wenn das große Bild fast weg ist) Header einblenden
             if (isCalcTab && window.scrollY > 220) {
                 stickyHeader.classList.remove('-translate-y-full');
             } else {
@@ -1038,6 +1132,9 @@
                 document.getElementById('eyeOpenIcon').classList.remove('hidden');
                 document.getElementById('eyeClosedIcon').classList.add('hidden');
             }
+            
+            // Start immer im Rechner
+            window.switchTab('calc');
         };
 
         // Automatisches Apple Touch Icon

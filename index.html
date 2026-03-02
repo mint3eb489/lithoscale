@@ -560,6 +560,7 @@
         };
 
         const startCloudListener = () => {
+            if (!db || !currentUser) return; // FIX: Sicherheits-Check verhindert Absturz vor Initialisierung
             if (unsubCloud) unsubCloud();
             updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
             const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
@@ -878,7 +879,10 @@
                 document.getElementById('btn-admin-icon').classList.add('text-blue-500');
             }
 
-            if (t === 'calc') { isAdminActive = false; startCloudListener(); }
+            if (t === 'calc') { 
+                isAdminActive = false; 
+                if (db && currentUser) startCloudListener(); // FIX: Sichert den Wechsel zusätzlich ab
+            }
             window.render();
             window.dispatchEvent(new Event('scroll')); // Für Sticky Header
         };
@@ -1132,9 +1136,6 @@
                 document.getElementById('eyeOpenIcon').classList.remove('hidden');
                 document.getElementById('eyeClosedIcon').classList.add('hidden');
             }
-            
-            // Start immer im Rechner
-            window.switchTab('calc');
         };
 
         // Automatisches Apple Touch Icon

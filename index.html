@@ -479,8 +479,10 @@
         let lastLocalUpdate = 0;
         let lastTab = 'calc'; 
 
-        // NEU: Status für Vergleichsmodus
         window.compareList = []; 
+
+        // Hilfsfunktion: Generiert einzigartige IDs für jeden Stein
+        const generateId = () => 'st_' + Math.random().toString(36).substr(2, 9);
 
         const DEFAULTS = {
             stones: [
@@ -549,7 +551,6 @@
             cfg.dekCutUnder = cfg.dekCutUnder || 177;
             cfg.dekCutFlush = cfg.dekCutFlush || 177;
             
-            // Neue Parameter initialisieren, falls sie fehlen
             if (cfg.natCutTop === undefined) cfg.natCutTop = 85;
             if (cfg.dekCutTop === undefined) cfg.dekCutTop = 85;
             if (cfg.notch === undefined) cfg.notch = 45;
@@ -563,8 +564,12 @@
             window.stones.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
         };
 
-        window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
-        window.sortStones(); // Initial sortieren
+        // Migration: Beim Starten jedem Stein ohne ID eine geben
+        let localStones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
+        localStones.forEach(s => { if (!s.id) s.id = generateId(); });
+        window.stones = localStones;
+        window.sortStones(); 
+        
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
         window.activeFilter = 'all'; 
@@ -678,7 +683,12 @@
                     const data = snap.data();
                     const serverTime = data.updated || 1; 
                     if (serverTime > lastLocalUpdate) {
-                        window.stones = data.stones || window.stones;
+                        // IDs auch bei Daten aus der Cloud sicherstellen
+                        let cloudStones = data.stones || window.stones;
+                        cloudStones.forEach(s => { if (!s.id) s.id = generateId(); });
+                        window.stones = cloudStones;
+                        window.sortStones();
+                        
                         window.config = migrateConfig(data.config || window.config);
                         lastLocalUpdate = serverTime;
                         localStorage.setItem('ls_stones', JSON.stringify(window.stones));
@@ -725,6 +735,7 @@
         window.factoryResetCloud = async () => {
             if(!confirm("Katalog zurücksetzen?")) return;
             window.stones = JSON.parse(JSON.stringify(DEFAULTS.stones));
+            window.stones.forEach(s => { s.id = generateId(); });
             window.config = JSON.parse(JSON.stringify(DEFAULTS.config));
             window.markLocalUpdate();
             await window.pushToCloud();
@@ -732,12 +743,43 @@
         };
 
         window.markLocalUpdate = () => {
-            window.sortStones(); // Vor jedem Speichern alphabetisch ordnen
+            window.sortStones(); 
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(window.stones));
             localStorage.setItem('ls_config', JSON.stringify(window.config));
             window.calculate(); 
         };
+
+        // --- NEU: Sichere Admin-Steuerung über IDs ---
+        window.addStone = () => {
+            window.stones.push({ id: generateId(), name: "Neuer Stein...", price: 0, isDekton: false, image: "" });
+            window.markLocalUpdate();
+            window.render();
+        };
+
+        window.updateStone = (id, field, value, isNumber = false) => {
+            const stone = window.stones.find(s => s.id === id);
+            if (stone) {
+                stone[field] = isNumber ? (parseFloat(value.replace(',', '.')) || 0) : value;
+                window.markLocalUpdate(); 
+            }
+        };
+
+        window.toggleStoneType = (id) => {
+            const stone = window.stones.find(s => s.id === id);
+            if (stone) {
+                stone.isDekton = !stone.isDekton;
+                window.markLocalUpdate();
+                window.render();
+            }
+        };
+
+        window.deleteStone = (id) => {
+            window.stones = window.stones.filter(s => s.id !== id);
+            window.markLocalUpdate();
+            window.render();
+        };
+        // ----------------------------------------------
 
         window.saveParts = () => {
             localStorage.setItem('ls_parts', JSON.stringify(window.parts));
@@ -844,7 +886,6 @@
             container.innerHTML = html;
         };
 
-        // Extrahiert die reine Berechnungs-Logik (für Rechner UND Vergleichsmodus)
         window.calculateForStone = (stone) => {
             const edgeRate = stone.isDekton ? window.config.dekEdge : window.config.natEdge;
             const rateFlush = stone.isDekton ? window.config.dekCutFlush : window.config.natCutFlush;
@@ -874,7 +915,6 @@
             const sumMat = totalSqm * stone.price;
             const sumEdge = totalLfm * edgeRate;
             
-            // Zusammenfassung aller Ausschnitte, Bohrungen und Ausklinkungen
             const sumCut = (flush * rateFlush) + (under * rateUnder) + (top * rateTop) + (notch * (window.config.notch || 0)) + (hole * (window.config.hole || 0));
             
             const sumExtra = (miter * (window.config.miter || 0)) + (glue ? window.config.gluing : 0) + (activeServices.measure ? window.config.measure : 0) + (activeServices.delivery ? window.config.delivery : 0);
@@ -888,7 +928,8 @@
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = window.stones[sel.value];
+            // Greift jetzt sicher über die ID zu
+            const stone = window.stones.find(s => s.id === sel.value);
             if (!stone) return;
 
             const imgEl = document.getElementById('stonePreviewImg');
@@ -901,7 +942,6 @@
                 imgEl.src = "";
             }
             
-            // Sticky Info Update
             document.getElementById('sticky-mat-name').innerText = stone.name;
             document.getElementById('sticky-mat-indicator').className = `w-3 h-3 rounded-full ${stone.isDekton ? 'bg-red-500' : 'bg-emerald-500'}`;
             document.getElementById('sticky-mat-price').innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(stone.price) + ' / m²';
@@ -915,7 +955,6 @@
             if(displaySqm) displaySqm.innerText = res.totalSqm.toFixed(2).replace('.', ',') + ' m²';
             if(displayLfm) displayLfm.innerText = res.totalLfm.toFixed(2).replace('.', ',') + ' Lfm';
 
-            // Update Desktop-Werte
             window.animateValue('resMat', res.sumMat);
             window.animateValue('resEdge', res.sumEdge);
             window.animateValue('resCut', res.sumCut);
@@ -923,7 +962,6 @@
             window.animateValue('totalEK', res.ek);
             window.animateValue('totalVK', res.vk);
             
-            // Update Mobile-Werte
             window.animateValue('resMatMob', res.sumMat);
             window.animateValue('resEdgeMob', res.sumEdge);
             window.animateValue('resCutMob', res.sumCut);
@@ -934,36 +972,31 @@
             window.animateValue('stickyVK', res.vk);
         };
 
-        // --- NEU: Statistik speichern ---
         window.saveStat = (btnId) => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            const stone = window.stones[sel.value];
+            // Greift über ID zu
+            const stone = window.stones.find(s => s.id === sel.value);
             if (!stone) return;
 
             const res = window.calculateForStone(stone);
-            if (res.vk <= 0) return; // Verhindert Speichern von leeren Rechnern
+            if (res.vk <= 0) return; 
 
             const type = stone.isDekton ? 'dekton' : 'natur';
             
-            // Array initialisieren (Falls noch nie gespeichert wurde)
             if (!window.config.stats) window.config.stats = { dekton: [], natur: [] };
             if (!window.config.stats[type]) window.config.stats[type] = [];
 
-            // Wert hinzufügen
             window.config.stats[type].push(res.vk);
             
-            // Auf die letzten 10 Verkäufe begrenzen (First in, first out)
             if (window.config.stats[type].length > 10) {
                 window.config.stats[type].shift();
             }
 
-            // Lokal speichern und "still" in die Cloud pushen
             window.markLocalUpdate();
             window.pushToCloud(true); 
             window.render();
 
-            // Visuelles Feedback für den Button
             const btn = document.getElementById(btnId);
             const originalHtml = btn.innerHTML;
             
@@ -1074,59 +1107,54 @@
             window.switchTab(window.lastTab);
         };
 
-        window.addStone = () => {
-            window.stones.push({ name: "Neuer Stein...", price: 0, isDekton: false, image: "" });
-            window.markLocalUpdate();
-            window.render();
-        };
-
-        window.selectFromGallery = (index) => {
-            // Verhindert Klick, falls der User eigentlich gerade "Vergleichen" geklickt hat
+        window.selectFromGallery = (id) => {
             if (event && event.target.closest('button')) return;
 
             window.activeFilter = 'all'; 
             window.render(); 
             const sel = document.getElementById('stoneSelect');
             if (sel) {
-                sel.value = index;
+                sel.value = id; // Setzt jetzt die ID
                 window.calculate();
                 window.switchTab('calc');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
         };
 
-        // --- NEU: Vergleichsmodus Logik ---
-        window.toggleCompare = (index, ev) => {
-            if (ev) ev.stopPropagation(); // Verhindert Wechsel zum Rechner
+        window.toggleCompare = (id, ev) => {
+            if (ev) ev.stopPropagation(); 
 
-            const pos = window.compareList.indexOf(index);
+            const pos = window.compareList.indexOf(id);
             if (pos > -1) {
-                window.compareList.splice(pos, 1); // Entfernen
+                window.compareList.splice(pos, 1); 
             } else {
                 if (window.compareList.length < 2) {
-                    window.compareList.push(index); // Hinzufügen
+                    window.compareList.push(id); 
                 }
             }
 
             window.render();
 
-            // Zeige sofort das Modal, wenn 2 Steine gewählt wurden
             if (window.compareList.length === 2) {
                 window.showCompareModal();
             }
         };
 
         window.showCompareModal = () => {
-            const idx1 = window.compareList[0];
-            const idx2 = window.compareList[1];
-            const s1 = window.stones[idx1];
-            const s2 = window.stones[idx2];
+            const id1 = window.compareList[0];
+            const id2 = window.compareList[1];
+            // Sucht die Steine über die IDs
+            const s1 = window.stones.find(s => s.id === id1);
+            const s2 = window.stones.find(s => s.id === id2);
+            
+            if (!s1 || !s2) return;
+
             const res1 = window.calculateForStone(s1);
             const res2 = window.calculateForStone(s2);
 
             const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 
-            const buildColumn = (stone, res, idx) => `
+            const buildColumn = (stone, res, id) => `
                 <div class="flex flex-col items-center h-full w-full">
                     <div class="w-32 h-32 md:w-48 md:h-48 rounded-2xl overflow-hidden bg-slate-100 dark:bg-black mb-6 border border-slate-200 dark:border-darkBorder shadow-inner shrink-0 relative">
                         ${stone.image ? `<img src="images/${stone.image.trim()}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-black uppercase">Kein Bild</div>`}
@@ -1142,12 +1170,12 @@
                         <p class="text-3xl md:text-4xl font-black text-blue-500 tracking-tighter font-mono relative">${formatMoney(res.vk)}</p>
                     </div>
                     
-                    <button onclick="window.selectAndCloseCompare(${idx})" class="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg text-xs">Diesen wählen</button>
+                    <button onclick="window.selectAndCloseCompare('${id}')" class="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg text-xs">Diesen wählen</button>
                 </div>
             `;
 
-            document.getElementById('compare-col-1').innerHTML = buildColumn(s1, res1, idx1);
-            document.getElementById('compare-col-2').innerHTML = buildColumn(s2, res2, idx2);
+            document.getElementById('compare-col-1').innerHTML = buildColumn(s1, res1, id1);
+            document.getElementById('compare-col-2').innerHTML = buildColumn(s2, res2, id2);
 
             const modal = document.getElementById('compare-modal');
             modal.classList.remove('hidden');
@@ -1159,14 +1187,14 @@
             modal.classList.add('opacity-0');
             setTimeout(() => {
                 modal.classList.add('hidden');
-                window.compareList = []; // Liste leeren nach Schließen
+                window.compareList = []; 
                 window.render();
             }, 300);
         };
 
-        window.selectAndCloseCompare = (index) => {
+        window.selectAndCloseCompare = (id) => {
             window.closeCompareModal();
-            setTimeout(() => window.selectFromGallery(index), 300); // Kurz warten für weichen Übergang
+            setTimeout(() => window.selectFromGallery(id), 300); 
         };
 
         window.render = () => {
@@ -1193,11 +1221,12 @@
             if (sel) {
                 const currentVal = sel.value;
                 
-                sel.innerHTML = window.stones.map((s, i) => {
+                sel.innerHTML = window.stones.map(s => {
                     if (window.activeFilter === 'dekton' && !s.isDekton) return '';
                     if (window.activeFilter === 'natur' && s.isDekton) return '';
                     const icon = s.isDekton ? '🔴' : '🟢';
-                    return `<option value="${i}">${icon} ${s.name}</option>`;
+                    // Nutzt jetzt die ID als Wert
+                    return `<option value="${s.id}">${icon} ${s.name}</option>`;
                 }).join('');
 
                 let found = false;
@@ -1222,24 +1251,22 @@
                 let dektonHtml = '';
                 let naturHtml = '';
                 
-                window.stones.forEach((s, i) => {
+                window.stones.forEach(s => {
                     const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
-                    const isComparing = window.compareList.includes(i);
+                    const isComparing = window.compareList.includes(s.id);
                     
                     const card = `
-                        <div class="card overflow-hidden group cursor-pointer transition-all duration-300 ${isComparing ? 'border-blue-500 ring-2 ring-blue-500/50 shadow-lg scale-[0.98]' : 'hover:border-blue-500 hover:shadow-lg'}" onclick="window.selectFromGallery(${i})">
+                        <div class="card overflow-hidden group cursor-pointer transition-all duration-300 ${isComparing ? 'border-blue-500 ring-2 ring-blue-500/50 shadow-lg scale-[0.98]' : 'hover:border-blue-500 hover:shadow-lg'}" onclick="window.selectFromGallery('${s.id}')">
                             <div class="aspect-square bg-slate-100 dark:bg-black relative overflow-hidden flex items-center justify-center border-b border-slate-200 dark:border-darkBorder">
                                 ${imgStr ? `
                                 <img src="${imgStr}" class="w-full h-full object-cover transition-transform duration-700 ${isComparing ? 'scale-110 opacity-50' : 'group-hover:scale-110'}" loading="lazy">
                                 ` : `<span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kein Bild</span>`}
                                 
-                                <!-- Lightbox Button -->
                                 <button onclick="event.stopPropagation(); window.openLightbox('${imgStr}')" class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm hover:bg-black/70 shadow-lg ${imgStr ? '' : 'hidden'}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                                 </button>
                                 
-                                <!-- NEU: Vergleichs-Button -->
-                                <button onclick="window.toggleCompare(${i}, event)" class="absolute top-2 left-2 p-2 rounded-full transition-all shadow-lg z-20 backdrop-blur-sm ${isComparing ? 'bg-blue-600 text-white scale-110' : 'bg-white/90 dark:bg-black/80 text-slate-400 hover:text-blue-500 hover:scale-110 opacity-0 group-hover:opacity-100'}" title="Zum Vergleich auswählen">
+                                <button onclick="window.toggleCompare('${s.id}', event)" class="absolute top-2 left-2 p-2 rounded-full transition-all shadow-lg z-20 backdrop-blur-sm ${isComparing ? 'bg-blue-600 text-white scale-110' : 'bg-white/90 dark:bg-black/80 text-slate-400 hover:text-blue-500 hover:scale-110 opacity-0 group-hover:opacity-100'}" title="Zum Vergleich auswählen">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                                 </button>
                                 
@@ -1259,7 +1286,6 @@
                 naturContainer.innerHTML = naturHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Natursteine vorhanden.</p>';
             }
 
-            // Floating Banner Logik
             const banner = document.getElementById('compare-banner');
             const count = document.getElementById('compare-count');
             if (banner && count) {
@@ -1271,12 +1297,10 @@
                 }
             }
 
-            // NEU: Trend-Anzeige updaten
             const formatTrend = (arr) => {
                 if (!arr || arr.length === 0) return '--- €';
                 const sum = arr.reduce((a, b) => a + b, 0);
                 const avg = sum / arr.length;
-                // Auf volle 10er runden (Wirkt als "Trend" deutlich sauberer als krumme Euro-Beträge)
                 const rounded = Math.round(avg / 10) * 10; 
                 return new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR', maximumFractionDigits: 0}).format(rounded);
             };
@@ -1300,19 +1324,20 @@
 
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
-                tableContainer.innerHTML = window.stones.map((s, i) => `
+                // Nutzt nun durchgehend die einzigartige ID statt des Array-Index (s.id)
+                tableContainer.innerHTML = window.stones.map(s => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
                         <div class="flex gap-2">
-                            <input value="${s.name}" oninput="window.stones[${i}].name=this.value; window.markLocalUpdate();" class="flex-1 bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="Stein Name">
-                            <input value="${s.image || ''}" oninput="window.stones[${i}].image=this.value; window.markLocalUpdate();" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
+                            <input value="${s.name}" oninput="window.updateStone('${s.id}', 'name', this.value)" class="flex-1 bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="Stein Name">
+                            <input value="${s.image || ''}" oninput="window.updateStone('${s.id}', 'image', this.value)" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
                         </div>
                         <div class="flex items-center gap-2 mt-1">
                             <label class="text-[8px] font-black text-slate-500 uppercase mr-1 ek-hide">EK €/m²</label>
-                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.stones[${i}].price=parseFloat(this.value.replace(',', '.'))||0; window.markLocalUpdate();" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs ek-hide focus:border-blue-500 outline-none">
-                            <button onclick="window.stones[${i}].isDekton=!window.stones[${i}].isDekton; window.markLocalUpdate(); window.render();" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 ek-hide active:scale-95">
+                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.updateStone('${s.id}', 'price', this.value, true)" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs ek-hide focus:border-blue-500 outline-none">
+                            <button onclick="window.toggleStoneType('${s.id}')" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 ek-hide active:scale-95">
                                 ${s.isDekton?'Dekton':'Natur'}
                             </button>
-                            <button onclick="window.stones.splice(${i},1); window.markLocalUpdate(); window.render();" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ek-hide ml-auto">✕</button>
+                            <button onclick="window.deleteStone('${s.id}')" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ek-hide ml-auto">✕</button>
                         </div>
                     </div>
                 `).join('');

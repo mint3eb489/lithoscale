@@ -167,37 +167,66 @@
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">Bearbeitungen</h2>
                         <div class="space-y-4">
-                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder transition-all focus-within:border-blue-500 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                                <p class="font-bold text-sm">Flächenbündig</p>
-                                <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="window.updateCounter('flushCount', -1)" class="px-4 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200">-</button>
-                                    <span id="flushCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="window.updateCounter('flushCount', 1)" class="px-4 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200">+</button>
+                            <!-- Nahtlose Liste für Zähler -->
+                            <div class="bg-slate-50 dark:bg-black rounded-xl border border-slate-200 dark:border-darkBorder overflow-hidden flex flex-col shadow-sm">
+                                <!-- Item 1: Flächenbündig -->
+                                <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Flächenbündig</p>
+                                    <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
+                                        <button onclick="window.updateCounter('flushCount', -1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">-</button>
+                                        <span id="flushCount" class="w-8 text-center font-black text-sm">0</span>
+                                        <button onclick="window.updateCounter('flushCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <!-- Item 2: Unterbau -->
+                                <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Unterbau</p>
+                                    <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
+                                        <button onclick="window.updateCounter('underCount', -1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">-</button>
+                                        <span id="underCount" class="w-8 text-center font-black text-sm">0</span>
+                                        <button onclick="window.updateCounter('underCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <!-- Item 3: Auflage -->
+                                <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Auflage</p>
+                                    <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
+                                        <button onclick="window.updateCounter('topCount', -1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">-</button>
+                                        <span id="topCount" class="w-8 text-center font-black text-sm">0</span>
+                                        <button onclick="window.updateCounter('topCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <!-- Item 4: Ausklinkungen -->
+                                <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Ausklinkungen</p>
+                                    <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
+                                        <button onclick="window.updateCounter('notchCount', -1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">-</button>
+                                        <span id="notchCount" class="w-8 text-center font-black text-sm">0</span>
+                                        <button onclick="window.updateCounter('notchCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
+                                    </div>
+                                </div>
+                                <!-- Item 5: Bohrungen -->
+                                <div class="flex items-center justify-between p-3 hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
+                                    <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Bohrungen</p>
+                                    <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
+                                        <button onclick="window.updateCounter('holeCount', -1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">-</button>
+                                        <span id="holeCount" class="w-8 text-center font-black text-sm">0</span>
+                                        <button onclick="window.updateCounter('holeCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="flex items-center justify-between p-4 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder transition-all focus-within:border-blue-500 focus-within:shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-                                <p class="font-bold text-sm">Unterbau</p>
-                                <div class="flex items-center border dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden">
-                                    <button onclick="window.updateCounter('underCount', -1)" class="px-4 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200">-</button>
-                                    <span id="underCount" class="w-10 text-center font-black">0</span>
-                                    <button onclick="window.updateCounter('underCount', 1)" class="px-4 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200">+</button>
+
+                            <!-- Gehrung & Verkleben Kompakt -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="relative">
+                                    <input type="text" inputmode="decimal" id="miterInput" placeholder="Gehrung" class="input-field py-2.5 text-sm font-mono text-center w-full" oninput="window.calculate()">
+                                    <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase pointer-events-none">Lfm</span>
                                 </div>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <input type="text" inputmode="decimal" id="miterInput" placeholder="Gehrung (Lfm)" class="input-field font-mono text-center" oninput="window.calculate()">
-                                <label id="gluingLabel" class="flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer transition-all border-slate-200 dark:border-darkBorder h-[54px] active:scale-[0.98]">
+                                <label id="gluingLabel" class="flex items-center justify-center border-2 border-dashed rounded-xl cursor-pointer transition-all border-slate-200 dark:border-darkBorder h-full active:scale-[0.98] py-2.5">
                                     <input type="checkbox" id="gluingCheck" class="hidden" onchange="window.toggleGlue()">
-                                    <span class="text-[10px] font-black uppercase tracking-widest">Verkleben</span>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-400">Verkleben</span>
                                 </label>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card p-6">
-                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 border-b dark:border-darkBorder pb-3">Service</h2>
-                        <div class="grid grid-cols-2 gap-4">
-                            <button onclick="window.toggleService('measure')" id="btn-measure" class="py-4 px-2 border border-slate-200 dark:border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-95">Aufmaß</button>
-                            <button onclick="window.toggleService('delivery')" id="btn-delivery" class="py-4 px-2 border border-slate-200 dark:border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-95">Montage</button>
                         </div>
                     </div>
 
@@ -214,6 +243,12 @@
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">SERVICE</span><span id="resExtra" class="font-bold font-mono-tabular">0,00 €</span></div>
+                        </div>
+                        
+                        <!-- NEU: Service-Buttons Desktop -->
+                        <div class="flex gap-3 mb-6">
+                            <button onclick="window.toggleService('measure')" class="btn-srv-measure flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Aufmaß</button>
+                            <button onclick="window.toggleService('delivery')" class="btn-srv-delivery flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Montage</button>
                         </div>
                         
                         <div class="text-center mb-6 pt-4 border-t border-white/5 ek-hide">
@@ -268,6 +303,12 @@
                             <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">SERVICE</span><span id="resExtraMob" class="font-bold font-mono-tabular">0,00 €</span></div>
                         </div>
                         
+                        <!-- NEU: Service-Buttons Mobile -->
+                        <div class="flex gap-3 mb-6">
+                            <button onclick="window.toggleService('measure')" class="btn-srv-measure flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Aufmaß</button>
+                            <button onclick="window.toggleService('delivery')" class="btn-srv-delivery flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Montage</button>
+                        </div>
+
                         <div class="text-center mb-6 pt-4 border-t border-white/5 ek-hide">
                             <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
                             <p id="totalEKMob" class="text-lg font-bold text-slate-400 font-mono tracking-tighter font-mono-tabular">0,00 €</p>
@@ -475,8 +516,9 @@
             config: { 
                 factor: 1.5, measure: 100, delivery: 700, gluing: 250, 
                 natEdge: 15, dekEdge: 20, 
-                natCutUnder: 137, natCutFlush: 137, 
-                dekCutUnder: 177, dekCutFlush: 177, 
+                natCutUnder: 137, natCutFlush: 137, natCutTop: 85,
+                dekCutUnder: 177, dekCutFlush: 177, dekCutTop: 85,
+                notch: 45, hole: 25,
                 miter: 45, adminPass: "1234",
                 stats: { dekton: [], natur: [] }
             }
@@ -485,8 +527,9 @@
         const configLabels = {
             factor: "VK-Faktor (z.B. 1.5)", measure: "Aufmaß (€)", delivery: "Montage (€)",
             gluing: "Verkleben (€)", natEdge: "Kante Natur (€/Lfm)", dekEdge: "Kante Dekton (€/Lfm)",
-            natCutUnder: "UB-Ausschnitt Natur (€/Stk)", natCutFlush: "FB-Ausschnitt Natur (€/Stk)",
-            dekCutUnder: "UB-Ausschnitt Dekton (€/Stk)", dekCutFlush: "FB-Ausschnitt Dekton (€/Stk)",
+            natCutUnder: "UB-Ausschnitt Natur (€/Stk)", natCutFlush: "FB-Ausschnitt Natur (€/Stk)", natCutTop: "Auflage Natur (€/Stk)",
+            dekCutUnder: "UB-Ausschnitt Dekton (€/Stk)", dekCutFlush: "FB-Ausschnitt Dekton (€/Stk)", dekCutTop: "Auflage Dekton (€/Stk)",
+            notch: "Ausklinkung (€/Stk)", hole: "Bohrung (€/Stk)",
             miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
         };
 
@@ -505,11 +548,23 @@
             cfg.natCutFlush = cfg.natCutFlush || 137;
             cfg.dekCutUnder = cfg.dekCutUnder || 177;
             cfg.dekCutFlush = cfg.dekCutFlush || 177;
+            
+            // Neue Parameter initialisieren, falls sie fehlen
+            if (cfg.natCutTop === undefined) cfg.natCutTop = 85;
+            if (cfg.dekCutTop === undefined) cfg.dekCutTop = 85;
+            if (cfg.notch === undefined) cfg.notch = 45;
+            if (cfg.hole === undefined) cfg.hole = 25;
+
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
             return cfg;
         };
 
+        window.sortStones = () => {
+            window.stones.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+        };
+
         window.stones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
+        window.sortStones(); // Initial sortieren
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
         window.activeFilter = 'all'; 
@@ -677,6 +732,7 @@
         };
 
         window.markLocalUpdate = () => {
+            window.sortStones(); // Vor jedem Speichern alphabetisch ordnen
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(window.stones));
             localStorage.setItem('ls_config', JSON.stringify(window.config));
@@ -793,6 +849,7 @@
             const edgeRate = stone.isDekton ? window.config.dekEdge : window.config.natEdge;
             const rateFlush = stone.isDekton ? window.config.dekCutFlush : window.config.natCutFlush;
             const rateUnder = stone.isDekton ? window.config.dekCutUnder : window.config.natCutUnder;
+            const rateTop = stone.isDekton ? (window.config.dekCutTop || 0) : (window.config.natCutTop || 0);
             
             let totalSqm = 0; let totalLfm = 0;
             window.parts.forEach(p => {
@@ -809,11 +866,17 @@
             const miter = getVal('miterInput');
             const flush = parseInt(document.getElementById('flushCount').innerText) || 0;
             const under = parseInt(document.getElementById('underCount').innerText) || 0;
+            const top = parseInt(document.getElementById('topCount').innerText) || 0;
+            const notch = parseInt(document.getElementById('notchCount').innerText) || 0;
+            const hole = parseInt(document.getElementById('holeCount').innerText) || 0;
             const glue = document.getElementById('gluingCheck').checked;
 
             const sumMat = totalSqm * stone.price;
             const sumEdge = totalLfm * edgeRate;
-            const sumCut = (flush * rateFlush) + (under * rateUnder);
+            
+            // Zusammenfassung aller Ausschnitte, Bohrungen und Ausklinkungen
+            const sumCut = (flush * rateFlush) + (under * rateUnder) + (top * rateTop) + (notch * (window.config.notch || 0)) + (hole * (window.config.hole || 0));
+            
             const sumExtra = (miter * (window.config.miter || 0)) + (glue ? window.config.gluing : 0) + (activeServices.measure ? window.config.measure : 0) + (activeServices.delivery ? window.config.delivery : 0);
 
             const ek = sumMat + sumEdge + sumCut + sumExtra;
@@ -917,17 +980,18 @@
 
         window.toggleService = (service) => {
             activeServices[service] = !activeServices[service];
-            const btn = document.getElementById(`btn-${service}`);
-            btn.className = activeServices[service] 
-                ? 'py-4 px-2 border border-blue-500 rounded-xl text-[10px] font-bold text-blue-500 uppercase bg-blue-500/10 shadow-inner transition-all active:scale-95'
-                : 'py-4 px-2 border border-slate-200 dark:border-darkBorder rounded-xl text-[10px] font-bold text-slate-500 uppercase hover:bg-slate-50 dark:hover:bg-white/5 transition-all active:scale-95';
+            document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
+                btn.className = activeServices[service] 
+                    ? `btn-srv-${service} flex-1 py-3 px-2 border border-blue-500 rounded-xl text-[10px] font-bold text-blue-500 uppercase bg-blue-500/10 shadow-inner transition-all active:scale-95`
+                    : `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
+            });
             window.calculate();
         };
 
         window.toggleGlue = () => {
             const cb = document.getElementById('gluingCheck');
             const lbl = document.getElementById('gluingLabel');
-            lbl.className = cb.checked ? 'flex items-center justify-center p-4 border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-[54px] shadow-inner active:scale-[0.98]' : 'flex items-center justify-center p-4 border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-[54px] active:scale-[0.98]';
+            lbl.className = cb.checked ? 'flex items-center justify-center border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-full py-2.5 shadow-inner active:scale-[0.98]' : 'flex items-center justify-center border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-full py-2.5 active:scale-[0.98]';
             window.calculate();
         };
 
@@ -945,9 +1009,19 @@
             document.getElementById('miterInput').value = '';
             document.getElementById('flushCount').innerText = '0';
             document.getElementById('underCount').innerText = '0';
+            document.getElementById('topCount').innerText = '0';
+            document.getElementById('notchCount').innerText = '0';
+            document.getElementById('holeCount').innerText = '0';
             document.getElementById('gluingCheck').checked = false;
+            
             activeServices.measure = false;
             activeServices.delivery = false;
+            ['measure', 'delivery'].forEach(service => {
+                document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
+                    btn.className = `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
+                });
+            });
+            
             window.toggleGlue();
             window.calculate();
         };

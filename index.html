@@ -560,15 +560,10 @@
             return cfg;
         };
 
-        window.sortStones = () => {
-            window.stones.sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
-        };
-
         // Migration: Beim Starten jedem Stein ohne ID eine geben
         let localStones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
         localStones.forEach(s => { if (!s.id) s.id = generateId(); });
         window.stones = localStones;
-        window.sortStones(); 
         
         window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
         let activeServices = { measure: false, delivery: false };
@@ -743,7 +738,6 @@
         };
 
         window.markLocalUpdate = () => {
-            window.sortStones(); 
             lastLocalUpdate = Date.now();
             localStorage.setItem('ls_stones', JSON.stringify(window.stones));
             localStorage.setItem('ls_config', JSON.stringify(window.config));
@@ -1221,7 +1215,10 @@
             if (sel) {
                 const currentVal = sel.value;
                 
-                sel.innerHTML = window.stones.map(s => {
+                // Sortierte Kopie für Dropdown und Galerie erstellen
+                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+                
+                sel.innerHTML = sortedDisplayStones.map(s => {
                     if (window.activeFilter === 'dekton' && !s.isDekton) return '';
                     if (window.activeFilter === 'natur' && s.isDekton) return '';
                     const icon = s.isDekton ? '🔴' : '🟢';
@@ -1251,7 +1248,10 @@
                 let dektonHtml = '';
                 let naturHtml = '';
                 
-                window.stones.forEach(s => {
+                // Auch hier die sortierte Kopie verwenden
+                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+                
+                sortedDisplayStones.forEach(s => {
                     const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
                     const isComparing = window.compareList.includes(s.id);
                     
@@ -1324,7 +1324,7 @@
 
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
-                // Nutzt nun durchgehend die einzigartige ID statt des Array-Index (s.id)
+                // Admin-Bereich nutzt window.stones UNsortiert, damit das Textfeld beim Tippen nicht springt
                 tableContainer.innerHTML = window.stones.map(s => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
                         <div class="flex gap-2">

@@ -682,7 +682,6 @@
                         let cloudStones = data.stones || window.stones;
                         cloudStones.forEach(s => { if (!s.id) s.id = generateId(); });
                         window.stones = cloudStones;
-                        window.sortStones();
                         
                         window.config = migrateConfig(data.config || window.config);
                         lastLocalUpdate = serverTime;

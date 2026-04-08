@@ -9,6 +9,10 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -44,29 +48,21 @@
         .modal-fade { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
         
-        /* Verhindert Layout-Sprünge beim Ticker */
         .font-mono-tabular { font-variant-numeric: tabular-nums; }
-        
-        /* Kundenmodus blendet EK-Preise aus */
-        body.customer-mode .ek-hide { display: none !important; }
-        
-        /* Sicherer Bereich für neuere iPhones ohne Homebutton */
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
 </head>
 <body class="p-3 md:p-8 bg-slate-50 dark:bg-trueBlack text-slate-900 dark:text-slate-100">
 
-    <!-- Sticky Mobile Header (Material Info) -->
     <div id="sticky-mat-info" class="fixed top-0 left-0 right-0 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-slate-200 dark:border-darkBorder z-[45] p-3 flex justify-between items-center transform -translate-y-full transition-transform duration-300 lg:hidden shadow-sm">
         <div class="flex items-center gap-3">
             <div id="sticky-mat-indicator" class="w-3 h-3 rounded-full bg-slate-200"></div>
             <span id="sticky-mat-name" class="text-[10px] font-black uppercase tracking-widest text-slate-700 dark:text-slate-200"></span>
         </div>
-        <span id="sticky-mat-price" class="text-[10px] font-mono font-bold text-slate-500 ek-hide"></span>
+        <span id="sticky-mat-price" class="text-[10px] font-mono font-bold text-slate-500"></span>
     </div>
 
     <div id="app" class="max-w-4xl mx-auto relative pt-4 lg:pt-0">
-        <!-- Cloud Sync Status Bar -->
         <div id="cloud-status" class="fixed top-4 right-4 text-[9px] font-bold uppercase tracking-widest z-50 flex flex-col items-end gap-1">
             <div class="flex items-center gap-2 bg-white/90 dark:bg-black/80 p-2 px-3 rounded-full shadow-lg border dark:border-darkBorder">
                 <span id="status-text" class="text-slate-400">Status unbekannt</span>
@@ -91,13 +87,9 @@
             </div>
             <div class="flex items-center gap-2 md:gap-4 w-full md:w-auto">
                 <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm shrink-0">
-                    <button onclick="window.toggleCustomerMode()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Kundenmodus">
-                        <svg id="eyeOpenIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                        <svg id="eyeClosedIcon" class="w-5 h-5 text-blue-500 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                    <button onclick="window.switchTab('kitchen')" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Küchenkalkulation">
+                        <svg id="btn-kitchen-icon" class="w-5 h-5 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                         </svg>
                     </button>
                     <button onclick="window.requestAdmin()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Admin">
@@ -120,7 +112,6 @@
         </header>
 
         <div id="main-ui">
-            <!-- RECHNER -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch pb-36 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     <div class="card p-6">
@@ -150,7 +141,6 @@
                             </div>
                         </div>
 
-                        <!-- DYNAMISCHE STÜCKLISTE -->
                         <div class="mt-8 border-t dark:border-darkBorder pt-6">
                             <div class="flex justify-between items-center mb-4">
                                 <div>
@@ -167,9 +157,7 @@
                     <div class="card p-6">
                         <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">Bearbeitungen</h2>
                         <div class="space-y-4">
-                            <!-- Nahtlose Liste für Zähler -->
                             <div class="bg-slate-50 dark:bg-black rounded-xl border border-slate-200 dark:border-darkBorder overflow-hidden flex flex-col shadow-sm">
-                                <!-- Item 1: Flächenbündig -->
                                 <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                     <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Flächenbündig</p>
                                     <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
@@ -178,7 +166,6 @@
                                         <button onclick="window.updateCounter('flushCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <!-- Item 2: Unterbau -->
                                 <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                     <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Unterbau</p>
                                     <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
@@ -187,7 +174,6 @@
                                         <button onclick="window.updateCounter('underCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <!-- Item 3: Auflage -->
                                 <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                     <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Auflage</p>
                                     <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
@@ -196,7 +182,6 @@
                                         <button onclick="window.updateCounter('topCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <!-- Item 4: Ausklinkungen -->
                                 <div class="flex items-center justify-between p-3 border-b border-slate-200 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                     <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Ausklinkungen</p>
                                     <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
@@ -205,7 +190,6 @@
                                         <button onclick="window.updateCounter('notchCount', 1)" class="px-3 py-1 hover:bg-slate-50 dark:hover:bg-slate-800 font-bold active:bg-slate-200 text-slate-500 transition-colors">+</button>
                                     </div>
                                 </div>
-                                <!-- Item 5: Bohrungen -->
                                 <div class="flex items-center justify-between p-3 hover:bg-slate-100 dark:hover:bg-[#1a1a1a] transition-colors">
                                     <p class="font-bold text-sm text-slate-700 dark:text-slate-200">Bohrungen</p>
                                     <div class="flex items-center border border-slate-300 dark:border-darkBorder rounded-lg bg-white dark:bg-darkCard overflow-hidden shadow-sm">
@@ -216,7 +200,6 @@
                                 </div>
                             </div>
 
-                            <!-- Gehrung & Verkleben Kompakt -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div class="relative">
                                     <input type="text" inputmode="decimal" id="miterInput" placeholder="Gehrung" class="input-field py-2.5 text-sm font-mono text-center w-full" oninput="window.calculate()">
@@ -233,25 +216,23 @@
                     <button onclick="window.resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
                 </div>
 
-                <!-- DESKTOP ZUSAMMENFASSUNG -->
                 <div class="hidden lg:block lg:col-span-2">
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-10 shadow-2xl border border-darkBorder transition-all duration-300">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
                         
-                        <div class="space-y-4 text-xs mb-8 ek-hide">
+                        <div class="space-y-4 text-xs mb-8">
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMat" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdge" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCut" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">SERVICE</span><span id="resExtra" class="font-bold font-mono-tabular">0,00 €</span></div>
                         </div>
                         
-                        <!-- NEU: Service-Buttons Desktop -->
                         <div class="flex gap-3 mb-6">
                             <button onclick="window.toggleService('measure')" class="btn-srv-measure flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Aufmaß</button>
                             <button onclick="window.toggleService('delivery')" class="btn-srv-delivery flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Montage</button>
                         </div>
                         
-                        <div class="text-center mb-6 pt-4 border-t border-white/5 ek-hide">
+                        <div class="text-center mb-6 pt-4 border-t border-white/5">
                             <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
                             <p id="totalEK" class="text-lg font-bold text-slate-400 font-mono tracking-tighter font-mono-tabular">0,00 €</p>
                         </div>
@@ -260,10 +241,9 @@
                             <div class="absolute inset-0 bg-blue-500/5"></div>
                             <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 relative">Verkaufspreis (VK Brutto)</p>
                             <p id="totalVK" class="text-4xl font-black text-blue-500 tracking-tighter font-mono-tabular relative">0,00 €</p>
-                            <p class="text-[8px] text-slate-500 mt-2 italic ek-hide relative">*Kalkuliert mit aktuellem Faktor</p>
+                            <p class="text-[8px] text-slate-500 mt-2 italic relative">*Kalkuliert mit aktuellem Faktor</p>
                         </div>
                         
-                        <!-- NEU: Manueller Statistik-Speicher Desktop -->
                         <button id="btn-stat-desktop" onclick="window.saveStat('btn-stat-desktop')" class="w-full py-3 flex items-center justify-center border border-slate-200 dark:border-darkBorder text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             In Markttrend übernehmen
@@ -275,12 +255,9 @@
                     +
                 </button>
 
-                <!-- MOBILE BOTTOM SHEET BACKDROP -->
                 <div id="mobile-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="window.toggleSheet()"></div>
 
-                <!-- MOBILE BOTTOM SHEET -->
                 <div id="mobile-sheet" class="fixed left-0 right-0 bottom-0 z-50 lg:hidden transform translate-y-[calc(100%-88px)] transition-transform duration-300 ease-out flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl bg-black border-t border-darkBorder">
-                    
                     <div class="bg-white/95 dark:bg-black/95 backdrop-blur-xl p-4 rounded-t-3xl cursor-pointer shrink-0 border-b border-darkBorder active:bg-slate-100 dark:active:bg-slate-900 transition-colors" onclick="window.toggleSheet()">
                         <div class="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3"></div>
                         <div class="flex justify-between items-center max-w-4xl mx-auto px-2">
@@ -296,20 +273,19 @@
                     </div>
 
                     <div class="p-6 md:p-8 overflow-y-auto text-white pb-safe">
-                        <div class="space-y-4 text-xs mb-8 ek-hide">
+                        <div class="space-y-4 text-xs mb-8">
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Material</span><span id="resMatMob" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Kanten</span><span id="resEdgeMob" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between font-mono"><span class="text-slate-500 uppercase">Ausschnitte</span><span id="resCutMob" class="font-mono-tabular">0,00 €</span></div>
                             <div class="flex justify-between text-blue-500 border-t border-darkBorder pt-4 font-mono"><span class="font-bold uppercase tracking-widest">SERVICE</span><span id="resExtraMob" class="font-bold font-mono-tabular">0,00 €</span></div>
                         </div>
                         
-                        <!-- NEU: Service-Buttons Mobile -->
                         <div class="flex gap-3 mb-6">
                             <button onclick="window.toggleService('measure')" class="btn-srv-measure flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Aufmaß</button>
                             <button onclick="window.toggleService('delivery')" class="btn-srv-delivery flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95">Montage</button>
                         </div>
 
-                        <div class="text-center mb-6 pt-4 border-t border-white/5 ek-hide">
+                        <div class="text-center mb-6 pt-4 border-t border-white/5">
                             <p class="text-[9px] font-black text-slate-600 uppercase mb-1 tracking-widest">Einkaufspreis (EK Netto)</p>
                             <p id="totalEKMob" class="text-lg font-bold text-slate-400 font-mono tracking-tighter font-mono-tabular">0,00 €</p>
                         </div>
@@ -318,10 +294,9 @@
                             <div class="absolute inset-0 bg-blue-500/5"></div>
                             <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 relative">Verkaufspreis (VK Brutto)</p>
                             <p id="totalVKMob" class="text-4xl font-black text-blue-500 tracking-tighter font-mono-tabular relative">0,00 €</p>
-                            <p class="text-[8px] text-slate-500 mt-2 italic ek-hide relative">*Kalkuliert mit aktuellem Faktor</p>
+                            <p class="text-[8px] text-slate-500 mt-2 italic relative">*Kalkuliert mit aktuellem Faktor</p>
                         </div>
 
-                        <!-- NEU: Manueller Statistik-Speicher Mobile -->
                         <button id="btn-stat-mobile" onclick="window.saveStat('btn-stat-mobile')" class="w-full py-4 flex items-center justify-center border border-slate-200 dark:border-darkBorder text-slate-500 hover:bg-slate-50 dark:hover:bg-white/5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 mb-4">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             In Markttrend übernehmen
@@ -330,15 +305,12 @@
                 </div>
             </div>
 
-            <!-- GALERIE TAB -->
             <div id="tab-gallery" class="hidden pb-20 space-y-10 relative">
                 
-                <!-- Floating Compare Banner (wird dynamisch eingeblendet) -->
                 <div id="compare-banner" class="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm z-40 flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
                     <span id="compare-count">0/2</span> Steine für Vergleich markiert
                 </div>
 
-                <!-- NEU: Markt-Trend Dashboard in der Galerie -->
                 <div class="grid grid-cols-2 gap-4 md:gap-6 mt-2">
                     <div class="bg-white dark:bg-darkCard p-4 rounded-2xl border border-slate-200 dark:border-darkBorder flex flex-col justify-center text-center">
                         <p class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Ø Markttrend Dekton</p>
@@ -364,7 +336,202 @@
                 </div>
             </div>
 
-            <!-- ADMIN TAB -->
+            <div id="tab-kitchen" class="hidden grid grid-cols-1 lg:grid-cols-5 gap-6 items-start pb-36 lg:pb-0">
+                <div class="lg:col-span-3 space-y-5">
+                    
+                    <div class="card p-6">
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">1. Projekt & Design</h2>
+                        
+                        <div class="mb-5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Kunde / Kommission</label>
+                            <input type="text" id="k-kunde" oninput="window.updateKitchen('kunde', this.value)" class="input-field text-sm" placeholder="Name oder Kommissionsnummer">
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Front 1</label>
+                                <input type="text" id="k-front1" oninput="window.updateKitchen('front1', this.value)" class="input-field text-sm" placeholder="Bezeichnung (z.B. Resopal Pro)">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Front 2</label>
+                                <input type="text" id="k-front2" oninput="window.updateKitchen('front2', this.value)" class="input-field text-sm" placeholder="Entfällt">
+                            </div>
+                        </div>
+
+                        <div class="border-t dark:border-darkBorder pt-5">
+                            <div class="flex justify-between items-end mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Arbeitsplatte (Bezeichnung & Preis)</label>
+                                <button onclick="window.pullStein()" class="text-[9px] font-black bg-blue-500/10 text-blue-500 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 active:scale-95 transition-all flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                                    Aus Rechner übernehmen
+                                </button>
+                            </div>
+                            <div class="flex gap-2">
+                                <input type="text" id="k-apName" oninput="window.updateKitchen('apName', this.value)" class="input-field text-sm flex-1" placeholder="z.B. Schichtstoff Eiche">
+                                <div class="relative w-32 shrink-0">
+                                    <input type="text" id="k-stein" inputmode="decimal" oninput="window.updateKitchen('steinVK', this.value)" class="input-field text-sm font-mono text-center px-1" placeholder="0,00">
+                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                                </div>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold italic">Hinweis: Bei Schichtstoff Preis leer lassen, läuft in Möbel-EK.</p>
+                        </div>
+                    </div>
+
+                    <div class="card p-6">
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">2. Interne Kalkulation</h2>
+                        
+                        <div class="mb-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Möbel inkl. Elektro (EK Netto)</label>
+                                <div class="flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded-lg border border-slate-200 dark:border-darkBorder">
+                                    <span class="text-[9px] font-black text-slate-400 uppercase">Rabatt:</span>
+                                    <div class="relative w-12 shrink-0">
+                                        <input type="text" id="k-rabatt" inputmode="decimal" oninput="window.updateKitchen('rabattMoebel', this.value)" class="bg-transparent border-b border-transparent focus:border-blue-500 outline-none font-mono text-sm text-center text-red-500 w-full py-0.5 placeholder-slate-300" placeholder="0">
+                                        <span class="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="relative">
+                                <input type="text" id="k-moebel" inputmode="decimal" oninput="window.updateKitchen('ekMoebel', this.value)" class="input-field font-mono text-lg" placeholder="0,00">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold">Wird im Hintergrund × 2 gerechnet (abzgl. Rabatt): <span id="kitchenMoebelVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
+                        </div>
+
+                        <div class="mb-6 border-t dark:border-darkBorder pt-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Allgemeine Elektrogeräte (Im Möbel-Preis enthalten)</label>
+                                <button onclick="window.addGeraet()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
+                            </div>
+                            <div id="geraete-container" class="space-y-2"></div>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold italic">Preis beeinflusst <u>nicht</u> den Gesamt-VK. Dient rein als Info für das Angebot (Internetpreis-Vergleich).</p>
+                        </div>
+
+                        <div class="mb-6 border-t dark:border-darkBorder pt-6">
+                            <div class="flex justify-between items-center mb-4">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Miele Geräte (Bezeichnung & VK Brutto)</label>
+                                <div class="flex items-center gap-3">
+                                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded-lg border border-slate-200 dark:border-darkBorder">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase">Rabatt:</span>
+                                        <div class="relative w-12 shrink-0">
+                                            <input type="text" id="k-rabatt-miele" inputmode="decimal" oninput="window.updateKitchen('rabattMiele', this.value)" class="bg-transparent border-b border-transparent focus:border-blue-500 outline-none font-mono text-sm text-center text-red-500 w-full py-0.5 placeholder-slate-300" placeholder="0">
+                                            <span class="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">%</span>
+                                        </div>
+                                    </div>
+                                    <button onclick="window.addMiele()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
+                                </div>
+                            </div>
+                            <div id="miele-container" class="space-y-2"></div>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold text-right">Summe Miele (abzgl. Rabatt): <span id="kitchenMieleVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
+                        </div>
+
+                        <div class="mb-6 border-t dark:border-darkBorder pt-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Spüle (Im Möbel-Preis enthalten)</label>
+                                <button onclick="window.addSpuele()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
+                            </div>
+                            <div id="spuele-container" class="space-y-2"></div>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold italic">Preis beeinflusst <u>nicht</u> den Gesamt-VK. Dient rein als Info für das Angebot (Internetpreis-Vergleich).</p>
+                        </div>
+
+                        <div class="border-t dark:border-darkBorder pt-6">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="text-[10px] font-black text-slate-500 uppercase">Wasseraufbereitung (Bezeichnung & VK Brutto)</label>
+                                <button onclick="window.addWasser()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
+                            </div>
+                            <div id="wasser-container" class="space-y-2"></div>
+                        </div>
+                    </div>
+
+                    <div class="card p-6">
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">3. Angebotseinstellungen (PDF)</h2>
+                        
+                        <div class="mb-6">
+                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-2">Ebenso enthalten sind (Zubehör):</label>
+                            <div class="flex flex-wrap gap-1.5 mb-3">
+                                <button onclick="window.appendZubehoer('Besteckeinsatz')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Besteckeinsatz</button>
+                                <button onclick="window.appendZubehoer('LED-Beleuchtung')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ LED-Beleuchtung</button>
+                                <button onclick="window.appendZubehoer('Glaszargen in sämtlichen hohen Auszügen')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Glaszargen</button>
+                                <button onclick="window.appendZubehoer('Anti-Rutschmatten in sämtlichen Schubkästen/Auszügen')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Anti-Rutschmatten</button>
+                            </div>
+                            <textarea id="k-zubehoer" oninput="window.updateKitchen('zubehoer', this.value)" class="input-field text-sm min-h-[100px] resize-y" placeholder="Besteckeinsätze&#10;Abfallsystem&#10;LED-Beleuchtung"></textarea>
+                        </div>
+
+                        <div class="space-y-3">
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+                                    <input type="checkbox" id="opt-kuechentext" onchange="window.updateKitchen('optKuechenText', this.checked)" class="appearance-none w-5 h-5 border-2 border-slate-300 dark:border-darkBorder rounded bg-white dark:bg-darkCard checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer">
+                                    <svg class="w-3 h-3 text-white absolute pointer-events-none opacity-0 check-icon transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Einleitungstext andrucken</p>
+                                    <p class="text-[10px] text-slate-500">Persönliche Begrüßung ganz oben auf dem PDF.</p>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+                                    <input type="checkbox" id="opt-ballerina" onchange="window.updateKitchen('optBallerina', this.checked)" class="appearance-none w-5 h-5 border-2 border-slate-300 dark:border-darkBorder rounded bg-white dark:bg-darkCard checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer">
+                                    <svg class="w-3 h-3 text-white absolute pointer-events-none opacity-0 check-icon transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Ballerina Qualitätstext andrucken</p>
+                                    <p class="text-[10px] text-slate-500">Korpus, Rückwände, Belastbarkeit etc.</p>
+                                </div>
+                            </label>
+                            
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+                                    <input type="checkbox" id="opt-anschluss" onchange="window.updateKitchen('optAnschluss', this.checked)" class="appearance-none w-5 h-5 border-2 border-slate-300 dark:border-darkBorder rounded bg-white dark:bg-darkCard checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer">
+                                    <svg class="w-3 h-3 text-white absolute pointer-events-none opacity-0 check-icon transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">240,- EUR Anschluss-Service andrucken</p>
+                                    <p class="text-[10px] text-slate-500">Hinweis auf separaten Monteur vor Ort.</p>
+                                </div>
+                            </label>
+
+                            <label class="flex items-start gap-3 cursor-pointer group">
+                                <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+                                    <input type="checkbox" id="opt-anschluss-rabatt" onchange="window.updateKitchen('optAnschlussRabatt', this.checked)" class="appearance-none w-5 h-5 border-2 border-slate-300 dark:border-darkBorder rounded bg-white dark:bg-darkCard checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer">
+                                    <svg class="w-3 h-3 text-white absolute pointer-events-none opacity-0 check-icon transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Anschluss-Rabatt andrucken</p>
+                                    <p class="text-[10px] text-slate-500">"Damit Sie effektiv keinen Mehrpreis haben..."</p>
+                                </div>
+                            </label>
+                        </div>
+                        <style> input:checked + .check-icon { opacity: 1; } </style>
+                    </div>
+
+                    <button onclick="window.resetKitchen()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation leeren</button>
+                </div>
+
+                <div class="lg:col-span-2">
+                    <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-10 shadow-2xl border border-darkBorder transition-all duration-300">
+                        <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Angebot</h2>
+                        
+                        <div class="p-6 bg-white/5 rounded-2xl border border-blue-600/30 text-center shadow-inner relative overflow-hidden mb-6 mt-4">
+                            <div class="absolute inset-0 bg-blue-500/5"></div>
+                            <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-2 relative">Gesamt-VK (Brutto)</p>
+                            <p id="kitchenVK" class="text-4xl font-black text-blue-500 tracking-tighter font-mono-tabular relative">0,00 €</p>
+                        </div>
+                        
+                        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4 text-center mb-6">
+                            <p class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mb-1">Darin enthaltene Lieferung & Montage (9,5%)</p>
+                            <p id="kitchenMontage" class="text-lg font-black text-emerald-400 font-mono-tabular">0,00 €</p>
+                        </div>
+
+                        <button onclick="window.generatePDF()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Angebot als PDF generieren
+                        </button>
+                        <p class="text-[9px] text-slate-500 mt-4 text-center">Die internen Kalkulationen (EK etc.) werden auf dem PDF selbstverständlich ausgeblendet.</p>
+                    </div>
+                </div>
+            </div>
+
             <div id="tab-admin" class="hidden space-y-6 pb-20">
                 <div class="card p-6 bg-blue-600/5 border border-blue-500/20 rounded-2xl flex items-center justify-between">
                     <div>
@@ -377,8 +544,13 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
-                    <div class="card p-6 h-full flex flex-col ek-hide">
+                <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm w-full md:w-auto md:inline-flex">
+                    <button onclick="window.switchAdminTab('admin-litho')" id="btn-admin-litho" class="tab-btn active-tab uppercase tracking-widest text-[10px]">LithoScale</button>
+                    <button onclick="window.switchAdminTab('admin-kitchen')" id="btn-admin-kitchen" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Küchen-Texte (PDF)</button>
+                </div>
+
+                <div id="admin-litho" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
+                    <div class="card p-6 h-full flex flex-col">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Preis-Parameter</h3>
                         <div id="admin-fields" class="space-y-4 flex-1"></div>
                     </div>
@@ -390,10 +562,17 @@
                         <div id="admin-table" class="space-y-3 overflow-y-auto flex-1 pr-2 min-h-[400px]"></div>
                     </div>
                 </div>
+
+                <div id="admin-kitchen" class="hidden grid grid-cols-1 gap-6 items-stretch">
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Standard-Texte für das Angebot (PDF)</h3>
+                        <div id="admin-kitchen-fields" class="space-y-6"></div>
+                    </div>
+                </div>
+
             </div>
         </div>
 
-        <!-- NEU: Compare Modal (Direkt-Vergleich) -->
         <div id="compare-modal" class="fixed inset-0 z-[400] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 lg:p-10 opacity-0 transition-opacity duration-300">
             <div class="bg-white dark:bg-darkCard w-full max-w-5xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-full">
                 <div class="p-4 md:p-6 border-b border-slate-200 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-[#181818]">
@@ -405,23 +584,17 @@
                 </div>
                 
                 <div class="flex-1 overflow-y-auto p-4 md:p-8 flex flex-col md:flex-row gap-6 md:gap-10">
-                    <!-- Spalte 1 -->
                     <div id="compare-col-1" class="flex-1 flex flex-col items-center text-center"></div>
-                    
-                    <!-- VS Divider -->
                     <div class="hidden md:flex flex-col items-center justify-center w-10">
                         <div class="w-px h-full bg-slate-200 dark:bg-darkBorder"></div>
                         <div class="w-10 h-10 rounded-full bg-slate-100 dark:bg-[#1a1a1a] flex items-center justify-center font-black text-slate-400 text-xs border border-slate-200 dark:border-darkBorder my-4 shrink-0">VS</div>
                         <div class="w-px h-full bg-slate-200 dark:bg-darkBorder"></div>
                     </div>
-                    
-                    <!-- Spalte 2 -->
                     <div id="compare-col-2" class="flex-1 flex flex-col items-center text-center border-t md:border-t-0 border-slate-200 dark:border-darkBorder pt-6 md:pt-0"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Lightbox -->
         <div id="lightbox" class="fixed inset-0 z-[300] bg-black/95 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300" onclick="window.closeLightbox()">
             <img id="lightboxImg" src="" class="max-w-full max-h-full rounded-2xl shadow-2xl scale-95 transition-transform duration-300 object-contain">
             <button class="absolute top-6 right-6 text-white bg-white/10 p-4 rounded-full hover:bg-white/20 backdrop-blur-sm transition-all active:scale-90 shadow-lg">
@@ -429,7 +602,6 @@
             </button>
         </div>
 
-        <!-- Admin Login Modal -->
         <div id="admin-gate" class="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center hidden p-4">
             <div class="card p-8 max-w-sm w-full shadow-2xl modal-fade">
                 <div class="text-center mb-6">
@@ -460,13 +632,14 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+        // Deine echten Firebase-Daten
         const firebaseConfig = {
-    apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
-    authDomain: "lithoscalepro.firebaseapp.com",
-    projectId: "lithoscalepro",
-    storageBucket: "lithoscalepro.firebasestorage.app",
-    messagingSenderId: "1090400345045",
-    appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
+            apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
+            authDomain: "lithoscalepro.firebaseapp.com",
+            projectId: "lithoscalepro",
+            storageBucket: "lithoscalepro.firebasestorage.app",
+            messagingSenderId: "1090400345045",
+            appId: "1:1090400345045:web:fd1cc58fd1e620a9127b5c"
         };
 
         const activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
@@ -480,39 +653,40 @@
         let lastTab = 'calc'; 
 
         window.compareList = []; 
+        window.currentStoneVK = 0; 
+        window.currentStoneName = ""; 
 
-        // Hilfsfunktion: Generiert einzigartige IDs für jeden Stein
         const generateId = () => 'st_' + Math.random().toString(36).substr(2, 9);
 
         const DEFAULTS = {
             stones: [
                 { name: "Marinace Black 2cm", price: 325, isDekton: false, image: "" },
-                { name: "Dekton Morpheus", price: 652, isDekton: true, image: "" },
+                { name: "Morpheus", price: 652, isDekton: true, image: "" },
                 { name: "Steel Grey 226", price: 226, isDekton: false, image: "" },
-                { name: "Dekton Laurent", price: 456, isDekton: true, image: "" },
-                { name: "Dekton Kairos", price: 384, isDekton: true, image: "" },
-                { name: "Dekton Domoos", price: 576, isDekton: true, image: "" },
+                { name: "Laurent", price: 456, isDekton: true, image: "" },
+                { name: "Kairos", price: 384, isDekton: true, image: "" },
+                { name: "Domoos", price: 576, isDekton: true, image: "" },
                 { name: "Café Imperial", price: 275, isDekton: false, image: "" },
                 { name: "Breccia Imperiale", price: 395, isDekton: false, image: "" },
-                { name: "Dekton Albarium", price: 576, isDekton: true, image: "" },
-                { name: "Dekton Sandik", price: 576, isDekton: true, image: "" },
-                { name: "Dekton Adia", price: 576, isDekton: true, image: "" },
-                { name: "Dekton Opera", price: 641, isDekton: true, image: "" },
-                { name: "Dekton Reverie", price: 641, isDekton: true, image: "" },
+                { name: "Albarium", price: 576, isDekton: true, image: "" },
+                { name: "Sandik", price: 576, isDekton: true, image: "" },
+                { name: "Adia", price: 576, isDekton: true, image: "" },
+                { name: "Opera", price: 641, isDekton: true, image: "" },
+                { name: "Reverie", price: 641, isDekton: true, image: "" },
                 { name: "Via Lattea", price: 275, isDekton: false, image: "" },
-                { name: "Dekton Lunar 22", price: 379, isDekton: true, image: "" },
+                { name: "Lunar 22", price: 379, isDekton: true, image: "" },
                 { name: "Tropical Storm", price: 395, isDekton: false, image: "" },
-                { name: "Dekton Entzo", price: 641, isDekton: true, image: "" },
-                { name: "Dekton Sirius PROMO", price: 380, isDekton: true, image: "" },
-                { name: "Dekton Eter PROMO", price: 360, isDekton: true, image: "" },
-                { name: "Dekton Danae", price: 384, isDekton: true, image: "" },
-                { name: "Dekton Aeris", price: 384, isDekton: true, image: "" },
-                { name: "Dekton REM PROMO", price: 465, isDekton: true, image: "" },
+                { name: "Entzo", price: 641, isDekton: true, image: "" },
+                { name: "Sirius PROMO", price: 380, isDekton: true, image: "" },
+                { name: "Eter PROMO", price: 360, isDekton: true, image: "" },
+                { name: "Danae", price: 384, isDekton: true, image: "" },
+                { name: "Aeris", price: 384, isDekton: true, image: "" },
+                { name: "REM PROMO", price: 465, isDekton: true, image: "" },
                 { name: "Mont Blanc 542 poliert", price: 542, isDekton: false, image: "" },
-                { name: "Dekton Sasea PG1", price: 495, isDekton: true, image: "" },
-                { name: "Dekton Nacre PG1", price: 495, isDekton: true, image: "" },
+                { name: "Sasea PG1", price: 495, isDekton: true, image: "" },
+                { name: "Nacre PG1", price: 495, isDekton: true, image: "" },
                 { name: "Taj Mahal poliert Südamerika", price: 495, isDekton: false, image: "" },
-                { name: "Dekton Arga Stonika PG4", price: 750, isDekton: true, image: "" },
+                { name: "Arga Stonika PG4", price: 750, isDekton: true, image: "" },
                 { name: "Nero Assoluto", price: 245, isDekton: false, image: "" }
             ],
             config: { 
@@ -522,7 +696,11 @@
                 dekCutUnder: 177, dekCutFlush: 177, dekCutTop: 85,
                 notch: 45, hole: 25,
                 miter: 45, adminPass: "1234",
-                stats: { dekton: [], natur: [] }
+                stats: { dekton: [], natur: [] },
+                pdfKuechenText: "Vielen Dank für Ihren Besuch und das angenehme Planungsgespräch. Wir freuen uns sehr, Ihnen das folgende Angebot für Ihre neue Einbauküche unterbreiten zu dürfen.",
+                pdfBallerinaText: "Qualität des Herstellers: Ballerina ist aktuell auf Platz 1 der deutschen Küchenhersteller und überzeugt mit einem robusten Korpus, 8mm starken geschraubten Rückwänden und 19mm starken Fachböden. Ebenso die kostenfreie Möglichkeit der farblichen Gestaltung des Innenkorpus sowie Glaszargen und Anti-Rutschmatten sind bei unseren Kunden sehr beliebt. Alle Schubkästen, Auszüge und Türen sind gedämpft. Die Belastbarkeit beträgt je nach Breite zwischen 50 kg und 80 kg. Ein entsprechendes Qualitäts-Zertifikat ist dieser E-Mail beigefügt.",
+                pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
+                pdfAnschlussRabattText: "Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab."
             }
         };
 
@@ -557,10 +735,20 @@
             if (cfg.hole === undefined) cfg.hole = 25;
 
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
+            
+            if (!cfg.pdfKuechenText) cfg.pdfKuechenText = DEFAULTS.config.pdfKuechenText;
+            if (!cfg.pdfBallerinaText) cfg.pdfBallerinaText = DEFAULTS.config.pdfBallerinaText;
+            if (!cfg.pdfAnschlussText) cfg.pdfAnschlussText = DEFAULTS.config.pdfAnschlussText;
+            if (!cfg.pdfAnschlussRabattText) cfg.pdfAnschlussRabattText = DEFAULTS.config.pdfAnschlussRabattText;
+
+            if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
+                cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
+                cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace("Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
+            }
+
             return cfg;
         };
 
-        // Migration: Beim Starten jedem Stein ohne ID eine geben
         let localStones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
         localStones.forEach(s => { if (!s.id) s.id = generateId(); });
         window.stones = localStones;
@@ -571,34 +759,57 @@
 
         const defaultParts = [{ id: Date.now(), name: "Platte 1", l: "", w: "", edges: { v: true, h: false, l: false, r: false } }];
         window.parts = JSON.parse(localStorage.getItem('ls_parts')) || JSON.parse(JSON.stringify(defaultParts));
+        
+        let savedKitchen = JSON.parse(localStorage.getItem('ls_kitchen')) || {};
+        
+        let initialWasser = [{id: Date.now()+2, name: "", val: ""}];
+        if (savedKitchen.wasser) {
+            initialWasser = savedKitchen.wasser;
+        } else if (savedKitchen.quookerName || savedKitchen.quooker) {
+            initialWasser = [{id: Date.now()+2, name: savedKitchen.quookerName || "", val: savedKitchen.quooker || ""}];
+        }
+
+        window.kitchen = { 
+            kunde: savedKitchen.kunde || "",
+            front1: savedKitchen.front1 || "", 
+            front2: savedKitchen.front2 || "", 
+            apName: savedKitchen.apName || "", 
+            ekMoebel: savedKitchen.ekMoebel || "", 
+            rabattMoebel: savedKitchen.rabattMoebel || "",
+            rabattMiele: savedKitchen.rabattMiele || "",
+            geraete: savedKitchen.geraete || [{id: Date.now(), name: "", val: ""}],
+            miele: savedKitchen.miele || [{id: Date.now()+1, name: "", val: ""}], 
+            spuele: savedKitchen.spuele || [{id: Date.now()+3, name: "", val: ""}],
+            wasser: initialWasser,
+            steinVK: savedKitchen.steinVK || "", 
+            zubehoer: savedKitchen.zubehoer || "",
+            optKuechenText: savedKitchen.optKuechenText !== false,
+            optBallerina: savedKitchen.optBallerina !== false, 
+            optAnschluss: savedKitchen.optAnschluss !== false,
+            optAnschlussRabatt: savedKitchen.optAnschlussRabatt !== false
+        };
 
         const animState = {};
         
         window.animateValue = (id, endVal) => {
             const el = document.getElementById(id);
             if (!el) return;
-            
             const startVal = animState[id]?.current || 0;
             if (animState[id]?.req) cancelAnimationFrame(animState[id].req);
-
             if (Math.abs(startVal - endVal) < 0.01) {
                 el.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(endVal);
                 animState[id] = { current: endVal, req: null };
                 return;
             }
-
             const duration = 500; 
             const startTime = performance.now();
-
             const step = (currentTime) => {
                 const progress = Math.min((currentTime - startTime) / duration, 1);
                 const ease = 1 - Math.pow(1 - progress, 3);
                 const current = startVal + (endVal - startVal) * ease;
-                
                 el.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(current);
                 animState[id] = { current, req: progress < 1 ? requestAnimationFrame(step) : null };
             };
-            
             animState[id] = { current: startVal, req: requestAnimationFrame(step) };
         };
 
@@ -643,18 +854,15 @@
                 window.render();
                 return;
             }
-
             try {
                 app = initializeApp(activeConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
                     await signInWithCustomToken(auth, __initial_auth_token);
                 } else {
                     await signInAnonymously(auth);
                 }
-
                 onAuthStateChanged(auth, (user) => {
                     currentUser = user; 
                     if (user) {
@@ -678,11 +886,9 @@
                     const data = snap.data();
                     const serverTime = data.updated || 1; 
                     if (serverTime > lastLocalUpdate) {
-                        // IDs auch bei Daten aus der Cloud sicherstellen
                         let cloudStones = data.stones || window.stones;
                         cloudStones.forEach(s => { if (!s.id) s.id = generateId(); });
                         window.stones = cloudStones;
-                        
                         window.config = migrateConfig(data.config || window.config);
                         lastLocalUpdate = serverTime;
                         localStorage.setItem('ls_stones', JSON.stringify(window.stones));
@@ -743,7 +949,6 @@
             window.calculate(); 
         };
 
-        // --- NEU: Sichere Admin-Steuerung über IDs ---
         window.addStone = () => {
             window.stones.push({ id: generateId(), name: "Neuer Stein...", price: 0, isDekton: false, image: "" });
             window.markLocalUpdate();
@@ -772,11 +977,8 @@
             window.markLocalUpdate();
             window.render();
         };
-        // ----------------------------------------------
 
-        window.saveParts = () => {
-            localStorage.setItem('ls_parts', JSON.stringify(window.parts));
-        };
+        window.saveParts = () => localStorage.setItem('ls_parts', JSON.stringify(window.parts));
 
         window.addPart = () => {
             window.parts.push({ id: Date.now(), name: `Platte ${window.parts.length + 1}`, l: "", w: "", edges: { v: true, h: false, l: false, r: false } });
@@ -860,13 +1062,11 @@
                         <div class="flex items-center justify-between mt-3">
                             <div class="relative w-24 h-16 shrink-0 group">
                                 <div class="absolute inset-0 flex items-center justify-center text-[9px] font-black text-slate-300 dark:text-slate-600 uppercase tracking-widest pointer-events-none transition-colors">Kanten</div>
-                                
                                 <button onclick="window.toggleEdge(${p.id}, 'h')" class="absolute top-0 left-2 right-2 h-2.5 rounded-full transition-all active:scale-90 active:bg-blue-400 ${p.edges.h ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] z-10' : 'bg-slate-200 dark:bg-darkBorder hover:bg-blue-300 dark:hover:bg-slate-700'}" title="Hinten (Wand)"></button>
                                 <button onclick="window.toggleEdge(${p.id}, 'v')" class="absolute bottom-0 left-2 right-2 h-2.5 rounded-full transition-all active:scale-90 active:bg-blue-400 ${p.edges.v ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] z-10' : 'bg-slate-200 dark:bg-darkBorder hover:bg-blue-300 dark:hover:bg-slate-700'}" title="Vorne (Sichtkante)"></button>
                                 <button onclick="window.toggleEdge(${p.id}, 'l')" class="absolute top-2 bottom-2 left-0 w-2.5 rounded-full transition-all active:scale-90 active:bg-blue-400 ${p.edges.l ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] z-10' : 'bg-slate-200 dark:bg-darkBorder hover:bg-blue-300 dark:hover:bg-slate-700'}" title="Links"></button>
                                 <button onclick="window.toggleEdge(${p.id}, 'r')" class="absolute top-2 bottom-2 right-0 w-2.5 rounded-full transition-all active:scale-90 active:bg-blue-400 ${p.edges.r ? 'bg-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.5)] z-10' : 'bg-slate-200 dark:bg-darkBorder hover:bg-blue-300 dark:hover:bg-slate-700'}" title="Rechts"></button>
                             </div>
-                            
                             <div class="text-right flex flex-col gap-1 justify-center">
                                 <p id="part-sqm-${p.id}" class="text-[10px] font-mono text-slate-400 font-bold">${sqm.toFixed(2).replace('.',',')} m²</p>
                                 <p id="part-lfm-${p.id}" class="text-[10px] font-mono text-blue-500 font-bold bg-blue-500/10 px-2 py-1 rounded-md inline-block">${lfm.toFixed(2).replace('.',',')} Lfm</p>
@@ -921,7 +1121,6 @@
         window.calculate = () => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            // Greift jetzt sicher über die ID zu
             const stone = window.stones.find(s => s.id === sel.value);
             if (!stone) return;
 
@@ -943,6 +1142,9 @@
             
             const res = window.calculateForStone(stone);
             
+            window.currentStoneVK = res.vk;
+            window.currentStoneName = `${stone.isDekton ? 'Dekton' : 'Naturstein'} ${stone.name}`;
+
             const displaySqm = document.getElementById('totalSqmDisplay');
             const displayLfm = document.getElementById('totalLfmDisplay');
             if(displaySqm) displaySqm.innerText = res.totalSqm.toFixed(2).replace('.', ',') + ' m²';
@@ -968,7 +1170,6 @@
         window.saveStat = (btnId) => {
             const sel = document.getElementById('stoneSelect');
             if (!sel) return;
-            // Greift über ID zu
             const stone = window.stones.find(s => s.id === sel.value);
             if (!stone) return;
 
@@ -981,10 +1182,7 @@
             if (!window.config.stats[type]) window.config.stats[type] = [];
 
             window.config.stats[type].push(res.vk);
-            
-            if (window.config.stats[type].length > 10) {
-                window.config.stats[type].shift();
-            }
+            if (window.config.stats[type].length > 10) window.config.stats[type].shift();
 
             window.markLocalUpdate();
             window.pushToCloud(true); 
@@ -1060,21 +1258,41 @@
             }
         };
 
+        // --- ADMIN SUB-TAB STEUERUNG ---
+        window.activeAdminTab = 'admin-litho';
+        window.switchAdminTab = (t) => {
+            window.activeAdminTab = t;
+            document.getElementById('admin-litho').classList.toggle('hidden', t !== 'admin-litho');
+            document.getElementById('admin-kitchen').classList.toggle('hidden', t !== 'admin-kitchen');
+            document.getElementById('btn-admin-litho').className = t === 'admin-litho' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+            document.getElementById('btn-admin-kitchen').className = t === 'admin-kitchen' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+        };
+
         window.switchTab = (t) => {
             if (t !== 'admin') window.lastTab = t;
 
             document.getElementById('tab-calc').classList.toggle('hidden', t !== 'calc');
             document.getElementById('tab-gallery').classList.toggle('hidden', t !== 'gallery');
             document.getElementById('tab-admin').classList.toggle('hidden', t !== 'admin');
+            document.getElementById('tab-kitchen').classList.toggle('hidden', t !== 'kitchen');
             
             if (t === 'calc' || t === 'gallery') {
                 document.getElementById('btn-calc').className = t === 'calc' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
                 document.getElementById('btn-gallery').className = t === 'gallery' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
                 document.getElementById('btn-admin-icon').classList.remove('text-blue-500');
+                document.getElementById('btn-kitchen-icon').classList.remove('text-blue-500');
             } else if (t === 'admin') {
                 document.getElementById('btn-calc').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
                 document.getElementById('btn-gallery').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
                 document.getElementById('btn-admin-icon').classList.add('text-blue-500');
+                document.getElementById('btn-kitchen-icon').classList.remove('text-blue-500');
+                window.switchAdminTab(window.activeAdminTab);
+            } else if (t === 'kitchen') {
+                document.getElementById('btn-calc').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-gallery').className = 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+                document.getElementById('btn-admin-icon').classList.remove('text-blue-500');
+                document.getElementById('btn-kitchen-icon').classList.add('text-blue-500');
+                window.renderKitchen();
             }
 
             if (t === 'calc') { 
@@ -1102,12 +1320,11 @@
 
         window.selectFromGallery = (id) => {
             if (event && event.target.closest('button')) return;
-
             window.activeFilter = 'all'; 
             window.render(); 
             const sel = document.getElementById('stoneSelect');
             if (sel) {
-                sel.value = id; // Setzt jetzt die ID
+                sel.value = id; 
                 window.calculate();
                 window.switchTab('calc');
                 window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1116,35 +1333,25 @@
 
         window.toggleCompare = (id, ev) => {
             if (ev) ev.stopPropagation(); 
-
             const pos = window.compareList.indexOf(id);
             if (pos > -1) {
                 window.compareList.splice(pos, 1); 
             } else {
-                if (window.compareList.length < 2) {
-                    window.compareList.push(id); 
-                }
+                if (window.compareList.length < 2) window.compareList.push(id); 
             }
-
             window.render();
-
-            if (window.compareList.length === 2) {
-                window.showCompareModal();
-            }
+            if (window.compareList.length === 2) window.showCompareModal();
         };
 
         window.showCompareModal = () => {
             const id1 = window.compareList[0];
             const id2 = window.compareList[1];
-            // Sucht die Steine über die IDs
             const s1 = window.stones.find(s => s.id === id1);
             const s2 = window.stones.find(s => s.id === id2);
-            
             if (!s1 || !s2) return;
 
             const res1 = window.calculateForStone(s1);
             const res2 = window.calculateForStone(s2);
-
             const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 
             const buildColumn = (stone, res, id) => `
@@ -1153,16 +1360,13 @@
                         ${stone.image ? `<img src="images/${stone.image.trim()}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[10px] text-slate-400 font-black uppercase">Kein Bild</div>`}
                         <div class="absolute top-2 right-2 w-6 h-6 rounded-full ${stone.isDekton ? 'bg-red-500' : 'bg-emerald-500'} shadow-md"></div>
                     </div>
-                    
                     <h3 class="text-xl md:text-2xl font-black mb-2 px-4">${stone.name}</h3>
-                    <p class="text-xs font-mono text-slate-500 mb-auto ek-hide">${formatMoney(stone.price)} / m² (EK)</p>
-                    
+                    <p class="text-xs font-mono text-slate-500 mb-auto">${formatMoney(stone.price)} / m² (EK)</p>
                     <div class="w-full bg-slate-100 dark:bg-[#1a1a1a] rounded-2xl p-6 mt-8 mb-6 relative overflow-hidden">
                         <div class="absolute inset-0 bg-blue-500/5"></div>
                         <p class="text-[10px] font-black text-blue-500 uppercase tracking-widest mb-1 relative">VK Brutto (Gesamt)</p>
                         <p class="text-3xl md:text-4xl font-black text-blue-500 tracking-tighter font-mono relative">${formatMoney(res.vk)}</p>
                     </div>
-                    
                     <button onclick="window.selectAndCloseCompare('${id}')" class="w-full py-4 bg-black dark:bg-white text-white dark:text-black rounded-xl font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg text-xs">Diesen wählen</button>
                 </div>
             `;
@@ -1190,8 +1394,395 @@
             setTimeout(() => window.selectFromGallery(id), 300); 
         };
 
-        window.render = () => {
+        // --- Küchen Logik ---
+        window.saveKitchen = () => localStorage.setItem('ls_kitchen', JSON.stringify(window.kitchen));
+
+        window.updateKitchen = (field, value, id = null) => {
+            if (id !== null) {
+                const mieleItem = window.kitchen.miele.find(m => m.id === id);
+                if (mieleItem) {
+                    if (field === 'mieleName') mieleItem.name = value;
+                    if (field === 'mieleVal') mieleItem.val = value;
+                }
+                const geraeteItem = window.kitchen.geraete.find(g => g.id === id);
+                if (geraeteItem) {
+                    if (field === 'geraeteName') geraeteItem.name = value;
+                    if (field === 'geraeteVal') geraeteItem.val = value;
+                }
+                const spueleItem = window.kitchen.spuele.find(s => s.id === id);
+                if (spueleItem) {
+                    if (field === 'spueleName') spueleItem.name = value;
+                    if (field === 'spueleVal') spueleItem.val = value;
+                }
+                const wasserItem = window.kitchen.wasser.find(w => w.id === id);
+                if (wasserItem) {
+                    if (field === 'wasserName') wasserItem.name = value;
+                    if (field === 'wasserVal') wasserItem.val = value;
+                }
+            } else {
+                window.kitchen[field] = value;
+            }
+            window.saveKitchen();
+            window.calcKitchen();
+        };
+
+        window.appendZubehoer = (text) => {
+            let current = window.kitchen.zubehoer.trim();
+            window.updateKitchen('zubehoer', current.length > 0 ? current + '\n' + text : text);
+        };
+
+        // Miele (mit VK-Rechnung)
+        window.addMiele = () => {
+            window.kitchen.miele.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeMiele = (id) => {
+            window.kitchen.miele = window.kitchen.miele.filter(m => m.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        // Allgemeine Geräte (Info für PDF, keine VK-Rechnung)
+        window.addGeraet = () => {
+            window.kitchen.geraete.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeGeraet = (id) => {
+            window.kitchen.geraete = window.kitchen.geraete.filter(g => g.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        // Spüle (Info für PDF, keine VK-Rechnung)
+        window.addSpuele = () => {
+            window.kitchen.spuele.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeSpuele = (id) => {
+            window.kitchen.spuele = window.kitchen.spuele.filter(s => s.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        // Wasseraufbereitung
+        window.addWasser = () => {
+            window.kitchen.wasser.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeWasser = (id) => {
+            window.kitchen.wasser = window.kitchen.wasser.filter(w => w.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        window.pullStein = () => {
+            if (window.currentStoneVK > 0) {
+                window.kitchen.steinVK = window.currentStoneVK.toFixed(2).replace('.', ',');
+                window.kitchen.apName = window.currentStoneName;
+                window.saveKitchen();
+                window.renderKitchen();
+            } else {
+                showAlert("Kein Stein kalkuliert!");
+            }
+        };
+
+        window.resetKitchen = () => {
+            if(!confirm("Küchenkalkulation leeren?")) return;
+            window.kitchen = { 
+                kunde: "",
+                front1: "", front2: "", apName: "", 
+                ekMoebel: "", 
+                rabattMoebel: "",
+                rabattMiele: "",
+                geraete: [{id: Date.now(), name: "", val: ""}],
+                miele: [{id: Date.now()+1, name: "", val: ""}], 
+                spuele: [{id: Date.now()+3, name: "", val: ""}],
+                wasser: [{id: Date.now()+2, name: "", val: ""}],
+                steinVK: "", zubehoer: "",
+                optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: true
+            };
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+
+        window.calcKitchen = () => {
+            const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
+            const ekMoebel = parseVal(window.kitchen.ekMoebel);
+            const rabattMoebel = parseVal(window.kitchen.rabattMoebel);
+            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+            const vkStein = parseVal(window.kitchen.steinVK);
             
+            let sumMieleBrutto = 0;
+            window.kitchen.miele.forEach(m => sumMieleBrutto += parseVal(m.val));
+            const rabattMiele = parseVal(window.kitchen.rabattMiele);
+            const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
+
+            let vkWasser = 0;
+            window.kitchen.wasser.forEach(w => vkWasser += parseVal(w.val));
+
+            const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
+            const montage = totalVK * 0.095;
+
+            window.animateValue('kitchenVK', totalVK);
+            
+            const montageEl = document.getElementById('kitchenMontage');
+            const vkMoebelEl = document.getElementById('kitchenMoebelVK');
+            const vkMieleEl = document.getElementById('kitchenMieleVK');
+            
+            if(montageEl) montageEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(montage);
+            if(vkMoebelEl) vkMoebelEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMoebel);
+            if(vkMieleEl) vkMieleEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMiele);
+        };
+
+        window.renderKitchen = () => {
+            const geraeteContainer = document.getElementById('geraete-container');
+            if(geraeteContainer) {
+                geraeteContainer.innerHTML = window.kitchen.geraete.map((g, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${g.name}" oninput="window.updateKitchen('geraeteName', this.value, ${g.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Art.-Nr. & Bezeichnung (z.B. Siemens)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${g.val}" oninput="window.updateKitchen('geraeteVal', this.value, ${g.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${window.kitchen.geraete.length > 1 ? `<button onclick="window.removeGeraet(${g.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const mieleContainer = document.getElementById('miele-container');
+            if(mieleContainer) {
+                mieleContainer.innerHTML = window.kitchen.miele.map((m, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mieleName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Miele Backofen)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mieleVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${window.kitchen.miele.length > 1 ? `<button onclick="window.removeMiele(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            const spueleContainer = document.getElementById('spuele-container');
+            if(spueleContainer) {
+                spueleContainer.innerHTML = window.kitchen.spuele.map((s, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${s.name}" oninput="window.updateKitchen('spueleName', this.value, ${s.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Blanco Spüle)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${s.val}" oninput="window.updateKitchen('spueleVal', this.value, ${s.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${window.kitchen.spuele.length > 1 ? `<button onclick="window.removeSpuele(${s.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const wasserContainer = document.getElementById('wasser-container');
+            if(wasserContainer) {
+                wasserContainer.innerHTML = window.kitchen.wasser.map((w, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${w.name}" oninput="window.updateKitchen('wasserName', this.value, ${w.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Quooker Flex PRO3">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${w.val}" oninput="window.updateKitchen('wasserVal', this.value, ${w.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${window.kitchen.wasser.length > 1 ? `<button onclick="window.removeWasser(${w.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if(el && document.activeElement !== el) el.value = val;
+            };
+            const setCheck = (id, val) => {
+                const el = document.getElementById(id);
+                if(el) el.checked = val;
+            };
+            
+            setVal('k-kunde', window.kitchen.kunde);
+            setVal('k-front1', window.kitchen.front1);
+            setVal('k-front2', window.kitchen.front2);
+            setVal('k-apName', window.kitchen.apName);
+            
+            setVal('k-zubehoer', window.kitchen.zubehoer);
+            setCheck('opt-kuechentext', window.kitchen.optKuechenText);
+            setCheck('opt-ballerina', window.kitchen.optBallerina);
+            setCheck('opt-anschluss', window.kitchen.optAnschluss);
+            setCheck('opt-anschluss-rabatt', window.kitchen.optAnschlussRabatt);
+
+            setVal('k-moebel', window.kitchen.ekMoebel);
+            setVal('k-rabatt', window.kitchen.rabattMoebel);
+            setVal('k-rabatt-miele', window.kitchen.rabattMiele);
+            setVal('k-stein', window.kitchen.steinVK);
+
+            window.calcKitchen();
+        };
+
+        // --- PDF GENERATOR ---
+        window.generatePDF = () => {
+            if (typeof pdfMake === 'undefined') {
+                showAlert("PDF-Modul lädt noch, bitte 1 Sekunde warten.");
+                return;
+            }
+
+            const k = window.kitchen;
+            const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
+            const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
+
+            const ekMoebel = parseVal(k.ekMoebel);
+            const rabattMoebel = parseVal(k.rabattMoebel);
+            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+            const vkStein = parseVal(k.steinVK);
+            
+            let sumMieleBrutto = 0; 
+            k.miele.forEach(m => sumMieleBrutto += parseVal(m.val));
+            const rabattMiele = parseVal(k.rabattMiele);
+            const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
+            
+            let vkWasser = 0; 
+            k.wasser.forEach(w => vkWasser += parseVal(w.val));
+            
+            const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
+            const montage = totalVK * 0.095;
+
+            const allDevices = [];
+            k.geraete.forEach(g => {
+                if (g.name.trim() !== '') {
+                    const price = parseVal(g.val);
+                    allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
+                }
+            });
+            k.miele.forEach(m => {
+                if (m.name.trim() !== '') allDevices.push(m.name);
+            });
+            
+            let zubehoerItems = [];
+
+            k.spuele.forEach(s => {
+                if (s.name.trim() !== '') {
+                    const price = parseVal(s.val);
+                    zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
+                }
+            });
+            
+            k.wasser.forEach(w => {
+                if (w.name.trim() !== '') zubehoerItems.push(w.name);
+            });
+
+            if (k.zubehoer.trim() !== '') {
+                zubehoerItems = [...zubehoerItems, ...k.zubehoer.split('\n').filter(line => line.trim() !== '')];
+            }
+
+            let anschlussTextArray = [];
+            if (k.optAnschluss) anschlussTextArray.push(window.config.pdfAnschlussText);
+            if (k.optAnschlussRabatt) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
+            
+            const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
+                text: anschlussTextArray.join(' '), 
+                margin: [0, 5, 0, 0],
+                fontSize: 10,
+                color: '#475569'
+            } : '';
+
+            const docDefinition = {
+                info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
+                content: [
+                    { text: 'ANGEBOT', style: 'mainHeader' },
+                    k.kunde && k.kunde.trim() !== '' 
+                        ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
+                        : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
+                    
+                    k.optKuechenText ? { 
+                        text: window.config.pdfKuechenText, 
+                        margin: [0, 0, 0, 20], 
+                        fontSize: 11,
+                        color: '#334155'
+                    } : { text: '', margin: [0, 0, 0, 0] },
+                    
+                    { text: '1. Möbel & Design', style: 'sectionHeader' },
+                    { 
+                        columns: [
+                            { text: 'Front 1:', width: 100, bold: true },
+                            { text: k.front1 || 'Nicht definiert' }
+                        ], margin: [0, 0, 0, 4]
+                    },
+                    { 
+                        columns: [
+                            { text: 'Front 2:', width: 100, bold: true },
+                            { text: k.front2 || 'Entfällt' }
+                        ], margin: [0, 0, 0, 4]
+                    },
+                    { 
+                        columns: [
+                            { text: 'Arbeitsplatte:', width: 100, bold: true },
+                            { text: k.apName || 'Nicht definiert' }
+                        ], margin: [0, 0, 0, 10]
+                    },
+                    
+                    k.optBallerina ? { 
+                        text: window.config.pdfBallerinaText, 
+                        margin: [0, 5, 0, 15], 
+                        fontSize: 10,
+                        color: '#475569',
+                        alignment: 'justify'
+                    } : { text: '', margin: [0, 0, 0, 10] },
+
+                    { text: '2. Elektrogeräte', style: 'sectionHeader' },
+                    allDevices.length > 0 
+                        ? { ul: allDevices, margin: [0, 0, 0, 15], color: '#334155' } 
+                        : { text: 'Keine Geräte erfasst.', margin: [0, 0, 0, 15], italics: true, color: '#94a3b8' },
+
+                    { text: '3. Ebenso enthalten sind', style: 'sectionHeader' },
+                    zubehoerItems.length > 0 
+                        ? { ul: zubehoerItems, margin: [0, 0, 0, 25], color: '#334155' } 
+                        : { text: 'Kein weiteres Zubehör vermerkt.', margin: [0, 0, 0, 25], italics: true, color: '#94a3b8' },
+
+                    { text: '4. Endpreis', style: 'sectionHeader' },
+                    { text: [
+                        'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
+                        { text: `${formatMoney(totalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
+                        ' an.'
+                    ], margin: [0, 0, 0, 8] },
+                    
+                    { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
+                    
+                    { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
+
+                    anschlussPdfBlock
+                ],
+                styles: {
+                    mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
+                    sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
+                },
+                defaultStyle: {
+                    font: 'Helvetica',
+                    fontSize: 11,
+                    lineHeight: 1.4,
+                    color: '#0f172a'
+                }
+            };
+
+            pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
+        };
+
+        window.render = () => {
             const btnAll = document.getElementById('flt-all');
             const btnNatur = document.getElementById('flt-natur');
             const btnDekton = document.getElementById('flt-dekton');
@@ -1213,15 +1804,11 @@
             const sel = document.getElementById('stoneSelect');
             if (sel) {
                 const currentVal = sel.value;
-                
-                // Sortierte Kopie für Dropdown und Galerie erstellen
                 const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
-                
                 sel.innerHTML = sortedDisplayStones.map(s => {
                     if (window.activeFilter === 'dekton' && !s.isDekton) return '';
                     if (window.activeFilter === 'natur' && s.isDekton) return '';
                     const icon = s.isDekton ? '🔴' : '🟢';
-                    // Nutzt jetzt die ID als Wert
                     return `<option value="${s.id}">${icon} ${s.name}</option>`;
                 }).join('');
 
@@ -1233,54 +1820,41 @@
                         break;
                     }
                 }
-                
-                if (!found && sel.options.length > 0) {
-                    sel.selectedIndex = 0;
-                }
+                if (!found && sel.options.length > 0) sel.selectedIndex = 0;
             }
 
-            // Galerie Tab
             const dektonContainer = document.getElementById('gallery-dekton');
             const naturContainer = document.getElementById('gallery-natur');
-            
             if (dektonContainer && naturContainer) {
-                let dektonHtml = '';
-                let naturHtml = '';
-                
-                // Auch hier die sortierte Kopie verwenden
+                let dektonHtml = ''; let naturHtml = '';
                 const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
                 
                 sortedDisplayStones.forEach(s => {
                     const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
                     const isComparing = window.compareList.includes(s.id);
-                    
                     const card = `
                         <div class="card overflow-hidden group cursor-pointer transition-all duration-300 ${isComparing ? 'border-blue-500 ring-2 ring-blue-500/50 shadow-lg scale-[0.98]' : 'hover:border-blue-500 hover:shadow-lg'}" onclick="window.selectFromGallery('${s.id}')">
                             <div class="aspect-square bg-slate-100 dark:bg-black relative overflow-hidden flex items-center justify-center border-b border-slate-200 dark:border-darkBorder">
                                 ${imgStr ? `
                                 <img src="${imgStr}" class="w-full h-full object-cover transition-transform duration-700 ${isComparing ? 'scale-110 opacity-50' : 'group-hover:scale-110'}" loading="lazy">
                                 ` : `<span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kein Bild</span>`}
-                                
                                 <button onclick="event.stopPropagation(); window.openLightbox('${imgStr}')" class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm hover:bg-black/70 shadow-lg ${imgStr ? '' : 'hidden'}">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
                                 </button>
-                                
                                 <button onclick="window.toggleCompare('${s.id}', event)" class="absolute top-2 left-2 p-2 rounded-full transition-all shadow-lg z-20 backdrop-blur-sm ${isComparing ? 'bg-blue-600 text-white scale-110' : 'bg-white/90 dark:bg-black/80 text-slate-400 hover:text-blue-500 hover:scale-110 opacity-0 group-hover:opacity-100'}" title="Zum Vergleich auswählen">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
                                 </button>
-                                
                                 ${isComparing ? `<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Markiert</span></div>` : ''}
                             </div>
                             <div class="p-3 md:p-4 bg-white dark:bg-darkCard relative z-10">
                                 <p class="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200" title="${s.name}">${s.name}</p>
-                                <p class="text-[10px] md:text-xs font-mono font-bold text-slate-500 mt-1 ek-hide">${new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(s.price)} / m²</p>
+                                <p class="text-[10px] md:text-xs font-mono font-bold text-slate-500 mt-1">${new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(s.price)} / m²</p>
                             </div>
                         </div>
                     `;
                     if (s.isDekton) dektonHtml += card;
                     else naturHtml += card;
                 });
-                
                 dektonContainer.innerHTML = dektonHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Dekton Steine vorhanden.</p>';
                 naturContainer.innerHTML = naturHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Natursteine vorhanden.</p>';
             }
@@ -1311,7 +1885,9 @@
 
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
-                fieldsContainer.innerHTML = Object.keys(window.config).map(k => `
+                fieldsContainer.innerHTML = Object.keys(window.config)
+                    .filter(k => k !== 'stats' && !k.startsWith('pdf'))
+                    .map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
                         <input type="text" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
@@ -1321,9 +1897,30 @@
                 `).join('');
             }
 
+            const kitchenFieldsContainer = document.getElementById('admin-kitchen-fields');
+            if (kitchenFieldsContainer) {
+                kitchenFieldsContainer.innerHTML = `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Küchen-Einleitungstext</label>
+                        <textarea oninput="window.updateConfig('pdfKuechenText', this.value, false)" class="input-field text-sm min-h-[100px] resize-y">${window.config.pdfKuechenText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Ballerina Qualitätstext</label>
+                        <textarea oninput="window.updateConfig('pdfBallerinaText', this.value, false)" class="input-field text-sm min-h-[150px] resize-y">${window.config.pdfBallerinaText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Service Text (240,- EUR)</label>
+                        <textarea oninput="window.updateConfig('pdfAnschlussText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Rabatt Text</label>
+                        <textarea oninput="window.updateConfig('pdfAnschlussRabattText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussRabattText}</textarea>
+                    </div>
+                `;
+            }
+
             const tableContainer = document.getElementById('admin-table');
             if (tableContainer) {
-                // Admin-Bereich nutzt window.stones UNsortiert, damit das Textfeld beim Tippen nicht springt
                 tableContainer.innerHTML = window.stones.map(s => `
                     <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
                         <div class="flex gap-2">
@@ -1331,12 +1928,12 @@
                             <input value="${s.image || ''}" oninput="window.updateStone('${s.id}', 'image', this.value)" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
                         </div>
                         <div class="flex items-center gap-2 mt-1">
-                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1 ek-hide">EK €/m²</label>
-                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.updateStone('${s.id}', 'price', this.value, true)" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs ek-hide focus:border-blue-500 outline-none">
-                            <button onclick="window.toggleStoneType('${s.id}')" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 ek-hide active:scale-95">
+                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
+                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.updateStone('${s.id}', 'price', this.value, true)" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs focus:border-blue-500 outline-none">
+                            <button onclick="window.toggleStoneType('${s.id}')" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 active:scale-95">
                                 ${s.isDekton?'Dekton':'Natur'}
                             </button>
-                            <button onclick="window.deleteStone('${s.id}')" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ek-hide ml-auto">✕</button>
+                            <button onclick="window.deleteStone('${s.id}')" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ml-auto">✕</button>
                         </div>
                     </div>
                 `).join('');
@@ -1344,13 +1941,6 @@
             
             window.renderParts();
             window.calculate();
-        };
-
-        window.toggleCustomerMode = () => {
-            const isC = document.body.classList.toggle('customer-mode');
-            localStorage.setItem('ls_customer', isC ? '1' : '0');
-            document.getElementById('eyeOpenIcon').classList.toggle('hidden', isC);
-            document.getElementById('eyeClosedIcon').classList.toggle('hidden', !isC);
         };
 
         window.toggleTheme = () => {
@@ -1384,13 +1974,10 @@
 
         window.openLightbox = (imgSrc) => {
             if (!imgSrc || imgSrc.endsWith('index.html')) return; 
-            
             const lb = document.getElementById('lightbox');
             const lbImg = document.getElementById('lightboxImg');
-            
             lbImg.src = imgSrc;
             lb.classList.remove('hidden');
-            
             setTimeout(() => {
                 lb.classList.remove('opacity-0');
                 lbImg.classList.remove('scale-95');
@@ -1401,20 +1988,15 @@
         window.closeLightbox = () => {
             const lb = document.getElementById('lightbox');
             const lbImg = document.getElementById('lightboxImg');
-            
             lb.classList.add('opacity-0');
             lbImg.classList.remove('scale-100');
             lbImg.classList.add('scale-95');
-            
-            setTimeout(() => {
-                lb.classList.add('hidden');
-            }, 300);
+            setTimeout(() => lb.classList.add('hidden'), 300);
         };
 
         window.addEventListener('scroll', () => {
             const isCalcTab = !document.getElementById('tab-calc').classList.contains('hidden');
             const stickyHeader = document.getElementById('sticky-mat-info');
-            
             if (isCalcTab && window.scrollY > 220) {
                 stickyHeader.classList.remove('-translate-y-full');
             } else {
@@ -1429,18 +2011,8 @@
                 document.getElementById('sunIcon').classList.remove('hidden');
                 document.getElementById('moonIcon').classList.add('hidden');
             }
-            
-            const c = localStorage.getItem('ls_customer');
-            if (c === '1') {
-                document.body.classList.add('customer-mode');
-                document.getElementById('eyeOpenIcon').classList.add('hidden');
-                document.getElementById('eyeClosedIcon').classList.remove('hidden');
-            } else {
-                document.getElementById('eyeOpenIcon').classList.remove('hidden');
-                document.getElementById('eyeClosedIcon').classList.add('hidden');
-            }
-            
             window.switchTab('calc');
+            window.renderKitchen();
         };
 
         (function() {
@@ -1448,17 +2020,14 @@
             canvas.width = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
-            
             ctx.fillStyle = '#000000';
             ctx.fillRect(0, 0, 512, 512);
-            
             ctx.translate(64, 64);
             ctx.scale(16, 16);
             ctx.strokeStyle = '#3b82f6'; 
             ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
-            
             ctx.beginPath();
             ctx.rect(3, 3, 18, 18);
             ctx.moveTo(3, 9);
@@ -1466,7 +2035,6 @@
             ctx.moveTo(9, 3);
             ctx.lineTo(9, 21);
             ctx.stroke();
-
             const link = document.createElement('link');
             link.rel = 'apple-touch-icon';
             link.href = canvas.toDataURL('image/png');

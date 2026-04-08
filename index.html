@@ -1432,7 +1432,7 @@
             window.kitchen.zubehoer = newText;
             window.saveKitchen();
             
-            // NEU: Zwingt die Textbox dazu, sich sofort visuell zu aktualisieren
+            // Zwingt die Textbox dazu, sich sofort visuell zu aktualisieren
             const textarea = document.getElementById('k-zubehoer');
             if (textarea) textarea.value = newText;
             
@@ -1650,148 +1650,163 @@
                 return;
             }
 
-            const k = window.kitchen;
-            const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
-            const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
-
-            const ekMoebel = parseVal(k.ekMoebel);
-            const rabattMoebel = parseVal(k.rabattMoebel);
-            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
-            const vkStein = parseVal(k.steinVK);
-            
-            let sumMieleBrutto = 0; 
-            (k.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
-            const rabattMiele = parseVal(k.rabattMiele);
-            const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
-            
-            let vkWasser = 0; 
-            (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
-            
-            const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
-            const montage = totalVK * 0.095;
-
-            const allDevices = [];
-            (k.geraete || []).forEach(g => {
-                if (g.name.trim() !== '') {
-                    const price = parseVal(g.val);
-                    allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
-                }
-            });
-            (k.miele || []).forEach(m => {
-                if (m.name.trim() !== '') allDevices.push(m.name);
-            });
-            
-            let zubehoerItems = [];
-
-            (k.spuele || []).forEach(s => {
-                if (s.name.trim() !== '') {
-                    const price = parseVal(s.val);
-                    zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
-                }
-            });
-            
-            (k.wasser || []).forEach(w => {
-                if (w.name.trim() !== '') zubehoerItems.push(w.name);
-            });
-
-            if (k.zubehoer && k.zubehoer.trim() !== '') {
-                zubehoerItems = [...zubehoerItems, ...k.zubehoer.split('\n').filter(line => line.trim() !== '')];
-            }
-
-            let anschlussTextArray = [];
-            if (k.optAnschluss && window.config.pdfAnschlussText) anschlussTextArray.push(window.config.pdfAnschlussText);
-            if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
-            
-            const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
-                text: anschlussTextArray.join(' '), 
-                margin: [0, 5, 0, 0],
-                fontSize: 10,
-                color: '#475569'
-            } : { text: '' };
-
-            const docDefinition = {
-                info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
-                content: [
-                    { text: 'ANGEBOT', style: 'mainHeader' },
-                    k.kunde && k.kunde.trim() !== '' 
-                        ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
-                        : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
-                    
-                    k.optKuechenText && window.config.pdfKuechenText ? { 
-                        text: window.config.pdfKuechenText, 
-                        margin: [0, 0, 0, 20], 
-                        fontSize: 11,
-                        color: '#334155'
-                    } : { text: '', margin: [0, 0, 0, 0] },
-                    
-                    { text: '1. Möbel & Design', style: 'sectionHeader' },
-                    { 
-                        columns: [
-                            { text: 'Front 1:', width: 100, bold: true },
-                            { text: k.front1 || 'Nicht definiert' }
-                        ], margin: [0, 0, 0, 4]
-                    },
-                    { 
-                        columns: [
-                            { text: 'Front 2:', width: 100, bold: true },
-                            { text: k.front2 || 'Entfällt' }
-                        ], margin: [0, 0, 0, 4]
-                    },
-                    { 
-                        columns: [
-                            { text: 'Arbeitsplatte:', width: 100, bold: true },
-                            { text: k.apName || 'Nicht definiert' }
-                        ], margin: [0, 0, 0, 10]
-                    },
-                    
-                    k.optBallerina && window.config.pdfBallerinaText ? { 
-                        text: window.config.pdfBallerinaText, 
-                        margin: [0, 5, 0, 15], 
-                        fontSize: 10,
-                        color: '#475569',
-                        alignment: 'justify'
-                    } : { text: '', margin: [0, 0, 0, 10] },
-
-                    { text: '2. Elektrogeräte', style: 'sectionHeader' },
-                    allDevices.length > 0 
-                        ? { ul: allDevices, margin: [0, 0, 0, 15], color: '#334155' } 
-                        : { text: 'Keine Geräte erfasst.', margin: [0, 0, 0, 15], italics: true, color: '#94a3b8' },
-
-                    { text: '3. Ebenso enthalten sind', style: 'sectionHeader' },
-                    zubehoerItems.length > 0 
-                        ? { ul: zubehoerItems, margin: [0, 0, 0, 25], color: '#334155' } 
-                        : { text: 'Kein weiteres Zubehör vermerkt.', margin: [0, 0, 0, 25], italics: true, color: '#94a3b8' },
-
-                    { text: '4. Endpreis', style: 'sectionHeader' },
-                    { text: [
-                        'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
-                        { text: `${formatMoney(totalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
-                        ' an.'
-                    ], margin: [0, 0, 0, 8] },
-                    
-                    { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
-                    
-                    { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
-
-                    anschlussPdfBlock
-                ],
-                styles: {
-                    mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
-                    sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
-                },
-                defaultStyle: {
-                    font: 'Helvetica',
-                    fontSize: 11,
-                    lineHeight: 1.4,
-                    color: '#0f172a'
-                }
-            };
-
             try {
-                window.pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
+                // Bugfix: VFS Fonts manuell zuweisen, falls sie vom Browser geblockt wurden
+                if (window.pdfMake && !window.pdfMake.vfs && window.pdfMakeFonts) {
+                    window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
+                }
+
+                const k = window.kitchen;
+                const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
+                const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
+
+                const ekMoebel = parseVal(k.ekMoebel);
+                const rabattMoebel = parseVal(k.rabattMoebel);
+                const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+                const vkStein = parseVal(k.steinVK);
+                
+                let sumMieleBrutto = 0; 
+                (k.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
+                const rabattMiele = parseVal(k.rabattMiele);
+                const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
+                
+                let vkWasser = 0; 
+                (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
+                
+                const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
+                const montage = totalVK * 0.095;
+
+                const allDevices = [];
+                (k.geraete || []).forEach(g => {
+                    if (g.name && g.name.trim() !== '') {
+                        const price = parseVal(g.val);
+                        allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
+                    }
+                });
+                (k.miele || []).forEach(m => {
+                    if (m.name && m.name.trim() !== '') allDevices.push(m.name);
+                });
+                
+                let zubehoerItems = [];
+
+                (k.spuele || []).forEach(s => {
+                    if (s.name && s.name.trim() !== '') {
+                        const price = parseVal(s.val);
+                        zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
+                    }
+                });
+                
+                (k.wasser || []).forEach(w => {
+                    if (w.name && w.name.trim() !== '') zubehoerItems.push(w.name);
+                });
+
+                if (k.zubehoer && k.zubehoer.trim() !== '') {
+                    zubehoerItems = [...zubehoerItems, ...k.zubehoer.split('\n').filter(line => line.trim() !== '')];
+                }
+
+                let anschlussTextArray = [];
+                if (k.optAnschluss && window.config.pdfAnschlussText) anschlussTextArray.push(window.config.pdfAnschlussText);
+                if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
+                
+                const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
+                    text: anschlussTextArray.join(' '), 
+                    margin: [0, 5, 0, 0],
+                    fontSize: 10,
+                    color: '#475569'
+                } : { text: '' };
+
+                const docDefinition = {
+                    info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
+                    content: [
+                        { text: 'ANGEBOT', style: 'mainHeader' },
+                        k.kunde && k.kunde.trim() !== '' 
+                            ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
+                            : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
+                        
+                        k.optKuechenText && window.config.pdfKuechenText ? { 
+                            text: window.config.pdfKuechenText, 
+                            margin: [0, 0, 0, 20], 
+                            fontSize: 11,
+                            color: '#334155'
+                        } : { text: '', margin: [0, 0, 0, 0] },
+                        
+                        { text: '1. Möbel & Design', style: 'sectionHeader' },
+                        { 
+                            columns: [
+                                { text: 'Front 1:', width: 100, bold: true },
+                                { text: k.front1 || 'Nicht definiert' }
+                            ], margin: [0, 0, 0, 4]
+                        },
+                        { 
+                            columns: [
+                                { text: 'Front 2:', width: 100, bold: true },
+                                { text: k.front2 || 'Entfällt' }
+                            ], margin: [0, 0, 0, 4]
+                        },
+                        { 
+                            columns: [
+                                { text: 'Arbeitsplatte:', width: 100, bold: true },
+                                { text: k.apName || 'Nicht definiert' }
+                            ], margin: [0, 0, 0, 10]
+                        },
+                        
+                        k.optBallerina && window.config.pdfBallerinaText ? { 
+                            text: window.config.pdfBallerinaText, 
+                            margin: [0, 5, 0, 15], 
+                            fontSize: 10,
+                            color: '#475569',
+                            alignment: 'justify'
+                        } : { text: '', margin: [0, 0, 0, 10] },
+
+                        { text: '2. Elektrogeräte', style: 'sectionHeader' },
+                        allDevices.length > 0 
+                            ? { ul: allDevices, margin: [0, 0, 0, 15], color: '#334155' } 
+                            : { text: 'Keine Geräte erfasst.', margin: [0, 0, 0, 15], italics: true, color: '#94a3b8' },
+
+                        { text: '3. Ebenso enthalten sind', style: 'sectionHeader' },
+                        zubehoerItems.length > 0 
+                            ? { ul: zubehoerItems, margin: [0, 0, 0, 25], color: '#334155' } 
+                            : { text: 'Kein weiteres Zubehör vermerkt.', margin: [0, 0, 0, 25], italics: true, color: '#94a3b8' },
+
+                        { text: '4. Endpreis', style: 'sectionHeader' },
+                        { text: [
+                            'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
+                            { text: `${formatMoney(totalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
+                            ' an.'
+                        ], margin: [0, 0, 0, 8] },
+                        
+                        { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
+                        
+                        { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
+
+                        anschlussPdfBlock
+                    ],
+                    styles: {
+                        mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
+                        sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
+                    },
+                    defaultStyle: {
+                        font: 'Helvetica',
+                        fontSize: 11,
+                        lineHeight: 1.4,
+                        color: '#0f172a'
+                    }
+                };
+
+                const pdf = window.pdfMake.createPdf(docDefinition);
+                
+                // Prüft, ob es ein Apple Touch Gerät ist (iPhone/iPad/iPod oder Mac mit Touch)
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                
+                if (isIOS) {
+                    pdf.open(); // Öffnet PDF im neuen Tab statt einen unsichtbaren Download zu erzwingen
+                } else {
+                    pdf.download('Kuechenangebot.pdf'); // Klassischer Download für PC/Mac
+                }
+
             } catch(e) {
                 console.error("PDF-Fehler:", e);
-                showAlert("Fehler beim PDF-Export. Bitte prüfen, ob alle Felder korrekt sind.");
+                showAlert("Fehler: " + (e.message || "Unbekannter PDF-Fehler"));
             }
         };
 

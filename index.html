@@ -1427,8 +1427,16 @@
         };
 
         window.appendZubehoer = (text) => {
-            let current = window.kitchen.zubehoer.trim();
-            window.updateKitchen('zubehoer', current.length > 0 ? current + '\n' + text : text);
+            let current = (window.kitchen.zubehoer || '').trim();
+            let newText = current.length > 0 ? current + '\n' + text : text;
+            window.kitchen.zubehoer = newText;
+            window.saveKitchen();
+            
+            // NEU: Zwingt die Textbox dazu, sich sofort visuell zu aktualisieren
+            const textarea = document.getElementById('k-zubehoer');
+            if (textarea) textarea.value = newText;
+            
+            window.calcKitchen();
         };
 
         // Miele (mit VK-Rechnung)
@@ -1637,7 +1645,7 @@
 
         // --- PDF GENERATOR ---
         window.generatePDF = () => {
-            if (typeof pdfMake === 'undefined') {
+            if (typeof window.pdfMake === 'undefined') {
                 showAlert("PDF-Modul lädt noch, bitte 1 Sekunde warten.");
                 return;
             }
@@ -1652,54 +1660,54 @@
             const vkStein = parseVal(k.steinVK);
             
             let sumMieleBrutto = 0; 
-            k.miele.forEach(m => sumMieleBrutto += parseVal(m.val));
+            (k.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
             const rabattMiele = parseVal(k.rabattMiele);
             const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
             
             let vkWasser = 0; 
-            k.wasser.forEach(w => vkWasser += parseVal(w.val));
+            (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
             
             const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
             const montage = totalVK * 0.095;
 
             const allDevices = [];
-            k.geraete.forEach(g => {
+            (k.geraete || []).forEach(g => {
                 if (g.name.trim() !== '') {
                     const price = parseVal(g.val);
                     allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
                 }
             });
-            k.miele.forEach(m => {
+            (k.miele || []).forEach(m => {
                 if (m.name.trim() !== '') allDevices.push(m.name);
             });
             
             let zubehoerItems = [];
 
-            k.spuele.forEach(s => {
+            (k.spuele || []).forEach(s => {
                 if (s.name.trim() !== '') {
                     const price = parseVal(s.val);
                     zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
                 }
             });
             
-            k.wasser.forEach(w => {
+            (k.wasser || []).forEach(w => {
                 if (w.name.trim() !== '') zubehoerItems.push(w.name);
             });
 
-            if (k.zubehoer.trim() !== '') {
+            if (k.zubehoer && k.zubehoer.trim() !== '') {
                 zubehoerItems = [...zubehoerItems, ...k.zubehoer.split('\n').filter(line => line.trim() !== '')];
             }
 
             let anschlussTextArray = [];
-            if (k.optAnschluss) anschlussTextArray.push(window.config.pdfAnschlussText);
-            if (k.optAnschlussRabatt) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
+            if (k.optAnschluss && window.config.pdfAnschlussText) anschlussTextArray.push(window.config.pdfAnschlussText);
+            if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
             
             const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
                 text: anschlussTextArray.join(' '), 
                 margin: [0, 5, 0, 0],
                 fontSize: 10,
                 color: '#475569'
-            } : '';
+            } : { text: '' };
 
             const docDefinition = {
                 info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
@@ -1709,7 +1717,7 @@
                         ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
                         : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
                     
-                    k.optKuechenText ? { 
+                    k.optKuechenText && window.config.pdfKuechenText ? { 
                         text: window.config.pdfKuechenText, 
                         margin: [0, 0, 0, 20], 
                         fontSize: 11,
@@ -1736,7 +1744,7 @@
                         ], margin: [0, 0, 0, 10]
                     },
                     
-                    k.optBallerina ? { 
+                    k.optBallerina && window.config.pdfBallerinaText ? { 
                         text: window.config.pdfBallerinaText, 
                         margin: [0, 5, 0, 15], 
                         fontSize: 10,
@@ -1779,7 +1787,12 @@
                 }
             };
 
-            pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
+            try {
+                window.pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
+            } catch(e) {
+                console.error("PDF-Fehler:", e);
+                showAlert("Fehler beim PDF-Export. Bitte prüfen, ob alle Felder korrekt sind.");
+            }
         };
 
         window.render = () => {

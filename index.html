@@ -1651,12 +1651,12 @@
             }
 
             try {
-                // Bugfix: VFS Fonts manuell zuweisen, falls sie vom Browser geblockt wurden
-                if (window.pdfMake && !window.pdfMake.vfs && window.pdfMakeFonts) {
+                // Fonts sicherstellen
+                if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
                     window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
                 }
 
-                const k = window.kitchen;
+                const k = window.kitchen || {};
                 const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
                 const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
 
@@ -1700,8 +1700,8 @@
                     if (w.name && w.name.trim() !== '') zubehoerItems.push(w.name);
                 });
 
-                if (k.zubehoer && k.zubehoer.trim() !== '') {
-                    zubehoerItems = [...zubehoerItems, ...k.zubehoer.split('\n').filter(line => line.trim() !== '')];
+                if (k.zubehoer && String(k.zubehoer).trim() !== '') {
+                    zubehoerItems = [...zubehoerItems, ...String(k.zubehoer).split('\n').filter(line => line.trim() !== '')];
                 }
 
                 let anschlussTextArray = [];
@@ -1786,27 +1786,18 @@
                         sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
                     },
                     defaultStyle: {
-                        font: 'Helvetica',
                         fontSize: 11,
                         lineHeight: 1.4,
                         color: '#0f172a'
                     }
                 };
 
-                const pdf = window.pdfMake.createPdf(docDefinition);
-                
-                // Prüft, ob es ein Apple Touch Gerät ist (iPhone/iPad/iPod oder Mac mit Touch)
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                
-                if (isIOS) {
-                    pdf.open(); // Öffnet PDF im neuen Tab statt einen unsichtbaren Download zu erzwingen
-                } else {
-                    pdf.download('Kuechenangebot.pdf'); // Klassischer Download für PC/Mac
-                }
+                window.pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
+                showAlert("PDF wird heruntergeladen!");
 
             } catch(e) {
                 console.error("PDF-Fehler:", e);
-                showAlert("Fehler: " + (e.message || "Unbekannter PDF-Fehler"));
+                showAlert("Fehler: " + (e.message || "PDF konnte nicht erstellt werden."));
             }
         };
 

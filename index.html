@@ -441,6 +441,15 @@
                             </div>
                             <div id="wasser-container" class="space-y-2"></div>
                         </div>
+
+                        <div class="mt-6 border-t dark:border-darkBorder pt-6">
+                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-2">Optionaler Hauspreis / Zielpreis (Überschreibt den Gesamt-VK)</label>
+                            <div class="relative">
+                                <input type="text" id="k-hauspreis" inputmode="decimal" oninput="window.updateKitchen('hauspreis', this.value)" class="input-field font-mono text-lg text-blue-500" placeholder="Glatter Endpreis (z.B. 14500)">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase">€</span>
+                            </div>
+                        </div>
+
                     </div>
 
                     <div class="card p-6">
@@ -501,11 +510,20 @@
                                     <p class="text-[10px] text-slate-500">"Damit Sie effektiv keinen Mehrpreis haben..."</p>
                                 </div>
                             </label>
+
+                            <label class="flex items-start gap-3 cursor-pointer group mt-4 pt-4 border-t dark:border-darkBorder">
+                                <div class="relative flex items-center justify-center w-5 h-5 mt-0.5">
+                                    <input type="checkbox" id="opt-nachtext" onchange="window.updateKitchen('optNachtext', this.checked)" class="appearance-none w-5 h-5 border-2 border-slate-300 dark:border-darkBorder rounded bg-white dark:bg-darkCard checked:bg-blue-500 checked:border-blue-500 transition-all cursor-pointer">
+                                    <svg class="w-3 h-3 text-white absolute pointer-events-none opacity-0 check-icon transition-opacity" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-700 dark:text-slate-200">Nachtext / Verabschiedung andrucken</p>
+                                    <p class="text-[10px] text-slate-500">Schlusssatz ganz unten auf dem Dokument.</p>
+                                </div>
+                            </label>
                         </div>
                         <style> input:checked + .check-icon { opacity: 1; } </style>
                     </div>
-
-                    <button onclick="window.resetKitchen()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation leeren</button>
                 </div>
 
                 <div class="lg:col-span-2">
@@ -527,7 +545,9 @@
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Angebot als PDF generieren
                         </button>
-                        <p class="text-[9px] text-slate-500 mt-4 text-center">Die internen Kalkulationen (EK etc.) werden auf dem PDF selbstverständlich ausgeblendet.</p>
+                        <p class="text-[9px] text-slate-500 mt-4 mb-6 text-center">Die internen Kalkulationen (EK etc.) werden auf dem PDF selbstverständlich ausgeblendet.</p>
+
+                        <button onclick="window.resetKitchen()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors border-t border-darkBorder">Kalkulation leeren</button>
                     </div>
                 </div>
             </div>
@@ -700,7 +720,8 @@
                 pdfKuechenText: "Vielen Dank für Ihren Besuch und das angenehme Planungsgespräch. Wir freuen uns sehr, Ihnen das folgende Angebot für Ihre neue Einbauküche unterbreiten zu dürfen.",
                 pdfBallerinaText: "Qualität des Herstellers: Ballerina ist aktuell auf Platz 1 der deutschen Küchenhersteller und überzeugt mit einem robusten Korpus, 8mm starken geschraubten Rückwänden und 19mm starken Fachböden. Ebenso die kostenfreie Möglichkeit der farblichen Gestaltung des Innenkorpus sowie Glaszargen und Anti-Rutschmatten sind bei unseren Kunden sehr beliebt. Alle Schubkästen, Auszüge und Türen sind gedämpft. Die Belastbarkeit beträgt je nach Breite zwischen 50 kg und 80 kg. Ein entsprechendes Qualitäts-Zertifikat ist dieser E-Mail beigefügt.",
                 pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
-                pdfAnschlussRabattText: "Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab."
+                pdfAnschlussRabattText: "Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.",
+                pdfNachtext: "Wir hoffen, unser Angebot sagt Ihnen zu und stehen für Rückfragen jederzeit gerne zur Verfügung."
             }
         };
 
@@ -740,6 +761,7 @@
             if (!cfg.pdfBallerinaText) cfg.pdfBallerinaText = DEFAULTS.config.pdfBallerinaText;
             if (!cfg.pdfAnschlussText) cfg.pdfAnschlussText = DEFAULTS.config.pdfAnschlussText;
             if (!cfg.pdfAnschlussRabattText) cfg.pdfAnschlussRabattText = DEFAULTS.config.pdfAnschlussRabattText;
+            if (!cfg.pdfNachtext) cfg.pdfNachtext = DEFAULTS.config.pdfNachtext;
 
             if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
                 cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
@@ -774,6 +796,7 @@
             front1: savedKitchen.front1 || "", 
             front2: savedKitchen.front2 || "", 
             apName: savedKitchen.apName || "", 
+            hauspreis: savedKitchen.hauspreis || "",
             ekMoebel: savedKitchen.ekMoebel || "", 
             rabattMoebel: savedKitchen.rabattMoebel || "",
             rabattMiele: savedKitchen.rabattMiele || "",
@@ -786,7 +809,8 @@
             optKuechenText: savedKitchen.optKuechenText !== false,
             optBallerina: savedKitchen.optBallerina !== false, 
             optAnschluss: savedKitchen.optAnschluss !== false,
-            optAnschlussRabatt: savedKitchen.optAnschlussRabatt !== false
+            optAnschlussRabatt: savedKitchen.hasOwnProperty('optAnschlussRabatt') ? savedKitchen.optAnschlussRabatt : false,
+            optNachtext: savedKitchen.hasOwnProperty('optNachtext') ? savedKitchen.optNachtext : true
         };
 
         const animState = {};
@@ -1420,6 +1444,24 @@
                     if (field === 'wasserVal') wasserItem.val = value;
                 }
             } else {
+                if (field === 'rabattMoebel') {
+                    let num = parseFloat(value.replace(',', '.'));
+                    if (num > 5) {
+                        value = "5";
+                        const el = document.getElementById('k-rabatt');
+                        if (el) el.value = value;
+                        showAlert("Möbel-Rabatt ist auf maximal 5% begrenzt.");
+                    }
+                }
+                if (field === 'rabattMiele') {
+                    let num = parseFloat(value.replace(',', '.'));
+                    if (num > 3) {
+                        value = "3";
+                        const el = document.getElementById('k-rabatt-miele');
+                        if (el) el.value = value;
+                        showAlert("Miele-Rabatt ist auf maximal 3% begrenzt.");
+                    }
+                }
                 window.kitchen[field] = value;
             }
             window.saveKitchen();
@@ -1432,7 +1474,6 @@
             window.kitchen.zubehoer = newText;
             window.saveKitchen();
             
-            // Zwingt die Textbox dazu, sich sofort visuell zu aktualisieren
             const textarea = document.getElementById('k-zubehoer');
             if (textarea) textarea.value = newText;
             
@@ -1507,6 +1548,7 @@
             window.kitchen = { 
                 kunde: "",
                 front1: "", front2: "", apName: "", 
+                hauspreis: "",
                 ekMoebel: "", 
                 rabattMoebel: "",
                 rabattMiele: "",
@@ -1515,7 +1557,7 @@
                 spuele: [{id: Date.now()+3, name: "", val: ""}],
                 wasser: [{id: Date.now()+2, name: "", val: ""}],
                 steinVK: "", zubehoer: "",
-                optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: true
+                optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
             };
             window.saveKitchen();
             window.renderKitchen();
@@ -1537,9 +1579,13 @@
             window.kitchen.wasser.forEach(w => vkWasser += parseVal(w.val));
 
             const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
-            const montage = totalVK * 0.095;
+            
+            const hauspreis = parseVal(window.kitchen.hauspreis);
+            const displayVK = hauspreis > 0 ? hauspreis : totalVK;
+            
+            const montage = displayVK * 0.095;
 
-            window.animateValue('kitchenVK', totalVK);
+            window.animateValue('kitchenVK', displayVK);
             
             const montageEl = document.getElementById('kitchenMontage');
             const vkMoebelEl = document.getElementById('kitchenMoebelVK');
@@ -1628,12 +1674,14 @@
             setVal('k-front1', window.kitchen.front1);
             setVal('k-front2', window.kitchen.front2);
             setVal('k-apName', window.kitchen.apName);
+            setVal('k-hauspreis', window.kitchen.hauspreis);
             
             setVal('k-zubehoer', window.kitchen.zubehoer);
             setCheck('opt-kuechentext', window.kitchen.optKuechenText);
             setCheck('opt-ballerina', window.kitchen.optBallerina);
             setCheck('opt-anschluss', window.kitchen.optAnschluss);
             setCheck('opt-anschluss-rabatt', window.kitchen.optAnschlussRabatt);
+            setCheck('opt-nachtext', window.kitchen.optNachtext);
 
             setVal('k-moebel', window.kitchen.ekMoebel);
             setVal('k-rabatt', window.kitchen.rabattMoebel);
@@ -1651,7 +1699,6 @@
             }
 
             try {
-                // Fonts sicherstellen
                 if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
                     window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
                 }
@@ -1674,7 +1721,11 @@
                 (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
                 
                 const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
-                const montage = totalVK * 0.095;
+                
+                const hauspreis = parseVal(k.hauspreis);
+                const finalVK = hauspreis > 0 ? hauspreis : totalVK;
+                
+                const montage = finalVK * 0.095;
 
                 const allDevices = [];
                 (k.geraete || []).forEach(g => {
@@ -1771,7 +1822,7 @@
                         { text: '4. Endpreis', style: 'sectionHeader' },
                         { text: [
                             'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
-                            { text: `${formatMoney(totalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
+                            { text: `${formatMoney(finalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
                             ' an.'
                         ], margin: [0, 0, 0, 8] },
                         
@@ -1779,7 +1830,14 @@
                         
                         { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
 
-                        anschlussPdfBlock
+                        anschlussPdfBlock,
+
+                        k.optNachtext && window.config.pdfNachtext ? { 
+                            text: window.config.pdfNachtext, 
+                            margin: [0, 25, 0, 0], 
+                            fontSize: 11,
+                            color: '#334155'
+                        } : { text: '', margin: [0, 0, 0, 0] }
                     ],
                     styles: {
                         mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
@@ -1792,12 +1850,25 @@
                     }
                 };
 
-                window.pdfMake.createPdf(docDefinition).download('Kuechenangebot.pdf');
-                showAlert("PDF wird heruntergeladen!");
+                const pdf = window.pdfMake.createPdf(docDefinition);
+                
+                let fileName = 'Kuechenangebot.pdf';
+                if (k.kunde && k.kunde.trim() !== '') {
+                    const safeName = k.kunde.trim().replace(/[^a-zA-Z0-9\u00C0-\u017F]/g, '');
+                    fileName = safeName + 'Kuechenangebot.pdf';
+                }
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                
+                if (isIOS) {
+                    pdf.open(); 
+                } else {
+                    pdf.download(fileName); 
+                }
 
             } catch(e) {
                 console.error("PDF-Fehler:", e);
-                showAlert("Fehler: " + (e.message || "PDF konnte nicht erstellt werden."));
+                showAlert("Fehler: " + (e.message || "Unbekannter PDF-Fehler"));
             }
         };
 
@@ -1934,6 +2005,10 @@
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Rabatt Text</label>
                         <textarea oninput="window.updateConfig('pdfAnschlussRabattText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussRabattText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Nachtext / Verabschiedung</label>
+                        <textarea oninput="window.updateConfig('pdfNachtext', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfNachtext}</textarea>
                     </div>
                 `;
             }

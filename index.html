@@ -469,8 +469,18 @@
 
                     </div>
 
+                    <!-- NEU: Optionale Mehrpreise -->
                     <div class="card p-6">
-                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">3. Angebotseinstellungen (PDF)</h2>
+                        <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
+                            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">3. Optionale Mehrpreise</h2>
+                            <button onclick="window.addMehrpreis()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
+                        </div>
+                        <div id="mehrpreis-container" class="space-y-2"></div>
+                        <p class="text-[9px] text-slate-400 mt-2 font-bold italic">Diese Positionen fließen NICHT in den Endpreis ein. Sie werden auf dem PDF separat ausgewiesen.</p>
+                    </div>
+
+                    <div class="card p-6">
+                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">4. Angebotseinstellungen (PDF)</h2>
                         
                         <div class="mb-6">
                             <label class="text-[10px] font-black text-slate-500 uppercase block mb-2">Ebenso enthalten sind (Zubehör):</label>
@@ -563,7 +573,6 @@
                             Angebot als PDF generieren
                         </button>
                         
-                        <!-- NEU: In Cloud speichern -->
                         <button onclick="window.saveOffer()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 002-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
                             In Cloud speichern
@@ -730,7 +739,7 @@
         window.compareList = []; 
         window.currentStoneVK = 0; 
         window.currentStoneName = ""; 
-        window.offers = []; // Cloud Archiv Angebote
+        window.offers = []; 
 
         const generateId = () => 'st_' + Math.random().toString(36).substr(2, 9);
 
@@ -774,6 +783,7 @@
                 miter: 45, adminPass: "1234",
                 stats: { dekton: [], natur: [] },
                 beraterList: "Berater 1, Berater 2",
+                pdfLogo: "",
                 pdfKuechenText: "Vielen Dank für Ihren Besuch und das angenehme Planungsgespräch. Wir freuen uns sehr, Ihnen das folgende Angebot für Ihre neue Einbauküche unterbreiten zu dürfen.",
                 pdfBallerinaText: "Qualität des Herstellers: Ballerina ist aktuell auf Platz 1 der deutschen Küchenhersteller und überzeugt mit einem robusten Korpus, 8mm starken geschraubten Rückwänden und 19mm starken Fachböden. Ebenso die kostenfreie Möglichkeit der farblichen Gestaltung des Innenkorpus sowie Glaszargen und Anti-Rutschmatten sind bei unseren Kunden sehr beliebt. Alle Schubkästen, Auszüge und Türen sind gedämpft. Die Belastbarkeit beträgt je nach Breite zwischen 50 kg und 80 kg. Ein entsprechendes Qualitäts-Zertifikat ist dieser E-Mail beigefügt.",
                 pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
@@ -814,6 +824,7 @@
 
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
             if (!cfg.beraterList) cfg.beraterList = DEFAULTS.config.beraterList;
+            if (cfg.pdfLogo === undefined) cfg.pdfLogo = "";
             
             if (!cfg.pdfKuechenText) cfg.pdfKuechenText = DEFAULTS.config.pdfKuechenText;
             if (!cfg.pdfBallerinaText) cfg.pdfBallerinaText = DEFAULTS.config.pdfBallerinaText;
@@ -864,6 +875,7 @@
             miele: savedKitchen.miele || [{id: Date.now()+1, name: "", val: ""}], 
             spuele: savedKitchen.spuele || [{id: Date.now()+3, name: "", val: ""}],
             wasser: initialWasser,
+            mehrpreise: savedKitchen.mehrpreise || [{id: Date.now()+4, name: "", val: ""}],
             steinVK: savedKitchen.steinVK || "", 
             zubehoer: savedKitchen.zubehoer || "",
             optKuechenText: savedKitchen.optKuechenText !== false,
@@ -1654,25 +1666,30 @@
 
         window.updateKitchen = (field, value, id = null) => {
             if (id !== null) {
-                const mieleItem = window.kitchen.miele.find(m => m.id === id);
+                const mieleItem = (window.kitchen.miele || []).find(m => m.id === id);
                 if (mieleItem) {
                     if (field === 'mieleName') mieleItem.name = value;
                     if (field === 'mieleVal') mieleItem.val = value;
                 }
-                const geraeteItem = window.kitchen.geraete.find(g => g.id === id);
+                const geraeteItem = (window.kitchen.geraete || []).find(g => g.id === id);
                 if (geraeteItem) {
                     if (field === 'geraeteName') geraeteItem.name = value;
                     if (field === 'geraeteVal') geraeteItem.val = value;
                 }
-                const spueleItem = window.kitchen.spuele.find(s => s.id === id);
+                const spueleItem = (window.kitchen.spuele || []).find(s => s.id === id);
                 if (spueleItem) {
                     if (field === 'spueleName') spueleItem.name = value;
                     if (field === 'spueleVal') spueleItem.val = value;
                 }
-                const wasserItem = window.kitchen.wasser.find(w => w.id === id);
+                const wasserItem = (window.kitchen.wasser || []).find(w => w.id === id);
                 if (wasserItem) {
                     if (field === 'wasserName') wasserItem.name = value;
                     if (field === 'wasserVal') wasserItem.val = value;
+                }
+                const mpItem = (window.kitchen.mehrpreise || []).find(m => m.id === id);
+                if (mpItem) {
+                    if (field === 'mehrpreisName') mpItem.name = value;
+                    if (field === 'mehrpreisVal') mpItem.val = value;
                 }
             } else {
                 if (field === 'rabattMoebel') {
@@ -1713,6 +1730,7 @@
 
         // Miele (mit VK-Rechnung)
         window.addMiele = () => {
+            window.kitchen.miele = window.kitchen.miele || [];
             window.kitchen.miele.push({id: Date.now(), name: "", val: ""});
             window.saveKitchen();
             window.renderKitchen();
@@ -1726,6 +1744,7 @@
 
         // Allgemeine Geräte (Info für PDF, keine VK-Rechnung)
         window.addGeraet = () => {
+            window.kitchen.geraete = window.kitchen.geraete || [];
             window.kitchen.geraete.push({id: Date.now(), name: "", val: ""});
             window.saveKitchen();
             window.renderKitchen();
@@ -1739,6 +1758,7 @@
 
         // Spüle (Info für PDF, keine VK-Rechnung)
         window.addSpuele = () => {
+            window.kitchen.spuele = window.kitchen.spuele || [];
             window.kitchen.spuele.push({id: Date.now(), name: "", val: ""});
             window.saveKitchen();
             window.renderKitchen();
@@ -1752,6 +1772,7 @@
 
         // Wasseraufbereitung
         window.addWasser = () => {
+            window.kitchen.wasser = window.kitchen.wasser || [];
             window.kitchen.wasser.push({id: Date.now(), name: "", val: ""});
             window.saveKitchen();
             window.renderKitchen();
@@ -1761,6 +1782,19 @@
             window.saveKitchen();
             window.renderKitchen();
             window.calcKitchen();
+        };
+
+        // Optionale Mehrpreise
+        window.addMehrpreis = () => {
+            window.kitchen.mehrpreise = window.kitchen.mehrpreise || [];
+            window.kitchen.mehrpreise.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeMehrpreis = (id) => {
+            window.kitchen.mehrpreise = window.kitchen.mehrpreise.filter(m => m.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
         };
 
         window.pullStein = () => {
@@ -1779,7 +1813,7 @@
             window.kitchen = { 
                 offerId: null,
                 kunde: "",
-                berater: window.kitchen.berater || "", // Behalte den aktuell gewählten Berater
+                berater: window.kitchen.berater || "", 
                 front1: "", front2: "", apName: "", 
                 hauspreis: "",
                 ekMoebel: "", 
@@ -1789,6 +1823,7 @@
                 miele: [{id: Date.now()+1, name: "", val: ""}], 
                 spuele: [{id: Date.now()+3, name: "", val: ""}],
                 wasser: [{id: Date.now()+2, name: "", val: ""}],
+                mehrpreise: [{id: Date.now()+4, name: "", val: ""}],
                 steinVK: "", zubehoer: "",
                 optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
             };
@@ -1804,12 +1839,12 @@
             const vkStein = parseVal(window.kitchen.steinVK);
             
             let sumMieleBrutto = 0;
-            window.kitchen.miele.forEach(m => sumMieleBrutto += parseVal(m.val));
+            (window.kitchen.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
             const rabattMiele = parseVal(window.kitchen.rabattMiele);
             const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
 
             let vkWasser = 0;
-            window.kitchen.wasser.forEach(w => vkWasser += parseVal(w.val));
+            (window.kitchen.wasser || []).forEach(w => vkWasser += parseVal(w.val));
 
             const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
             
@@ -1843,7 +1878,7 @@
 
             const geraeteContainer = document.getElementById('geraete-container');
             if(geraeteContainer) {
-                geraeteContainer.innerHTML = window.kitchen.geraete.map((g, i) => `
+                geraeteContainer.innerHTML = (window.kitchen.geraete || []).map((g, i) => `
                     <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                         <input type="text" value="${g.name}" oninput="window.updateKitchen('geraeteName', this.value, ${g.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Art.-Nr. & Bezeichnung (z.B. Siemens)">
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -1859,7 +1894,7 @@
 
             const mieleContainer = document.getElementById('miele-container');
             if(mieleContainer) {
-                mieleContainer.innerHTML = window.kitchen.miele.map((m, i) => `
+                mieleContainer.innerHTML = (window.kitchen.miele || []).map((m, i) => `
                     <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                         <input type="text" value="${m.name}" oninput="window.updateKitchen('mieleName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Miele Backofen)">
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -1875,7 +1910,7 @@
             
             const spueleContainer = document.getElementById('spuele-container');
             if(spueleContainer) {
-                spueleContainer.innerHTML = window.kitchen.spuele.map((s, i) => `
+                spueleContainer.innerHTML = (window.kitchen.spuele || []).map((s, i) => `
                     <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                         <input type="text" value="${s.name}" oninput="window.updateKitchen('spueleName', this.value, ${s.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Blanco Spüle)">
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -1891,7 +1926,7 @@
 
             const wasserContainer = document.getElementById('wasser-container');
             if(wasserContainer) {
-                wasserContainer.innerHTML = window.kitchen.wasser.map((w, i) => `
+                wasserContainer.innerHTML = (window.kitchen.wasser || []).map((w, i) => `
                     <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
                         <input type="text" value="${w.name}" oninput="window.updateKitchen('wasserName', this.value, ${w.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Quooker Flex PRO3">
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -1900,6 +1935,23 @@
                                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
                             </div>
                             ${window.kitchen.wasser.length > 1 ? `<button onclick="window.removeWasser(${w.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            // Mehrpreise Rendern
+            const mehrpreisContainer = document.getElementById('mehrpreis-container');
+            if (mehrpreisContainer) {
+                mehrpreisContainer.innerHTML = (window.kitchen.mehrpreise || []).map((m, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mehrpreisName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Aufpreis für Siemens Backofen HN678G4S6">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mehrpreisVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Mehrpreis">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.mehrpreise || []).length > 1 ? `<button onclick="window.removeMehrpreis(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
                         </div>
                     </div>
                 `).join('');
@@ -1936,15 +1988,39 @@
         };
 
         // --- PDF GENERATOR ---
-        window.generatePDF = () => {
+        window.generatePDF = async () => {
             if (typeof window.pdfMake === 'undefined') {
                 showAlert("PDF-Modul lädt noch, bitte 1 Sekunde warten.");
                 return;
             }
 
+            showAlert("Erstelle PDF...");
+
             try {
                 if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
                     window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
+                }
+
+                // Versuche das Logo zu laden und in Base64 umzuwandeln (notwendig für pdfMake)
+                let logoDataUrl = null;
+                if (window.config.pdfLogo && window.config.pdfLogo.trim() !== '') {
+                    try {
+                        let logoStr = window.config.pdfLogo.trim();
+                        if (logoStr.startsWith('data:image')) {
+                            logoDataUrl = logoStr;
+                        } else {
+                            let fetchUrl = logoStr.startsWith('http') ? logoStr : 'images/' + logoStr;
+                            const response = await fetch(fetchUrl);
+                            const blob = await response.blob();
+                            logoDataUrl = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => resolve(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    } catch (err) {
+                        console.warn('Logo konnte nicht geladen werden', err);
+                    }
                 }
 
                 const k = window.kitchen || {};
@@ -2010,15 +2086,28 @@
                     color: '#475569'
                 } : { text: '' };
 
+                // Header mit optionalem Logo bauen
+                const headerColumns = [
+                    { text: 'ANGEBOT', style: 'mainHeader', width: '*' }
+                ];
+                
+                if (logoDataUrl) {
+                    headerColumns.push({
+                        image: logoDataUrl,
+                        width: 120, // Maximale Breite des Logos
+                        alignment: 'right'
+                    });
+                }
+
                 const docDefinition = {
                     info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
                     content: [
-                        { text: 'ANGEBOT', style: 'mainHeader' },
+                        { columns: headerColumns, margin: [0, 0, 0, 15] },
+                        
                         k.kunde && k.kunde.trim() !== '' 
                             ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
                             : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
                             
-                        // Berater in das PDF einfügen
                         k.berater && k.berater.trim() !== '' 
                             ? { text: `Ihr Berater: ${k.berater}`, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b', italics: true }
                             : { text: '', margin: [0,0,0,0] },
@@ -2079,14 +2168,7 @@
                         
                         { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
 
-                        anschlussPdfBlock,
-
-                        k.optNachtext && window.config.pdfNachtext ? { 
-                            text: window.config.pdfNachtext, 
-                            margin: [0, 25, 0, 0], 
-                            fontSize: 11,
-                            color: '#334155'
-                        } : { text: '', margin: [0, 0, 0, 0] }
+                        anschlussPdfBlock
                     ],
                     styles: {
                         mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
@@ -2098,6 +2180,30 @@
                         color: '#0f172a'
                     }
                 };
+
+                // Optionale Mehrpreise ans Ende des PDFs hängen, falls vorhanden
+                const mpArray = [];
+                (k.mehrpreise || []).forEach(mp => {
+                    if (mp.name && mp.name.trim() !== '') {
+                        const price = parseVal(mp.val);
+                        mpArray.push(`${mp.name}${price > 0 ? ` (+ ${formatMoney(price)})` : ''}`);
+                    }
+                });
+
+                if (mpArray.length > 0) {
+                    docDefinition.content.push(
+                        { text: 'Optionale Mehrpreise', style: 'sectionHeader', margin: [0, 25, 0, 8] },
+                        { text: 'Folgende Positionen sind im oben genannten Gesamtpreis noch NICHT enthalten:', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 8] },
+                        { ul: mpArray, color: '#334155' }
+                    );
+                }
+
+                // Nachtext ganz ans Ende hängen
+                if (k.optNachtext && window.config.pdfNachtext) {
+                    docDefinition.content.push(
+                        { text: window.config.pdfNachtext, margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
+                    );
+                }
 
                 const pdf = window.pdfMake.createPdf(docDefinition);
                 
@@ -2235,7 +2341,6 @@
                     </div>
                 `).join('');
                 
-                // BeraterList manuell unten dranhängen
                 fieldsContainer.innerHTML += `
                     <div class="col-span-full mt-4 border-t dark:border-darkBorder pt-4">
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Berater (Kommagetrennt)</label>
@@ -2251,6 +2356,11 @@
             if (kitchenFieldsContainer) {
                 kitchenFieldsContainer.innerHTML = `
                     <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">PDF Logo (Dateiname oder URL)</label>
+                        <input type="text" value="${window.config.pdfLogo || ''}" oninput="window.updateConfig('pdfLogo', this.value, false)" class="input-field text-sm font-mono" placeholder="logo.png oder https://...">
+                        <p class="text-[9px] text-slate-400 mt-1">Logo erscheint oben rechts auf dem Angebot. Bild muss im Ordner "images" liegen oder als kompletter Weblink angegeben sein.</p>
+                    </div>
+                    <div class="border-t dark:border-darkBorder pt-4 mt-2">
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Küchen-Einleitungstext</label>
                         <textarea oninput="window.updateConfig('pdfKuechenText', this.value, false)" class="input-field text-sm min-h-[100px] resize-y">${window.config.pdfKuechenText}</textarea>
                     </div>

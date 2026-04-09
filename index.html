@@ -112,6 +112,7 @@
         </header>
 
         <div id="main-ui">
+            <!-- RECHNER -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch pb-36 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     <div class="card p-6">
@@ -216,6 +217,7 @@
                     <button onclick="window.resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
                 </div>
 
+                <!-- DESKTOP ZUSAMMENFASSUNG -->
                 <div class="hidden lg:block lg:col-span-2">
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-10 shadow-2xl border border-darkBorder transition-all duration-300">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
@@ -255,6 +257,7 @@
                     +
                 </button>
 
+                <!-- MOBILE BOTTOM SHEET -->
                 <div id="mobile-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="window.toggleSheet()"></div>
 
                 <div id="mobile-sheet" class="fixed left-0 right-0 bottom-0 z-50 lg:hidden transform translate-y-[calc(100%-88px)] transition-transform duration-300 ease-out flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl bg-black border-t border-darkBorder">
@@ -305,6 +308,7 @@
                 </div>
             </div>
 
+            <!-- GALERIE TAB -->
             <div id="tab-gallery" class="hidden pb-20 space-y-10 relative">
                 
                 <div id="compare-banner" class="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm z-40 flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
@@ -336,15 +340,28 @@
                 </div>
             </div>
 
+            <!-- KÜCHENKALKULATION TAB -->
             <div id="tab-kitchen" class="hidden grid grid-cols-1 lg:grid-cols-5 gap-6 items-start pb-36 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     
                     <div class="card p-6">
-                        <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-5 border-b dark:border-darkBorder pb-3">1. Projekt & Design</h2>
+                        <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
+                            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">1. Projekt & Design</h2>
+                            <button onclick="window.openOffersModal()" class="text-[9px] font-black bg-blue-500/10 text-blue-500 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 active:scale-95 transition-all flex items-center gap-1">
+                                <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" /></svg>
+                                Aus Cloud laden
+                            </button>
+                        </div>
                         
-                        <div class="mb-5">
-                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Kunde / Kommission</label>
-                            <input type="text" id="k-kunde" oninput="window.updateKitchen('kunde', this.value)" class="input-field text-sm" placeholder="Name oder Kommissionsnummer">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Kunde / Kommission</label>
+                                <input type="text" id="k-kunde" oninput="window.updateKitchen('kunde', this.value)" class="input-field text-sm" placeholder="Name oder Kommissionsnummer">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Berater</label>
+                                <select id="k-berater" onchange="window.updateKitchen('berater', this.value)" class="input-field text-sm"></select>
+                            </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
@@ -361,7 +378,7 @@
                         <div class="border-t dark:border-darkBorder pt-5">
                             <div class="flex justify-between items-end mb-2">
                                 <label class="text-[10px] font-black text-slate-500 uppercase">Arbeitsplatte (Bezeichnung & Preis)</label>
-                                <button onclick="window.pullStein()" class="text-[9px] font-black bg-blue-500/10 text-blue-500 px-3 py-1.5 rounded-lg hover:bg-blue-500/20 active:scale-95 transition-all flex items-center gap-1">
+                                <button onclick="window.pullStein()" class="text-[9px] font-black bg-slate-100 dark:bg-darkBorder text-slate-500 px-3 py-1.5 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-800 active:scale-95 transition-all flex items-center gap-1">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                                     Aus Rechner übernehmen
                                 </button>
@@ -541,10 +558,17 @@
                             <p id="kitchenMontage" class="text-lg font-black text-emerald-400 font-mono-tabular">0,00 €</p>
                         </div>
 
-                        <button onclick="window.generatePDF()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2">
+                        <button onclick="window.generatePDF()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mb-3">
                             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                             Angebot als PDF generieren
                         </button>
+                        
+                        <!-- NEU: In Cloud speichern -->
+                        <button onclick="window.saveOffer()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 002-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
+                            In Cloud speichern
+                        </button>
+                        
                         <p class="text-[9px] text-slate-500 mt-4 mb-6 text-center">Die internen Kalkulationen (EK etc.) werden auf dem PDF selbstverständlich ausgeblendet.</p>
 
                         <button onclick="window.resetKitchen()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors border-t border-darkBorder">Kalkulation leeren</button>
@@ -590,6 +614,37 @@
                     </div>
                 </div>
 
+            </div>
+        </div>
+
+        <!-- Angebote Modal (Cloud Archiv) -->
+        <div id="offers-modal" class="fixed inset-0 z-[400] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
+            <div class="bg-white dark:bg-darkCard w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+                <div class="p-4 md:p-6 border-b border-slate-200 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-[#181818]">
+                    <div>
+                        <h2 class="text-xl font-black">Cloud Archiv</h2>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold mt-1">Gespeicherte Angebote des Teams</p>
+                    </div>
+                    <button onclick="window.closeOffersModal()" class="w-10 h-10 bg-slate-200 dark:bg-darkBorder rounded-full flex items-center justify-center text-slate-500 hover:text-black dark:hover:text-white transition-colors">✕</button>
+                </div>
+                
+                <div class="p-4 md:px-6 bg-slate-100 dark:bg-black border-b border-slate-200 dark:border-darkBorder flex flex-col md:flex-row gap-3 items-center">
+                    <div class="relative flex-1 w-full">
+                        <svg class="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                        <input type="text" id="offer-search" oninput="window.renderOffersList()" placeholder="Suchen nach Kunde oder Kommission..." class="w-full bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder rounded-xl pl-9 pr-4 py-2 text-sm outline-none focus:border-blue-500 transition-colors">
+                    </div>
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <select id="offer-berater-filter" onchange="window.renderOffersList()" class="bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500 flex-1 md:w-40 cursor-pointer"></select>
+                        <select id="offer-sort" onchange="window.renderOffersList()" class="bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder rounded-xl px-4 py-2 text-sm outline-none focus:border-blue-500 flex-1 md:w-48 cursor-pointer">
+                            <option value="newest">Neueste zuerst</option>
+                            <option value="berater">Nach Berater A-Z</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="offers-list-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-slate-50 dark:bg-transparent">
+                    <!-- Liste der Angebote -->
+                </div>
             </div>
         </div>
 
@@ -650,7 +705,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Deine echten Firebase-Daten
         const firebaseConfig = {
@@ -665,7 +720,7 @@
         const activeConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : firebaseConfig;
         const internalAppId = typeof __app_id !== 'undefined' ? __app_id : 'lithoscale-pro-team-v1';
         
-        let app, auth, db, unsubCloud;
+        let app, auth, db, unsubCloud, unsubOffers;
         let currentUser = null; 
         let isUploading = false;
         let isAdminActive = false;
@@ -675,6 +730,7 @@
         window.compareList = []; 
         window.currentStoneVK = 0; 
         window.currentStoneName = ""; 
+        window.offers = []; // Cloud Archiv Angebote
 
         const generateId = () => 'st_' + Math.random().toString(36).substr(2, 9);
 
@@ -717,6 +773,7 @@
                 notch: 45, hole: 25,
                 miter: 45, adminPass: "1234",
                 stats: { dekton: [], natur: [] },
+                beraterList: "Berater 1, Berater 2",
                 pdfKuechenText: "Vielen Dank für Ihren Besuch und das angenehme Planungsgespräch. Wir freuen uns sehr, Ihnen das folgende Angebot für Ihre neue Einbauküche unterbreiten zu dürfen.",
                 pdfBallerinaText: "Qualität des Herstellers: Ballerina ist aktuell auf Platz 1 der deutschen Küchenhersteller und überzeugt mit einem robusten Korpus, 8mm starken geschraubten Rückwänden und 19mm starken Fachböden. Ebenso die kostenfreie Möglichkeit der farblichen Gestaltung des Innenkorpus sowie Glaszargen und Anti-Rutschmatten sind bei unseren Kunden sehr beliebt. Alle Schubkästen, Auszüge und Türen sind gedämpft. Die Belastbarkeit beträgt je nach Breite zwischen 50 kg und 80 kg. Ein entsprechendes Qualitäts-Zertifikat ist dieser E-Mail beigefügt.",
                 pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
@@ -756,6 +813,7 @@
             if (cfg.hole === undefined) cfg.hole = 25;
 
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
+            if (!cfg.beraterList) cfg.beraterList = DEFAULTS.config.beraterList;
             
             if (!cfg.pdfKuechenText) cfg.pdfKuechenText = DEFAULTS.config.pdfKuechenText;
             if (!cfg.pdfBallerinaText) cfg.pdfBallerinaText = DEFAULTS.config.pdfBallerinaText;
@@ -792,7 +850,9 @@
         }
 
         window.kitchen = { 
+            offerId: savedKitchen.offerId || null,
             kunde: savedKitchen.kunde || "",
+            berater: savedKitchen.berater || "",
             front1: savedKitchen.front1 || "", 
             front2: savedKitchen.front2 || "", 
             apName: savedKitchen.apName || "", 
@@ -902,7 +962,11 @@
         const startCloudListener = () => {
             if (!db || !currentUser) return; 
             if (unsubCloud) unsubCloud();
+            if (unsubOffers) unsubOffers();
+
             updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
+            
+            // Einstellungen Listener
             const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
             unsubCloud = onSnapshot(docRef, (snap) => {
                 if (isUploading || isAdminActive) return;
@@ -930,6 +994,13 @@
                 updateStatus("Error", "bg-red-500", err.message);
                 window.render();
             });
+
+            // Angebote Listener
+            unsubOffers = onSnapshot(collection(db, 'artifacts', internalAppId, 'public', 'data', 'offers'), (snap) => {
+                window.offers = [];
+                snap.forEach(doc => window.offers.push(doc.data()));
+                window.renderOffersList();
+            }, (err) => console.error("Angebote Load Error:", err));
         };
 
         window.pushToCloud = async (silent = false) => {
@@ -965,6 +1036,166 @@
             await window.pushToCloud();
             window.render();
         };
+
+        // --- ANGEBOTE CLOUD FUNKTIONEN ---
+        window.saveOffer = async () => {
+            if (!window.kitchen.kunde || window.kitchen.kunde.trim() === "") {
+                showAlert("Bitte zuerst einen Kunden / Kommissionsnamen eintragen!");
+                document.getElementById('k-kunde')?.focus();
+                return;
+            }
+            if (!db || !currentUser) {
+                showAlert("Keine Verbindung zur Cloud. Bitte später versuchen.");
+                return;
+            }
+            
+            updateStatus("Speichere Angebot...", "bg-blue-500 animate-pulse");
+            
+            const offerId = window.kitchen.offerId || 'off_' + Date.now();
+            const totalVKElement = document.getElementById('kitchenVK');
+            const totalVK = totalVKElement ? parseFloat(totalVKElement.innerText.replace(/[^\d,-]/g, '').replace(',', '.')) || 0 : 0;
+            
+            const offerData = {
+                id: offerId,
+                kunde: window.kitchen.kunde.trim(),
+                berater: window.kitchen.berater || "",
+                timestamp: Date.now(),
+                totalVK: totalVK,
+                kitchen: window.kitchen,
+                parts: window.parts,
+                stoneId: document.getElementById('stoneSelect')?.value || "",
+                editor: currentUser.uid
+            };
+
+            try {
+                const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'offers', offerId);
+                await setDoc(docRef, offerData);
+                window.kitchen.offerId = offerId; 
+                window.saveKitchen();
+                showAlert("Angebot erfolgreich in der Cloud gespeichert!");
+                updateStatus("Cloud Aktiv", "bg-green-500");
+            } catch (e) {
+                console.error(e);
+                showAlert("Fehler beim Speichern in die Cloud.");
+                updateStatus("Fehler", "bg-red-500");
+            }
+        };
+
+        window.loadOffer = (id) => {
+            const offer = window.offers.find(o => o.id === id);
+            if (!offer) return;
+            
+            if(!confirm(`Möchtest du das Angebot für "${offer.kunde}" laden?\nDeine aktuelle Kalkulation wird überschrieben.`)) return;
+
+            window.kitchen = offer.kitchen;
+            window.parts = offer.parts || window.parts;
+            window.kitchen.offerId = offer.id; 
+            
+            window.saveKitchen();
+            window.saveParts();
+            
+            if (offer.stoneId) {
+                const sel = document.getElementById('stoneSelect');
+                if (sel) sel.value = offer.stoneId;
+            }
+
+            window.closeOffersModal();
+            window.switchTab('kitchen'); 
+            window.calculate(); 
+            window.renderKitchen();
+            
+            showAlert("Angebot erfolgreich geladen!");
+        };
+
+        window.deleteOffer = async (id, kundeName) => {
+            if(!confirm(`Möchtest du das Angebot für "${kundeName}" unwiderruflich aus der Cloud löschen?`)) return;
+            try {
+                await deleteDoc(doc(db, 'artifacts', internalAppId, 'public', 'data', 'offers', id));
+                if (window.kitchen.offerId === id) window.kitchen.offerId = null; // Decouple if loaded
+                showAlert("Angebot gelöscht.");
+            } catch(e) {
+                console.error(e);
+                showAlert("Fehler beim Löschen.");
+            }
+        };
+
+        window.openOffersModal = () => {
+            const modal = document.getElementById('offers-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.remove('opacity-0'), 10);
+            window.renderOffersList();
+        };
+
+        window.closeOffersModal = () => {
+            const modal = document.getElementById('offers-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        };
+
+        window.renderOffersList = () => {
+            const container = document.getElementById('offers-list-container');
+            const searchVal = (document.getElementById('offer-search')?.value || "").toLowerCase();
+            const sortVal = document.getElementById('offer-sort')?.value || "newest";
+            const filterBerater = document.getElementById('offer-berater-filter')?.value || "all";
+
+            const filterSelect = document.getElementById('offer-berater-filter');
+            if (filterSelect && filterSelect.options.length <= 1) {
+                const beraterList = window.config.beraterList ? window.config.beraterList.split(',').map(b => b.trim()).filter(b => b) : [];
+                filterSelect.innerHTML = `<option value="all">Alle Berater</option>` + 
+                    beraterList.map(b => `<option value="${b}">${b}</option>`).join('');
+                filterSelect.value = filterBerater; // Restore value
+            }
+
+            if (!container) return;
+
+            let filtered = window.offers.filter(o => {
+                if (filterBerater !== "all" && o.berater !== filterBerater) return false;
+                if (searchVal && !o.kunde.toLowerCase().includes(searchVal)) return false;
+                return true;
+            });
+
+            filtered.sort((a, b) => {
+                if (sortVal === 'newest') return b.timestamp - a.timestamp;
+                if (sortVal === 'berater') return (a.berater || "").localeCompare(b.berater || "");
+                return 0;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-10 text-slate-400 font-bold text-sm">Keine Angebote gefunden.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(o => {
+                const date = new Date(o.timestamp).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
+                const money = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(o.totalVK || 0);
+                return `
+                    <div class="bg-white dark:bg-darkCard border border-slate-200 dark:border-darkBorder rounded-2xl p-4 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-blue-500 transition-colors group">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-2 mb-1">
+                                <h3 class="font-black text-slate-800 dark:text-slate-100 text-lg">${o.kunde}</h3>
+                                ${window.kitchen.offerId === o.id ? '<span class="bg-blue-500/10 text-blue-500 text-[9px] font-black uppercase px-2 py-0.5 rounded">Geöffnet</span>' : ''}
+                            </div>
+                            <div class="flex items-center gap-3 text-[10px] uppercase font-bold text-slate-400 tracking-widest">
+                                <span>${date}</span>
+                                <span>•</span>
+                                <span class="text-blue-500">${o.berater || 'Ohne Berater'}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-4 w-full md:w-auto">
+                            <div class="text-right flex-1 md:flex-none">
+                                <p class="text-sm font-mono font-black text-slate-700 dark:text-slate-200">${money}</p>
+                            </div>
+                            <div class="flex gap-2">
+                                <button onclick="window.loadOffer('${o.id}')" class="bg-blue-600 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all">Laden</button>
+                                <button onclick="window.deleteOffer('${o.id}', '${o.kunde}')" class="bg-slate-100 dark:bg-white/5 text-slate-400 hover:text-red-500 px-3 py-2 rounded-xl text-[10px] font-black uppercase transition-all active:scale-95" title="Löschen">✕</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+
+        // --- ENDE ANGEBOTE CLOUD FUNKTIONEN ---
 
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
@@ -1546,7 +1777,9 @@
         window.resetKitchen = () => {
             if(!confirm("Küchenkalkulation leeren?")) return;
             window.kitchen = { 
+                offerId: null,
                 kunde: "",
+                berater: window.kitchen.berater || "", // Behalte den aktuell gewählten Berater
                 front1: "", front2: "", apName: "", 
                 hauspreis: "",
                 ekMoebel: "", 
@@ -1597,6 +1830,17 @@
         };
 
         window.renderKitchen = () => {
+            
+            // Render Berater Dropdown
+            const beraterSelect = document.getElementById('k-berater');
+            if (beraterSelect) {
+                const beraterList = window.config.beraterList ? window.config.beraterList.split(',').map(b => b.trim()).filter(b => b) : [];
+                const currentVal = window.kitchen.berater || "";
+                
+                beraterSelect.innerHTML = `<option value="">-- Bitte wählen --</option>` + 
+                    beraterList.map(b => `<option value="${b}" ${b === currentVal ? 'selected' : ''}>${b}</option>`).join('');
+            }
+
             const geraeteContainer = document.getElementById('geraete-container');
             if(geraeteContainer) {
                 geraeteContainer.innerHTML = window.kitchen.geraete.map((g, i) => `
@@ -1773,6 +2017,11 @@
                         k.kunde && k.kunde.trim() !== '' 
                             ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
                             : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
+                            
+                        // Berater in das PDF einfügen
+                        k.berater && k.berater.trim() !== '' 
+                            ? { text: `Ihr Berater: ${k.berater}`, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b', italics: true }
+                            : { text: '', margin: [0,0,0,0] },
                         
                         k.optKuechenText && window.config.pdfKuechenText ? { 
                             text: window.config.pdfKuechenText, 
@@ -1976,7 +2225,7 @@
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
                 fieldsContainer.innerHTML = Object.keys(window.config)
-                    .filter(k => k !== 'stats' && !k.startsWith('pdf'))
+                    .filter(k => k !== 'stats' && !k.startsWith('pdf') && k !== 'beraterList')
                     .map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
@@ -1985,6 +2234,17 @@
                             class="input-field text-sm font-mono">
                     </div>
                 `).join('');
+                
+                // BeraterList manuell unten dranhängen
+                fieldsContainer.innerHTML += `
+                    <div class="col-span-full mt-4 border-t dark:border-darkBorder pt-4">
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Berater (Kommagetrennt)</label>
+                        <input type="text" value="${window.config.beraterList || ''}" 
+                            oninput="window.updateConfig('beraterList', this.value, false)" 
+                            class="input-field text-sm" placeholder="Max Müller, Lisa Schmidt">
+                        <p class="text-[9px] text-slate-400 mt-1">Diese Namen erscheinen im Dropdown bei der Küchen-Kalkulation.</p>
+                    </div>
+                `;
             }
 
             const kitchenFieldsContainer = document.getElementById('admin-kitchen-fields');

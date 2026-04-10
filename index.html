@@ -1521,87 +1521,421 @@
             window.animateValue('stickyVK', res.vk);
         };
 
-        window.saveStat = (btnId) => {
-            const sel = document.getElementById('stoneSelect');
-            if (!sel) return;
-            const stone = window.stones.find(s => s.id === sel.value);
-            if (!stone) return;
-
-            const res = window.calculateForStone(stone);
-            if (res.vk <= 0) return; 
-
-            const type = stone.isDekton ? 'dekton' : 'natur';
+        window.calcKitchen = () => {
+            const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
+            const ekMoebel = parseVal(window.kitchen.ekMoebel);
+            const rabattMoebel = parseVal(window.kitchen.rabattMoebel);
+            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+            const vkStein = parseVal(window.kitchen.steinVK);
             
-            if (!window.config.stats) window.config.stats = { dekton: [], natur: [] };
-            if (!window.config.stats[type]) window.config.stats[type] = [];
+            let sumMieleBrutto = 0;
+            (window.kitchen.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
+            const rabattMiele = parseVal(window.kitchen.rabattMiele);
+            const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
 
-            window.config.stats[type].push(res.vk);
-            if (window.config.stats[type].length > 10) window.config.stats[type].shift();
+            let vkWasser = 0;
+            (window.kitchen.wasser || []).forEach(w => vkWasser += parseVal(w.val));
 
-            window.markLocalUpdate();
-            window.pushToCloud(true); 
-            window.render();
-
-            const btn = document.getElementById(btnId);
-            const originalHtml = btn.innerHTML;
+            const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
             
-            btn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Übernommen!`;
-            btn.classList.add('bg-green-500', 'text-white', 'border-green-500');
-            btn.classList.remove('text-slate-500', 'border-slate-200', 'dark:border-darkBorder', 'hover:bg-slate-50', 'dark:hover:bg-white/5');
+            const hauspreis = parseVal(window.kitchen.hauspreis);
+            const displayVK = hauspreis > 0 ? hauspreis : totalVK;
             
-            setTimeout(() => {
-                btn.innerHTML = originalHtml;
-                btn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
-                btn.classList.add('text-slate-500', 'border-slate-200', 'dark:border-darkBorder', 'hover:bg-slate-50', 'dark:hover:bg-white/5');
-            }, 2500);
+            const montage = displayVK * 0.095;
+
+            window.animateValue('kitchenVK', displayVK);
+            
+            const montageEl = document.getElementById('kitchenMontage');
+            const vkMoebelEl = document.getElementById('kitchenMoebelVK');
+            const vkMieleEl = document.getElementById('kitchenMieleVK');
+            
+            if(montageEl) montageEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(montage);
+            if(vkMoebelEl) vkMoebelEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMoebel);
+            if(vkMieleEl) vkMieleEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMiele);
         };
 
-        window.toggleService = (service) => {
-            activeServices[service] = !activeServices[service];
-            document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
-                btn.className = activeServices[service] 
-                    ? `btn-srv-${service} flex-1 py-3 px-2 border border-blue-500 rounded-xl text-[10px] font-bold text-blue-500 uppercase bg-blue-500/10 shadow-inner transition-all active:scale-95`
-                    : `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
-            });
-            window.calculate();
-        };
+        window.renderKitchen = () => {
+            const beraterSelect = document.getElementById('k-berater');
+            if (beraterSelect) {
+                const beraterList = window.config.beraterList || [];
+                const currentVal = window.kitchen.beraterId || "";
+                
+                beraterSelect.innerHTML = `<option value="">-- Bitte wählen --</option>` + 
+                    beraterList.map(b => `<option value="${b.id}" ${String(b.id) === String(currentVal) ? 'selected' : ''}>${b.name}</option>`).join('');
+            }
 
-        window.toggleGlue = () => {
-            const cb = document.getElementById('gluingCheck');
-            const lbl = document.getElementById('gluingLabel');
-            lbl.className = cb.checked ? 'flex items-center justify-center border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-full py-2.5 shadow-inner active:scale-[0.98]' : 'flex items-center justify-center border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-full py-2.5 active:scale-[0.98]';
-            window.calculate();
-        };
+            const geraeteContainer = document.getElementById('geraete-container');
+            if(geraeteContainer) {
+                geraeteContainer.innerHTML = (window.kitchen.geraete || []).map((g, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${g.name}" oninput="window.updateKitchen('geraeteName', this.value, ${g.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Art.-Nr. & Bezeichnung (z.B. Siemens)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${g.val}" oninput="window.updateKitchen('geraeteVal', this.value, ${g.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.geraete || []).length > 1 ? `<button onclick="window.removeGeraet(${g.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
 
-        window.updateCounter = (id, d) => {
-            const el = document.getElementById(id);
-            el.innerText = Math.max(0, parseInt(el.innerText) + d);
-            window.calculate();
-        };
-
-        window.resetCalculator = () => {
-            window.parts = JSON.parse(JSON.stringify(defaultParts));
-            window.saveParts();
-            window.renderParts();
+            const mieleContainer = document.getElementById('miele-container');
+            if(mieleContainer) {
+                mieleContainer.innerHTML = (window.kitchen.miele || []).map((m, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mieleName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Miele Backofen)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mieleVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.miele || []).length > 1 ? `<button onclick="window.removeMiele(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
             
-            document.getElementById('miterInput').value = '';
-            document.getElementById('flushCount').innerText = '0';
-            document.getElementById('underCount').innerText = '0';
-            document.getElementById('topCount').innerText = '0';
-            document.getElementById('notchCount').innerText = '0';
-            document.getElementById('holeCount').innerText = '0';
-            document.getElementById('gluingCheck').checked = false;
+            const spueleContainer = document.getElementById('spuele-container');
+            if(spueleContainer) {
+                spueleContainer.innerHTML = (window.kitchen.spuele || []).map((s, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${s.name}" oninput="window.updateKitchen('spueleName', this.value, ${s.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Blanco Spüle)">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${s.val}" oninput="window.updateKitchen('spueleVal', this.value, ${s.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.spuele || []).length > 1 ? `<button onclick="window.removeSpuele(${s.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const wasserContainer = document.getElementById('wasser-container');
+            if(wasserContainer) {
+                wasserContainer.innerHTML = (window.kitchen.wasser || []).map((w, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${w.name}" oninput="window.updateKitchen('wasserName', this.value, ${w.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Quooker Flex PRO3">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${w.val}" oninput="window.updateKitchen('wasserVal', this.value, ${w.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.wasser || []).length > 1 ? `<button onclick="window.removeWasser(${w.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
+
+            const mehrpreisContainer = document.getElementById('mehrpreis-container');
+            if (mehrpreisContainer) {
+                mehrpreisContainer.innerHTML = (window.kitchen.mehrpreise || []).map((m, i) => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
+                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mehrpreisName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Aufpreis für Siemens Backofen HN678G4S6">
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <div class="relative w-full sm:w-32">
+                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mehrpreisVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Mehrpreis">
+                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                            </div>
+                            ${(window.kitchen.mehrpreise || []).length > 1 ? `<button onclick="window.removeMehrpreis(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                        </div>
+                    </div>
+                `).join('');
+            }
             
-            activeServices.measure = false;
-            activeServices.delivery = false;
-            ['measure', 'delivery'].forEach(service => {
-                document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
-                    btn.className = `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
+            const setVal = (id, val) => {
+                const el = document.getElementById(id);
+                if(el && document.activeElement !== el) el.value = val;
+            };
+            const setCheck = (id, val) => {
+                const el = document.getElementById(id);
+                if(el) el.checked = val;
+            };
+            
+            setVal('k-kunde', window.kitchen.kunde);
+            setVal('k-front1', window.kitchen.front1);
+            setVal('k-front2', window.kitchen.front2);
+            setVal('k-griff', window.kitchen.griff);
+            setVal('k-apName', window.kitchen.apName);
+            setVal('k-hauspreis', window.kitchen.hauspreis);
+            
+            setVal('k-zubehoer', window.kitchen.zubehoer);
+            setCheck('opt-kuechentext', window.kitchen.optKuechenText);
+            setCheck('opt-ballerina', window.kitchen.optBallerina);
+            setCheck('opt-anschluss', window.kitchen.optAnschluss);
+            setCheck('opt-anschluss-rabatt', window.kitchen.optAnschlussRabatt);
+            setCheck('opt-nachtext', window.kitchen.optNachtext);
+
+            setVal('k-moebel', window.kitchen.ekMoebel);
+            setVal('k-rabatt', window.kitchen.rabattMoebel);
+            setVal('k-rabatt-miele', window.kitchen.rabattMiele);
+            setVal('k-stein', window.kitchen.steinVK);
+
+            window.calcKitchen();
+        };
+
+        window.generatePDF = async () => {
+            if (typeof window.pdfMake === 'undefined') {
+                showAlert("PDF-Modul lädt noch, bitte 1 Sekunde warten.");
+                return;
+            }
+
+            showAlert("Erstelle PDF...");
+
+            try {
+                if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
+                    window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
+                }
+
+                let logoDataUrl = null;
+                if (window.config.pdfLogo && window.config.pdfLogo.trim() !== '') {
+                    try {
+                        let logoStr = window.config.pdfLogo.trim();
+                        if (logoStr.startsWith('data:image')) {
+                            logoDataUrl = logoStr;
+                        } else {
+                            let fetchUrl = logoStr.startsWith('http') ? logoStr : 'images/' + logoStr;
+                            const response = await fetch(fetchUrl);
+                            const blob = await response.blob();
+                            logoDataUrl = await new Promise((resolve) => {
+                                const reader = new FileReader();
+                                reader.onloadend = () => resolve(reader.result);
+                                reader.readAsDataURL(blob);
+                            });
+                        }
+                    } catch (err) {
+                        console.warn('Logo konnte nicht geladen werden', err);
+                    }
+                }
+
+                const k = window.kitchen || {};
+                const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
+                const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
+
+                const ekMoebel = parseVal(k.ekMoebel);
+                const rabattMoebel = parseVal(k.rabattMoebel);
+                const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+                const vkStein = parseVal(k.steinVK);
+                
+                let sumMieleBrutto = 0; 
+                (k.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
+                const rabattMiele = parseVal(k.rabattMiele);
+                const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
+                
+                let vkWasser = 0; 
+                (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
+                
+                const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
+                
+                const hauspreis = parseVal(k.hauspreis);
+                const finalVK = hauspreis > 0 ? hauspreis : totalVK;
+                
+                const montage = finalVK * 0.095;
+
+                const allDevices = [];
+                (k.geraete || []).forEach(g => {
+                    if (g.name && g.name.trim() !== '') {
+                        const price = parseVal(g.val);
+                        allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
+                    }
                 });
-            });
-            
-            window.toggleGlue();
-            window.calculate();
+                (k.miele || []).forEach(m => {
+                    if (m.name && m.name.trim() !== '') allDevices.push(m.name);
+                });
+                
+                let zubehoerItems = [];
+
+                (k.spuele || []).forEach(s => {
+                    if (s.name && s.name.trim() !== '') {
+                        const price = parseVal(s.val);
+                        zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
+                    }
+                });
+                
+                (k.wasser || []).forEach(w => {
+                    if (w.name && w.name.trim() !== '') zubehoerItems.push(w.name);
+                });
+
+                if (k.zubehoer && String(k.zubehoer).trim() !== '') {
+                    zubehoerItems = [...zubehoerItems, ...String(k.zubehoer).split('\n').filter(line => line.trim() !== '')];
+                }
+
+                let anschlussTextArray = [];
+                if (k.optAnschluss && window.config.pdfAnschlussText) anschlussTextArray.push(window.config.pdfAnschlussText);
+                if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
+                
+                const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
+                    text: anschlussTextArray.join(' '), 
+                    margin: [0, 5, 0, 0],
+                    fontSize: 10,
+                    color: '#475569'
+                } : { text: '' };
+
+                const headerColumns = [
+                    { text: 'ANGEBOT', style: 'mainHeader', width: '*' }
+                ];
+                
+                if (logoDataUrl) {
+                    headerColumns.push({
+                        image: logoDataUrl,
+                        width: 120,
+                        alignment: 'right'
+                    });
+                }
+                
+                const beraterObj = (window.config.beraterList || []).find(b => String(b.id) === String(k.beraterId));
+                let beraterBlock = { text: '', margin: [0,0,0,0] };
+                if (beraterObj && beraterObj.name) {
+                    let details = [];
+                    if (beraterObj.phone) details.push(`Tel: ${beraterObj.phone}`);
+                    if (beraterObj.email) details.push(`E-Mail: ${beraterObj.email}`);
+                    
+                    let beraterText = [ { text: `Ihr Berater: ${beraterObj.name}`, italics: true } ];
+                    if (details.length > 0) {
+                        beraterText.push({ text: `\n${details.join(' | ')}`, fontSize: 9, italics: false });
+                    }
+                    beraterBlock = { text: beraterText, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b' };
+                }
+
+                const docDefinition = {
+                    info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
+                    pageMargins: [40, 40, 40, 80],
+                    footer: function(currentPage, pageCount) {
+                        return {
+                            text: window.config.pdfFooter || '',
+                            alignment: 'center',
+                            fontSize: 8,
+                            color: '#94a3b8',
+                            margin: [40, 20, 40, 0]
+                        };
+                    },
+                    content: [
+                        { columns: headerColumns, margin: [0, 0, 0, 15] },
+                        
+                        k.kunde && k.kunde.trim() !== '' 
+                            ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
+                            : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
+                            
+                        beraterBlock,
+                        
+                        k.optKuechenText && window.config.pdfKuechenText ? { 
+                            text: window.config.pdfKuechenText, 
+                            margin: [0, 0, 0, 20], 
+                            fontSize: 11,
+                            color: '#334155'
+                        } : { text: '', margin: [0, 0, 0, 0] },
+                        
+                        { text: '1. Möbel & Design', style: 'sectionHeader' },
+                        { 
+                            columns: [
+                                { text: 'Front 1:', width: 100, bold: true },
+                                { text: k.front1 || 'Nicht definiert' }
+                            ], margin: [0, 0, 0, 4]
+                        },
+                        (k.front2 && k.front2.trim() !== '') ? { 
+                            columns: [
+                                { text: 'Front 2:', width: 100, bold: true },
+                                { text: k.front2 }
+                            ], margin: [0, 0, 0, 4]
+                        } : { text: '', margin: [0, 0, 0, 0] },
+                        (k.griff && k.griff.trim() !== '') ? { 
+                            columns: [
+                                { text: 'Griffausführung:', width: 100, bold: true },
+                                { text: k.griff }
+                            ], margin: [0, 0, 0, 4]
+                        } : { text: '', margin: [0, 0, 0, 0] },
+                        { 
+                            columns: [
+                                { text: 'Arbeitsplatte:', width: 100, bold: true },
+                                { text: k.apName || 'Nicht definiert' }
+                            ], margin: [0, 0, 0, 10]
+                        },
+                        
+                        k.optBallerina && window.config.pdfBallerinaText ? { 
+                            text: window.config.pdfBallerinaText, 
+                            margin: [0, 5, 0, 15], 
+                            fontSize: 10,
+                            color: '#475569',
+                            alignment: 'justify'
+                        } : { text: '', margin: [0, 0, 0, 10] },
+
+                        { text: '2. Elektrogeräte', style: 'sectionHeader' },
+                        allDevices.length > 0 
+                            ? { ul: allDevices, margin: [0, 0, 0, 15], color: '#334155' } 
+                            : { text: 'Keine Geräte erfasst.', margin: [0, 0, 0, 15], italics: true, color: '#94a3b8' },
+
+                        { text: '3. Ebenso enthalten sind', style: 'sectionHeader' },
+                        zubehoerItems.length > 0 
+                            ? { ul: zubehoerItems, margin: [0, 0, 0, 25], color: '#334155' } 
+                            : { text: 'Kein weiteres Zubehör vermerkt.', margin: [0, 0, 0, 25], italics: true, color: '#94a3b8' },
+
+                        { text: '4. Endpreis', style: 'sectionHeader' },
+                        { text: [
+                            'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
+                            { text: `${formatMoney(finalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
+                            ' an.'
+                        ], margin: [0, 0, 0, 8] },
+                        
+                        { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
+                        
+                        { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
+
+                        anschlussPdfBlock
+                    ],
+                    styles: {
+                        mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
+                        sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
+                    },
+                    defaultStyle: {
+                        fontSize: 11,
+                        lineHeight: 1.4,
+                        color: '#0f172a'
+                    }
+                };
+
+                const mpArray = [];
+                (k.mehrpreise || []).forEach(mp => {
+                    if (mp.name && mp.name.trim() !== '') {
+                        const price = parseVal(mp.val);
+                        mpArray.push(`${mp.name}${price > 0 ? ` (+ ${formatMoney(price)})` : ''}`);
+                    }
+                });
+
+                if (mpArray.length > 0) {
+                    docDefinition.content.push(
+                        { text: 'Optionale Mehrpreise', style: 'sectionHeader', margin: [0, 25, 0, 8] },
+                        { text: 'Folgende Positionen sind im oben genannten Gesamtpreis noch NICHT enthalten:', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 8] },
+                        { ul: mpArray, color: '#334155' }
+                    );
+                }
+
+                if (k.optNachtext && window.config.pdfNachtext) {
+                    docDefinition.content.push(
+                        { text: window.config.pdfNachtext, margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
+                    );
+                }
+
+                const pdf = window.pdfMake.createPdf(docDefinition);
+                
+                let fileName = 'Kuechenangebot.pdf';
+                if (k.kunde && k.kunde.trim() !== '') {
+                    const safeName = k.kunde.trim().replace(/[^a-zA-Z0-9\u00C0-\u017F]/g, '');
+                    fileName = safeName + 'Kuechenangebot.pdf';
+                }
+
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                
+                if (isIOS) {
+                    pdf.open(); 
+                } else {
+                    pdf.download(fileName); 
+                }
+
+            } catch(e) {
+                console.error("PDF-Fehler:", e);
+                showAlert("Fehler: " + (e.message || "Unbekannter PDF-Fehler"));
+            }
         };
 
         window.requestAdmin = () => {
@@ -1612,7 +1946,6 @@
             }
         };
 
-        // --- ADMIN SUB-TAB STEUERUNG ---
         window.activeAdminTab = 'admin-litho';
         window.switchAdminTab = (t) => {
             window.activeAdminTab = t;
@@ -1803,7 +2136,7 @@
                 }
             };
             reader.readAsArrayBuffer(file);
-            document.getElementById('import-file').value = ""; // Reset input
+            document.getElementById('import-file').value = ""; 
         };
 
         window.processCaratData = (rows) => {
@@ -1823,7 +2156,6 @@
             };
 
             rows.forEach(row => {
-                // Finde die Spalten, auch wenn sie leicht anders heißen
                 const getCol = (possibleNames) => {
                     const key = Object.keys(row).find(k => possibleNames.some(pn => k.toLowerCase().includes(pn)));
                     return key ? row[key] : '';
@@ -1839,7 +2171,6 @@
                 const ek = parseNum(ekRaw);
                 const vk = parseNum(vkRaw);
 
-                // Leere Zeilen ignorieren
                 if (!cat && !art && ek === 0 && vk === 0) return;
 
                 if (cat.includes('miele')) {
@@ -1852,17 +2183,14 @@
                     apName = art;
                     apPrice = ek; 
                 } else {
-                    // Alles andere wandert in die Möbel EK Summe
                     sumMoebelEK += ek;
                     
-                    // Wenn es bekannte Geräte sind, auch noch auf die PDF-Liste packen (ohne Preis)
                     if (cat.includes('bosch') || cat.includes('neff') || cat.includes('siemens') || cat.includes('berbel') || cat.includes('naber')) {
                         newGeraete.push({ id: Date.now() + Math.random(), name: art, val: "" });
                     }
                 }
             });
 
-            // Status in die App übertragen
             if (sumMoebelEK > 0) window.kitchen.ekMoebel = sumMoebelEK.toFixed(2).replace('.', ',');
             if (newMiele.length > 0) window.kitchen.miele = newMiele;
             if (newSpuele.length > 0) window.kitchen.spuele = newSpuele;
@@ -1881,8 +2209,192 @@
             updateStatus("Cloud Aktiv", "bg-green-500");
         };
 
-        // --- ENDE CARAT IMPORT LOGIK ---
+        window.render = () => {
+            const btnAll = document.getElementById('flt-all');
+            const btnNatur = document.getElementById('flt-natur');
+            const btnDekton = document.getElementById('flt-dekton');
 
+            if(btnAll) {
+                btnAll.className = window.activeFilter === 'all'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-slate-500 text-white border border-slate-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-slate-400 border border-slate-300 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer';
+
+                btnNatur.className = window.activeFilter === 'natur'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-emerald-500 text-white border border-emerald-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer';
+
+                btnDekton.className = window.activeFilter === 'dekton'
+                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-red-500 text-white border border-red-500 shadow-sm'
+                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-red-500 border border-red-500/30 hover:bg-red-500/10 cursor-pointer';
+            }
+
+            const sel = document.getElementById('stoneSelect');
+            if (sel) {
+                const currentVal = sel.value;
+                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+                sel.innerHTML = sortedDisplayStones.map(s => {
+                    if (window.activeFilter === 'dekton' && !s.isDekton) return '';
+                    if (window.activeFilter === 'natur' && s.isDekton) return '';
+                    const icon = s.isDekton ? '🔴' : '🟢';
+                    return `<option value="${s.id}">${icon} ${s.name}</option>`;
+                }).join('');
+
+                let found = false;
+                for (let i = 0; i < sel.options.length; i++) {
+                    if (sel.options[i].value === currentVal) {
+                        sel.selectedIndex = i;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found && sel.options.length > 0) sel.selectedIndex = 0;
+            }
+
+            const dektonContainer = document.getElementById('gallery-dekton');
+            const naturContainer = document.getElementById('gallery-natur');
+            if (dektonContainer && naturContainer) {
+                let dektonHtml = ''; let naturHtml = '';
+                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
+                
+                sortedDisplayStones.forEach(s => {
+                    const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
+                    const isComparing = window.compareList.includes(s.id);
+                    const card = `
+                        <div class="card overflow-hidden group cursor-pointer transition-all duration-300 ${isComparing ? 'border-blue-500 ring-2 ring-blue-500/50 shadow-lg scale-[0.98]' : 'hover:border-blue-500 hover:shadow-lg'}" onclick="window.selectFromGallery('${s.id}')">
+                            <div class="aspect-square bg-slate-100 dark:bg-black relative overflow-hidden flex items-center justify-center border-b border-slate-200 dark:border-darkBorder">
+                                ${imgStr ? `
+                                <img src="${imgStr}" class="w-full h-full object-cover transition-transform duration-700 ${isComparing ? 'scale-110 opacity-50' : 'group-hover:scale-110'}" loading="lazy">
+                                ` : `<span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kein Bild</span>`}
+                                <button onclick="event.stopPropagation(); window.openLightbox('${imgStr}')" class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm hover:bg-black/70 shadow-lg ${imgStr ? '' : 'hidden'}">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
+                                </button>
+                                <button onclick="window.toggleCompare('${s.id}', event)" class="absolute top-2 left-2 p-2 rounded-full transition-all shadow-lg z-20 backdrop-blur-sm ${isComparing ? 'bg-blue-600 text-white scale-110' : 'bg-white/90 dark:bg-black/80 text-slate-400 hover:text-blue-500 hover:scale-110 opacity-0 group-hover:opacity-100'}" title="Zum Vergleich auswählen">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
+                                </button>
+                                ${isComparing ? `<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Markiert</span></div>` : ''}
+                            </div>
+                            <div class="p-3 md:p-4 bg-white dark:bg-darkCard relative z-10">
+                                <p class="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200" title="${s.name}">${s.name}</p>
+                                <p class="text-[10px] md:text-xs font-mono font-bold text-slate-500 mt-1">${new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(s.price)} / m²</p>
+                            </div>
+                        </div>
+                    `;
+                    if (s.isDekton) dektonHtml += card;
+                    else naturHtml += card;
+                });
+                dektonContainer.innerHTML = dektonHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Dekton Steine vorhanden.</p>';
+                naturContainer.innerHTML = naturHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Natursteine vorhanden.</p>';
+            }
+
+            const banner = document.getElementById('compare-banner');
+            const count = document.getElementById('compare-count');
+            if (banner && count) {
+                if (window.compareList.length > 0) {
+                    count.innerText = `${window.compareList.length}/2`;
+                    banner.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
+                } else {
+                    banner.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
+                }
+            }
+
+            const formatTrend = (arr) => {
+                if (!arr || arr.length === 0) return '--- €';
+                const sum = arr.reduce((a, b) => a + b, 0);
+                const avg = sum / arr.length;
+                const rounded = Math.round(avg / 10) * 10; 
+                return new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR', maximumFractionDigits: 0}).format(rounded);
+            };
+
+            const elDektonTrend = document.getElementById('trend-dekton');
+            const elNaturTrend = document.getElementById('trend-natur');
+            if (elDektonTrend && window.config.stats) elDektonTrend.innerText = formatTrend(window.config.stats.dekton);
+            if (elNaturTrend && window.config.stats) elNaturTrend.innerText = formatTrend(window.config.stats.natur);
+
+            const fieldsContainer = document.getElementById('admin-fields');
+            if (fieldsContainer) {
+                fieldsContainer.innerHTML = Object.keys(window.config)
+                    .filter(k => k !== 'stats' && !k.startsWith('pdf') && k !== 'beraterList')
+                    .map(k => `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
+                        <input type="text" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
+                            oninput="window.updateConfig('${k}', this.value, ${k !== 'adminPass'})" 
+                            class="input-field text-sm font-mono">
+                    </div>
+                `).join('');
+            }
+
+            const kitchenFieldsContainer = document.getElementById('admin-kitchen-fields');
+            if (kitchenFieldsContainer) {
+                kitchenFieldsContainer.innerHTML = `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">PDF Logo (Dateiname oder URL)</label>
+                        <input type="text" value="${window.config.pdfLogo || ''}" oninput="window.updateConfig('pdfLogo', this.value, false)" class="input-field text-sm font-mono" placeholder="logo.png oder https://...">
+                        <p class="text-[9px] text-slate-400 mt-1">Logo erscheint oben rechts auf dem Angebot. Bild muss im Ordner "images" liegen oder als kompletter Weblink angegeben sein.</p>
+                    </div>
+                    <div class="border-t dark:border-darkBorder pt-4 mt-2">
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Küchen-Einleitungstext</label>
+                        <textarea oninput="window.updateConfig('pdfKuechenText', this.value, false)" class="input-field text-sm min-h-[100px] resize-y">${window.config.pdfKuechenText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Ballerina Qualitätstext</label>
+                        <textarea oninput="window.updateConfig('pdfBallerinaText', this.value, false)" class="input-field text-sm min-h-[150px] resize-y">${window.config.pdfBallerinaText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Service Text (240,- EUR)</label>
+                        <textarea oninput="window.updateConfig('pdfAnschlussText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Rabatt Text</label>
+                        <textarea oninput="window.updateConfig('pdfAnschlussRabattText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussRabattText}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Nachtext / Verabschiedung</label>
+                        <textarea oninput="window.updateConfig('pdfNachtext', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfNachtext}</textarea>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Fußzeile (Firmenangaben)</label>
+                        <textarea oninput="window.updateConfig('pdfFooter', this.value, false)" class="input-field text-sm min-h-[80px] resize-y" placeholder="Firmenname | Straße | Ort...">${window.config.pdfFooter}</textarea>
+                        <p class="text-[9px] text-slate-400 mt-1">Erscheint auf jeder PDF-Seite ganz unten zentriert.</p>
+                    </div>
+                `;
+            }
+
+            const beraterFieldsContainer = document.getElementById('admin-berater-fields');
+            if (beraterFieldsContainer) {
+                beraterFieldsContainer.innerHTML = (window.config.beraterList || []).map(b => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
+                        <input type="text" value="${b.name}" oninput="window.updateBerater(${b.id}, 'name', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Name">
+                        <input type="text" value="${b.email}" oninput="window.updateBerater(${b.id}, 'email', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="E-Mail">
+                        <input type="text" value="${b.phone}" oninput="window.updateBerater(${b.id}, 'phone', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Telefon">
+                        <button onclick="window.removeBerater(${b.id})" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform">✕</button>
+                    </div>
+                `).join('');
+            }
+
+            const tableContainer = document.getElementById('admin-table');
+            if (tableContainer) {
+                tableContainer.innerHTML = window.stones.map(s => `
+                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
+                        <div class="flex gap-2">
+                            <input value="${s.name}" oninput="window.updateStone('${s.id}', 'name', this.value)" class="flex-1 bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="Stein Name">
+                            <input value="${s.image || ''}" oninput="window.updateStone('${s.id}', 'image', this.value)" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
+                        </div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
+                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.updateStone('${s.id}', 'price', this.value, true)" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs focus:border-blue-500 outline-none">
+                            <button onclick="window.toggleStoneType('${s.id}')" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 active:scale-95">
+                                ${s.isDekton?'Dekton':'Natur'}
+                            </button>
+                            <button onclick="window.deleteStone('${s.id}')" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ml-auto">✕</button>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            window.renderParts();
+            window.calculate();
+        };
 
         window.toggleTheme = () => {
             const isD = document.documentElement.classList.toggle('dark');

@@ -12,6 +12,7 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -112,7 +113,6 @@
         </header>
 
         <div id="main-ui">
-            <!-- RECHNER -->
             <div id="tab-calc" class="grid grid-cols-1 lg:grid-cols-5 gap-6 items-stretch pb-36 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     <div class="card p-6">
@@ -217,7 +217,6 @@
                     <button onclick="window.resetCalculator()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors">Kalkulation zurücksetzen</button>
                 </div>
 
-                <!-- DESKTOP ZUSAMMENFASSUNG -->
                 <div class="hidden lg:block lg:col-span-2">
                     <div class="p-6 md:p-8 bg-black text-white rounded-3xl sticky top-10 shadow-2xl border border-darkBorder transition-all duration-300">
                         <h2 class="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6 border-b border-darkBorder pb-4 text-center">Zusammenfassung</h2>
@@ -257,7 +256,6 @@
                     +
                 </button>
 
-                <!-- MOBILE BOTTOM SHEET -->
                 <div id="mobile-sheet-backdrop" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity duration-300 opacity-0" onclick="window.toggleSheet()"></div>
 
                 <div id="mobile-sheet" class="fixed left-0 right-0 bottom-0 z-50 lg:hidden transform translate-y-[calc(100%-88px)] transition-transform duration-300 ease-out flex flex-col max-h-[85vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] rounded-t-3xl bg-black border-t border-darkBorder">
@@ -308,7 +306,6 @@
                 </div>
             </div>
 
-            <!-- GALERIE TAB -->
             <div id="tab-gallery" class="hidden pb-20 space-y-10 relative">
                 
                 <div id="compare-banner" class="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm z-40 flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
@@ -340,7 +337,6 @@
                 </div>
             </div>
 
-            <!-- KÜCHENKALKULATION TAB -->
             <div id="tab-kitchen" class="hidden grid grid-cols-1 lg:grid-cols-5 gap-6 items-start pb-36 lg:pb-0">
                 <div class="lg:col-span-3 space-y-5">
                     
@@ -577,14 +573,20 @@
                             Angebot als PDF generieren
                         </button>
                         
-                        <button onclick="window.saveOffer()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2">
+                        <button onclick="window.saveOffer()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mb-6">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 15v4c0 1.1.9 2 2 2h14a2 2 0 002-2v-4M17 8l-5-5-5 5M12 3v12"></path></svg>
                             In Cloud speichern
                         </button>
                         
-                        <p class="text-[9px] text-slate-500 mt-4 mb-6 text-center">Die internen Kalkulationen (EK etc.) werden auf dem PDF selbstverständlich ausgeblendet.</p>
-
                         <button onclick="window.resetKitchen()" class="w-full py-4 text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 hover:text-red-500 transition-colors border-t border-darkBorder">Kalkulation leeren</button>
+
+                        <div id="import-dropzone" class="mt-6 border-2 border-dashed border-slate-700 dark:border-darkBorder rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-white/5 transition-colors group">
+                            <svg class="w-8 h-8 text-slate-500 group-hover:text-blue-500 transition-colors mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-blue-500 transition-colors">CARAT-Import (Excel/CSV)</p>
+                            <p class="text-[9px] text-slate-500 mt-1">Hier reinziehen oder klicken</p>
+                            <input type="file" id="import-file" class="hidden" accept=".xlsx, .xls, .csv">
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -626,7 +628,6 @@
                         <div id="admin-kitchen-fields" class="space-y-6"></div>
                     </div>
                     
-                    <!-- NEU: Berater-Verwaltung in der Küchen-Ansicht -->
                     <div class="card p-6">
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Berater-Team</h3>
                         <div id="admin-berater-fields" class="space-y-3"></div>
@@ -637,7 +638,6 @@
             </div>
         </div>
 
-        <!-- Angebote Modal (Cloud Archiv) -->
         <div id="offers-modal" class="fixed inset-0 z-[400] bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4 opacity-0 transition-opacity duration-300">
             <div class="bg-white dark:bg-darkCard w-full max-w-4xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
                 <div class="p-4 md:p-6 border-b border-slate-200 dark:border-darkBorder flex justify-between items-center bg-slate-50 dark:bg-[#181818]">
@@ -663,8 +663,7 @@
                 </div>
 
                 <div id="offers-list-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-3 bg-slate-50 dark:bg-transparent">
-                    <!-- Liste der Angebote -->
-                </div>
+                    </div>
             </div>
         </div>
 
@@ -838,7 +837,6 @@
 
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
             
-            // Berater Migration von String zu Array aus Objekten
             if (typeof cfg.beraterList === 'string') {
                 cfg.beraterList = cfg.beraterList.split(',').map((name, index) => ({
                     id: Date.now() + index,
@@ -887,7 +885,6 @@
             initialWasser = [{id: Date.now()+2, name: savedKitchen.quookerName || "", val: savedKitchen.quooker || ""}];
         }
 
-        // Migration Berater Name -> ID in der Küchen-Kalkulation
         let savedBeraterId = savedKitchen.beraterId || "";
         if (!savedBeraterId && savedKitchen.berater) {
             const foundBerater = (window.config.beraterList || []).find(b => b.name === savedKitchen.berater);
@@ -954,7 +951,6 @@
             window.markLocalUpdate();
         };
 
-        // --- BERATER VERWALTUNG ---
         window.addBerater = () => {
             window.config.beraterList = window.config.beraterList || [];
             window.config.beraterList.push({ id: Date.now(), name: "", email: "", phone: "" });
@@ -1035,7 +1031,6 @@
 
             updateStatus("Verbinde...", "bg-blue-500 animate-pulse");
             
-            // Einstellungen Listener
             const docRef = doc(db, 'artifacts', internalAppId, 'public', 'data', 'settings', 'active');
             unsubCloud = onSnapshot(docRef, (snap) => {
                 if (isUploading || isAdminActive) return;
@@ -1064,7 +1059,6 @@
                 window.render();
             });
 
-            // Angebote Listener
             unsubOffers = onSnapshot(collection(db, 'artifacts', internalAppId, 'public', 'data', 'offers'), (snap) => {
                 window.offers = [];
                 snap.forEach(doc => window.offers.push(doc.data()));
@@ -1106,7 +1100,6 @@
             window.render();
         };
 
-        // --- ANGEBOTE CLOUD FUNKTIONEN ---
         window.saveOffer = async () => {
             if (!window.kitchen.kunde || window.kitchen.kunde.trim() === "") {
                 showAlert("Bitte zuerst einen Kunden / Kommissionsnamen eintragen!");
@@ -1127,7 +1120,7 @@
             const offerData = {
                 id: offerId,
                 kunde: window.kitchen.kunde.trim(),
-                beraterId: window.kitchen.beraterId || "", // ID speichern
+                beraterId: window.kitchen.beraterId || "", 
                 timestamp: Date.now(),
                 totalVK: totalVK,
                 kitchen: window.kitchen,
@@ -1242,7 +1235,7 @@
                     const bObj = (window.config.beraterList || []).find(x => String(x.id) === String(oBeraterId));
                     if (bObj) bName = bObj.name;
                 } else if (o.berater) {
-                    bName = o.berater; // Fallback für alte DB-Einträge
+                    bName = o.berater; 
                 }
 
                 const date = new Date(o.timestamp).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
@@ -1273,8 +1266,6 @@
                 `;
             }).join('');
         };
-
-        // --- ENDE ANGEBOTE CLOUD FUNKTIONEN ---
 
         window.markLocalUpdate = () => {
             lastLocalUpdate = Date.now();
@@ -1728,788 +1719,141 @@
             setTimeout(() => window.selectFromGallery(id), 300); 
         };
 
-        // --- Küchen Logik ---
-        window.saveKitchen = () => localStorage.setItem('ls_kitchen', JSON.stringify(window.kitchen));
+        // --- CARAT IMPORT LOGIK ---
+        window.initDragAndDrop = () => {
+            const dropzone = document.getElementById('import-dropzone');
+            const fileInput = document.getElementById('import-file');
+            
+            if (!dropzone || !fileInput) return;
 
-        window.updateKitchen = (field, value, id = null) => {
-            if (id !== null) {
-                const mieleItem = (window.kitchen.miele || []).find(m => m.id === id);
-                if (mieleItem) {
-                    if (field === 'mieleName') mieleItem.name = value;
-                    if (field === 'mieleVal') mieleItem.val = value;
+            dropzone.addEventListener('click', () => fileInput.click());
+
+            dropzone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropzone.classList.add('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+            });
+
+            dropzone.addEventListener('dragleave', () => {
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+            });
+
+            dropzone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropzone.classList.remove('border-blue-500', 'bg-blue-50', 'dark:bg-blue-500/10');
+                if (e.dataTransfer.files.length) {
+                    window.handleFile(e.dataTransfer.files[0]);
                 }
-                const geraeteItem = (window.kitchen.geraete || []).find(g => g.id === id);
-                if (geraeteItem) {
-                    if (field === 'geraeteName') geraeteItem.name = value;
-                    if (field === 'geraeteVal') geraeteItem.val = value;
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                if (e.target.files.length) {
+                    window.handleFile(e.target.files[0]);
                 }
-                const spueleItem = (window.kitchen.spuele || []).find(s => s.id === id);
-                if (spueleItem) {
-                    if (field === 'spueleName') spueleItem.name = value;
-                    if (field === 'spueleVal') spueleItem.val = value;
-                }
-                const wasserItem = (window.kitchen.wasser || []).find(w => w.id === id);
-                if (wasserItem) {
-                    if (field === 'wasserName') wasserItem.name = value;
-                    if (field === 'wasserVal') wasserItem.val = value;
-                }
-                const mpItem = (window.kitchen.mehrpreise || []).find(m => m.id === id);
-                if (mpItem) {
-                    if (field === 'mehrpreisName') mpItem.name = value;
-                    if (field === 'mehrpreisVal') mpItem.val = value;
-                }
-            } else {
-                if (field === 'rabattMoebel') {
-                    let num = parseFloat(value.replace(',', '.'));
-                    if (num > 5) {
-                        value = "5";
-                        const el = document.getElementById('k-rabatt');
-                        if (el) el.value = value;
-                        showAlert("Möbel-Rabatt ist auf maximal 5% begrenzt.");
-                    }
-                }
-                if (field === 'rabattMiele') {
-                    let num = parseFloat(value.replace(',', '.'));
-                    if (num > 3) {
-                        value = "3";
-                        const el = document.getElementById('k-rabatt-miele');
-                        if (el) el.value = value;
-                        showAlert("Miele-Rabatt ist auf maximal 3% begrenzt.");
-                    }
-                }
-                window.kitchen[field] = value;
-            }
-            window.saveKitchen();
-            window.calcKitchen();
+            });
         };
 
-        window.appendZubehoer = (text) => {
-            let current = (window.kitchen.zubehoer || '').trim();
-            let newText = current.length > 0 ? current + '\n' + text : text;
-            window.kitchen.zubehoer = newText;
-            window.saveKitchen();
-            
-            const textarea = document.getElementById('k-zubehoer');
-            if (textarea) textarea.value = newText;
-            
-            window.calcKitchen();
-        };
-
-        // Miele (mit VK-Rechnung)
-        window.addMiele = () => {
-            window.kitchen.miele = window.kitchen.miele || [];
-            window.kitchen.miele.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeMiele = (id) => {
-            window.kitchen.miele = window.kitchen.miele.filter(m => m.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        // Allgemeine Geräte (Info für PDF, keine VK-Rechnung)
-        window.addGeraet = () => {
-            window.kitchen.geraete = window.kitchen.geraete || [];
-            window.kitchen.geraete.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeGeraet = (id) => {
-            window.kitchen.geraete = window.kitchen.geraete.filter(g => g.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        // Spüle (Info für PDF, keine VK-Rechnung)
-        window.addSpuele = () => {
-            window.kitchen.spuele = window.kitchen.spuele || [];
-            window.kitchen.spuele.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeSpuele = (id) => {
-            window.kitchen.spuele = window.kitchen.spuele.filter(s => s.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        // Wasseraufbereitung
-        window.addWasser = () => {
-            window.kitchen.wasser = window.kitchen.wasser || [];
-            window.kitchen.wasser.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeWasser = (id) => {
-            window.kitchen.wasser = window.kitchen.wasser.filter(w => w.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        // Optionale Mehrpreise
-        window.addMehrpreis = () => {
-            window.kitchen.mehrpreise = window.kitchen.mehrpreise || [];
-            window.kitchen.mehrpreise.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeMehrpreis = (id) => {
-            window.kitchen.mehrpreise = window.kitchen.mehrpreise.filter(m => m.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-
-        window.pullStein = () => {
-            if (window.currentStoneVK > 0) {
-                window.kitchen.steinVK = window.currentStoneVK.toFixed(2).replace('.', ',');
-                window.kitchen.apName = window.currentStoneName;
-                window.saveKitchen();
-                window.renderKitchen();
-            } else {
-                showAlert("Kein Stein kalkuliert!");
-            }
-        };
-
-        window.resetKitchen = () => {
-            if(!confirm("Küchenkalkulation leeren?")) return;
-            window.kitchen = { 
-                offerId: null,
-                kunde: "",
-                beraterId: window.kitchen.beraterId || "", 
-                front1: "", front2: "", griff: "", apName: "", 
-                hauspreis: "",
-                ekMoebel: "", 
-                rabattMoebel: "",
-                rabattMiele: "",
-                geraete: [{id: Date.now(), name: "", val: ""}],
-                miele: [{id: Date.now()+1, name: "", val: ""}], 
-                spuele: [{id: Date.now()+3, name: "", val: ""}],
-                wasser: [{id: Date.now()+2, name: "", val: ""}],
-                mehrpreise: [{id: Date.now()+4, name: "", val: ""}],
-                steinVK: "", zubehoer: "",
-                optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
-            };
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-
-        window.calcKitchen = () => {
-            const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
-            const ekMoebel = parseVal(window.kitchen.ekMoebel);
-            const rabattMoebel = parseVal(window.kitchen.rabattMoebel);
-            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
-            const vkStein = parseVal(window.kitchen.steinVK);
-            
-            let sumMieleBrutto = 0;
-            (window.kitchen.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
-            const rabattMiele = parseVal(window.kitchen.rabattMiele);
-            const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
-
-            let vkWasser = 0;
-            (window.kitchen.wasser || []).forEach(w => vkWasser += parseVal(w.val));
-
-            const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
-            
-            const hauspreis = parseVal(window.kitchen.hauspreis);
-            const displayVK = hauspreis > 0 ? hauspreis : totalVK;
-            
-            const montage = displayVK * 0.095;
-
-            window.animateValue('kitchenVK', displayVK);
-            
-            const montageEl = document.getElementById('kitchenMontage');
-            const vkMoebelEl = document.getElementById('kitchenMoebelVK');
-            const vkMieleEl = document.getElementById('kitchenMieleVK');
-            
-            if(montageEl) montageEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(montage);
-            if(vkMoebelEl) vkMoebelEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMoebel);
-            if(vkMieleEl) vkMieleEl.innerText = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(vkMiele);
-        };
-
-        window.renderKitchen = () => {
-            
-            // Render Berater Dropdown
-            const beraterSelect = document.getElementById('k-berater');
-            if (beraterSelect) {
-                const beraterList = window.config.beraterList || [];
-                const currentVal = window.kitchen.beraterId || "";
-                
-                beraterSelect.innerHTML = `<option value="">-- Bitte wählen --</option>` + 
-                    beraterList.map(b => `<option value="${b.id}" ${String(b.id) === String(currentVal) ? 'selected' : ''}>${b.name}</option>`).join('');
-            }
-
-            const geraeteContainer = document.getElementById('geraete-container');
-            if(geraeteContainer) {
-                geraeteContainer.innerHTML = (window.kitchen.geraete || []).map((g, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${g.name}" oninput="window.updateKitchen('geraeteName', this.value, ${g.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Art.-Nr. & Bezeichnung (z.B. Siemens)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${g.val}" oninput="window.updateKitchen('geraeteVal', this.value, ${g.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${window.kitchen.geraete.length > 1 ? `<button onclick="window.removeGeraet(${g.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const mieleContainer = document.getElementById('miele-container');
-            if(mieleContainer) {
-                mieleContainer.innerHTML = (window.kitchen.miele || []).map((m, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mieleName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Miele Backofen)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mieleVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${window.kitchen.miele.length > 1 ? `<button onclick="window.removeMiele(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            const spueleContainer = document.getElementById('spuele-container');
-            if(spueleContainer) {
-                spueleContainer.innerHTML = (window.kitchen.spuele || []).map((s, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${s.name}" oninput="window.updateKitchen('spueleName', this.value, ${s.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Blanco Spüle)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${s.val}" oninput="window.updateKitchen('spueleVal', this.value, ${s.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${window.kitchen.spuele.length > 1 ? `<button onclick="window.removeSpuele(${s.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const wasserContainer = document.getElementById('wasser-container');
-            if(wasserContainer) {
-                wasserContainer.innerHTML = (window.kitchen.wasser || []).map((w, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${w.name}" oninput="window.updateKitchen('wasserName', this.value, ${w.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Quooker Flex PRO3">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${w.val}" oninput="window.updateKitchen('wasserVal', this.value, ${w.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${window.kitchen.wasser.length > 1 ? `<button onclick="window.removeWasser(${w.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            // Mehrpreise Rendern
-            const mehrpreisContainer = document.getElementById('mehrpreis-container');
-            if (mehrpreisContainer) {
-                mehrpreisContainer.innerHTML = (window.kitchen.mehrpreise || []).map((m, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mehrpreisName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Aufpreis für Siemens Backofen HN678G4S6">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mehrpreisVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Mehrpreis">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${(window.kitchen.mehrpreise || []).length > 1 ? `<button onclick="window.removeMehrpreis(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            const setVal = (id, val) => {
-                const el = document.getElementById(id);
-                if(el && document.activeElement !== el) el.value = val;
-            };
-            const setCheck = (id, val) => {
-                const el = document.getElementById(id);
-                if(el) el.checked = val;
-            };
-            
-            setVal('k-kunde', window.kitchen.kunde);
-            setVal('k-front1', window.kitchen.front1);
-            setVal('k-front2', window.kitchen.front2);
-            setVal('k-griff', window.kitchen.griff);
-            setVal('k-apName', window.kitchen.apName);
-            setVal('k-hauspreis', window.kitchen.hauspreis);
-            
-            setVal('k-zubehoer', window.kitchen.zubehoer);
-            setCheck('opt-kuechentext', window.kitchen.optKuechenText);
-            setCheck('opt-ballerina', window.kitchen.optBallerina);
-            setCheck('opt-anschluss', window.kitchen.optAnschluss);
-            setCheck('opt-anschluss-rabatt', window.kitchen.optAnschlussRabatt);
-            setCheck('opt-nachtext', window.kitchen.optNachtext);
-
-            setVal('k-moebel', window.kitchen.ekMoebel);
-            setVal('k-rabatt', window.kitchen.rabattMoebel);
-            setVal('k-rabatt-miele', window.kitchen.rabattMiele);
-            setVal('k-stein', window.kitchen.steinVK);
-
-            window.calcKitchen();
-        };
-
-        // --- PDF GENERATOR ---
-        window.generatePDF = async () => {
-            if (typeof window.pdfMake === 'undefined') {
-                showAlert("PDF-Modul lädt noch, bitte 1 Sekunde warten.");
+        window.handleFile = (file) => {
+            if (typeof window.XLSX === 'undefined') {
+                showAlert("Import-Modul lädt noch, bitte kurz warten...");
                 return;
             }
-
-            showAlert("Erstelle PDF...");
-
-            try {
-                if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
-                    window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
-                }
-
-                // Versuche das Logo zu laden und in Base64 umzuwandeln (notwendig für pdfMake)
-                let logoDataUrl = null;
-                if (window.config.pdfLogo && window.config.pdfLogo.trim() !== '') {
-                    try {
-                        let logoStr = window.config.pdfLogo.trim();
-                        if (logoStr.startsWith('data:image')) {
-                            logoDataUrl = logoStr;
-                        } else {
-                            let fetchUrl = logoStr.startsWith('http') ? logoStr : 'images/' + logoStr;
-                            const response = await fetch(fetchUrl);
-                            const blob = await response.blob();
-                            logoDataUrl = await new Promise((resolve) => {
-                                const reader = new FileReader();
-                                reader.onloadend = () => resolve(reader.result);
-                                reader.readAsDataURL(blob);
-                            });
-                        }
-                    } catch (err) {
-                        console.warn('Logo konnte nicht geladen werden', err);
-                    }
-                }
-
-                const k = window.kitchen || {};
-                const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
-                const formatMoney = (val) => new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(val);
-
-                const ekMoebel = parseVal(k.ekMoebel);
-                const rabattMoebel = parseVal(k.rabattMoebel);
-                const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
-                const vkStein = parseVal(k.steinVK);
-                
-                let sumMieleBrutto = 0; 
-                (k.miele || []).forEach(m => sumMieleBrutto += parseVal(m.val));
-                const rabattMiele = parseVal(k.rabattMiele);
-                const vkMiele = sumMieleBrutto * (1 - (rabattMiele / 100));
-                
-                let vkWasser = 0; 
-                (k.wasser || []).forEach(w => vkWasser += parseVal(w.val));
-                
-                const totalVK = vkMoebel + vkWasser + vkStein + vkMiele;
-                
-                const hauspreis = parseVal(k.hauspreis);
-                const finalVK = hauspreis > 0 ? hauspreis : totalVK;
-                
-                const montage = finalVK * 0.095;
-
-                const allDevices = [];
-                (k.geraete || []).forEach(g => {
-                    if (g.name && g.name.trim() !== '') {
-                        const price = parseVal(g.val);
-                        allDevices.push(price > 0 ? `${g.name} (Internetpreis: ${formatMoney(price)})` : g.name);
-                    }
-                });
-                (k.miele || []).forEach(m => {
-                    if (m.name && m.name.trim() !== '') allDevices.push(m.name);
-                });
-                
-                let zubehoerItems = [];
-
-                (k.spuele || []).forEach(s => {
-                    if (s.name && s.name.trim() !== '') {
-                        const price = parseVal(s.val);
-                        zubehoerItems.push(price > 0 ? `${s.name} (Internetpreis: ${formatMoney(price)})` : s.name);
-                    }
-                });
-                
-                (k.wasser || []).forEach(w => {
-                    if (w.name && w.name.trim() !== '') zubehoerItems.push(w.name);
-                });
-
-                if (k.zubehoer && String(k.zubehoer).trim() !== '') {
-                    zubehoerItems = [...zubehoerItems, ...String(k.zubehoer).split('\n').filter(line => line.trim() !== '')];
-                }
-
-                let anschlussTextArray = [];
-                if (k.optAnschluss && window.config.pdfAnschlussText) anschlussTextArray.push(window.config.pdfAnschlussText);
-                if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
-                
-                const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
-                    text: anschlussTextArray.join(' '), 
-                    margin: [0, 5, 0, 0],
-                    fontSize: 10,
-                    color: '#475569'
-                } : { text: '' };
-
-                // Header mit optionalem Logo bauen
-                const headerColumns = [
-                    { text: 'ANGEBOT', style: 'mainHeader', width: '*' }
-                ];
-                
-                if (logoDataUrl) {
-                    headerColumns.push({
-                        image: logoDataUrl,
-                        width: 120, // Maximale Breite des Logos
-                        alignment: 'right'
-                    });
-                }
-                
-                // Berater-Details für das PDF laden
-                const beraterObj = (window.config.beraterList || []).find(b => String(b.id) === String(k.beraterId));
-                let beraterBlock = { text: '', margin: [0,0,0,0] };
-                if (beraterObj && beraterObj.name) {
-                    let details = [];
-                    if (beraterObj.phone) details.push(`Tel: ${beraterObj.phone}`);
-                    if (beraterObj.email) details.push(`E-Mail: ${beraterObj.email}`);
+            updateStatus("Lese Datei...", "bg-blue-500 animate-pulse");
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = window.XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const rows = window.XLSX.utils.sheet_to_json(firstSheet);
                     
-                    let beraterText = [ { text: `Ihr Berater: ${beraterObj.name}`, italics: true } ];
-                    if (details.length > 0) {
-                        beraterText.push({ text: `\n${details.join(' | ')}`, fontSize: 9, italics: false });
-                    }
-                    beraterBlock = { text: beraterText, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b' };
+                    window.processCaratData(rows);
+                } catch (err) {
+                    console.error(err);
+                    showAlert("Fehler beim Lesen. Ist es eine gültige XLSX/CSV Datei?");
+                    updateStatus("Cloud Aktiv", "bg-green-500");
                 }
-
-                const docDefinition = {
-                    info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
-                    pageMargins: [40, 40, 40, 80],
-                    footer: function(currentPage, pageCount) {
-                        return {
-                            text: window.config.pdfFooter || '',
-                            alignment: 'center',
-                            fontSize: 8,
-                            color: '#94a3b8',
-                            margin: [40, 20, 40, 0]
-                        };
-                    },
-                    content: [
-                        { columns: headerColumns, margin: [0, 0, 0, 15] },
-                        
-                        k.kunde && k.kunde.trim() !== '' 
-                            ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
-                            : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
-                            
-                        beraterBlock,
-                        
-                        k.optKuechenText && window.config.pdfKuechenText ? { 
-                            text: window.config.pdfKuechenText, 
-                            margin: [0, 0, 0, 20], 
-                            fontSize: 11,
-                            color: '#334155'
-                        } : { text: '', margin: [0, 0, 0, 0] },
-                        
-                        { text: '1. Möbel & Design', style: 'sectionHeader' },
-                        { 
-                            columns: [
-                                { text: 'Front 1:', width: 100, bold: true },
-                                { text: k.front1 || 'Nicht definiert' }
-                            ], margin: [0, 0, 0, 4]
-                        },
-                        (k.front2 && k.front2.trim() !== '') ? { 
-                            columns: [
-                                { text: 'Front 2:', width: 100, bold: true },
-                                { text: k.front2 }
-                            ], margin: [0, 0, 0, 4]
-                        } : { text: '', margin: [0, 0, 0, 0] },
-                        (k.griff && k.griff.trim() !== '') ? { 
-                            columns: [
-                                { text: 'Griffausführung:', width: 100, bold: true },
-                                { text: k.griff }
-                            ], margin: [0, 0, 0, 4]
-                        } : { text: '', margin: [0, 0, 0, 0] },
-                        { 
-                            columns: [
-                                { text: 'Arbeitsplatte:', width: 100, bold: true },
-                                { text: k.apName || 'Nicht definiert' }
-                            ], margin: [0, 0, 0, 10]
-                        },
-                        
-                        k.optBallerina && window.config.pdfBallerinaText ? { 
-                            text: window.config.pdfBallerinaText, 
-                            margin: [0, 5, 0, 15], 
-                            fontSize: 10,
-                            color: '#475569',
-                            alignment: 'justify'
-                        } : { text: '', margin: [0, 0, 0, 10] },
-
-                        { text: '2. Elektrogeräte', style: 'sectionHeader' },
-                        allDevices.length > 0 
-                            ? { ul: allDevices, margin: [0, 0, 0, 15], color: '#334155' } 
-                            : { text: 'Keine Geräte erfasst.', margin: [0, 0, 0, 15], italics: true, color: '#94a3b8' },
-
-                        { text: '3. Ebenso enthalten sind', style: 'sectionHeader' },
-                        zubehoerItems.length > 0 
-                            ? { ul: zubehoerItems, margin: [0, 0, 0, 25], color: '#334155' } 
-                            : { text: 'Kein weiteres Zubehör vermerkt.', margin: [0, 0, 0, 25], italics: true, color: '#94a3b8' },
-
-                        { text: '4. Endpreis', style: 'sectionHeader' },
-                        { text: [
-                            'Wir bieten Ihnen die Küche zu einem Gesamt-Sonderpreis von ',
-                            { text: `${formatMoney(finalVK)} inkl. Lieferung und Montage`, bold: true, fontSize: 13, color: '#000000' },
-                            ' an.'
-                        ], margin: [0, 0, 0, 8] },
-                        
-                        { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
-                        
-                        { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
-
-                        anschlussPdfBlock
-                    ],
-                    styles: {
-                        mainHeader: { fontSize: 24, bold: true, color: '#0f172a' },
-                        sectionHeader: { fontSize: 14, bold: true, margin: [0, 15, 0, 8], color: '#2563eb' }
-                    },
-                    defaultStyle: {
-                        fontSize: 11,
-                        lineHeight: 1.4,
-                        color: '#0f172a'
-                    }
-                };
-
-                // Optionale Mehrpreise ans Ende des PDFs hängen, falls vorhanden
-                const mpArray = [];
-                (k.mehrpreise || []).forEach(mp => {
-                    if (mp.name && mp.name.trim() !== '') {
-                        const price = parseVal(mp.val);
-                        mpArray.push(`${mp.name}${price > 0 ? ` (+ ${formatMoney(price)})` : ''}`);
-                    }
-                });
-
-                if (mpArray.length > 0) {
-                    docDefinition.content.push(
-                        { text: 'Optionale Mehrpreise', style: 'sectionHeader', margin: [0, 25, 0, 8] },
-                        { text: 'Folgende Positionen sind im oben genannten Gesamtpreis noch NICHT enthalten:', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 8] },
-                        { ul: mpArray, color: '#334155' }
-                    );
-                }
-
-                // Nachtext ganz ans Ende hängen
-                if (k.optNachtext && window.config.pdfNachtext) {
-                    docDefinition.content.push(
-                        { text: window.config.pdfNachtext, margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
-                    );
-                }
-
-                const pdf = window.pdfMake.createPdf(docDefinition);
-                
-                let fileName = 'Kuechenangebot.pdf';
-                if (k.kunde && k.kunde.trim() !== '') {
-                    const safeName = k.kunde.trim().replace(/[^a-zA-Z0-9\u00C0-\u017F]/g, '');
-                    fileName = safeName + 'Kuechenangebot.pdf';
-                }
-
-                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-                
-                if (isIOS) {
-                    pdf.open(); 
-                } else {
-                    pdf.download(fileName); 
-                }
-
-            } catch(e) {
-                console.error("PDF-Fehler:", e);
-                showAlert("Fehler: " + (e.message || "Unbekannter PDF-Fehler"));
-            }
+            };
+            reader.readAsArrayBuffer(file);
+            document.getElementById('import-file').value = ""; // Reset input
         };
 
-        window.render = () => {
-            const btnAll = document.getElementById('flt-all');
-            const btnNatur = document.getElementById('flt-natur');
-            const btnDekton = document.getElementById('flt-dekton');
+        window.processCaratData = (rows) => {
+            let sumMoebelEK = 0;
+            let newMiele = [];
+            let newSpuele = [];
+            let newWasser = [];
+            let newGeraete = [];
+            
+            let apName = window.kitchen.apName;
+            let apPrice = window.kitchen.steinVK;
 
-            if(btnAll) {
-                btnAll.className = window.activeFilter === 'all'
-                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-slate-500 text-white border border-slate-500 shadow-sm'
-                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-slate-400 border border-slate-300 dark:border-darkBorder hover:bg-slate-100 dark:hover:bg-white/5 cursor-pointer';
-
-                btnNatur.className = window.activeFilter === 'natur'
-                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-emerald-500 text-white border border-emerald-500 shadow-sm'
-                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-emerald-500 border border-emerald-500/30 hover:bg-emerald-500/10 cursor-pointer';
-
-                btnDekton.className = window.activeFilter === 'dekton'
-                    ? 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-red-500 text-white border border-red-500 shadow-sm'
-                    : 'text-[9px] font-black px-2 py-0.5 rounded transition-all uppercase bg-transparent text-red-500 border border-red-500/30 hover:bg-red-500/10 cursor-pointer';
-            }
-
-            const sel = document.getElementById('stoneSelect');
-            if (sel) {
-                const currentVal = sel.value;
-                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
-                sel.innerHTML = sortedDisplayStones.map(s => {
-                    if (window.activeFilter === 'dekton' && !s.isDekton) return '';
-                    if (window.activeFilter === 'natur' && s.isDekton) return '';
-                    const icon = s.isDekton ? '🔴' : '🟢';
-                    return `<option value="${s.id}">${icon} ${s.name}</option>`;
-                }).join('');
-
-                let found = false;
-                for (let i = 0; i < sel.options.length; i++) {
-                    if (sel.options[i].value === currentVal) {
-                        sel.selectedIndex = i;
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found && sel.options.length > 0) sel.selectedIndex = 0;
-            }
-
-            const dektonContainer = document.getElementById('gallery-dekton');
-            const naturContainer = document.getElementById('gallery-natur');
-            if (dektonContainer && naturContainer) {
-                let dektonHtml = ''; let naturHtml = '';
-                const sortedDisplayStones = [...window.stones].sort((a, b) => a.name.localeCompare(b.name, 'de', { sensitivity: 'base' }));
-                
-                sortedDisplayStones.forEach(s => {
-                    const imgStr = (s.image && s.image.trim() !== "") ? `images/${s.image.trim()}` : '';
-                    const isComparing = window.compareList.includes(s.id);
-                    const card = `
-                        <div class="card overflow-hidden group cursor-pointer transition-all duration-300 ${isComparing ? 'border-blue-500 ring-2 ring-blue-500/50 shadow-lg scale-[0.98]' : 'hover:border-blue-500 hover:shadow-lg'}" onclick="window.selectFromGallery('${s.id}')">
-                            <div class="aspect-square bg-slate-100 dark:bg-black relative overflow-hidden flex items-center justify-center border-b border-slate-200 dark:border-darkBorder">
-                                ${imgStr ? `
-                                <img src="${imgStr}" class="w-full h-full object-cover transition-transform duration-700 ${isComparing ? 'scale-110 opacity-50' : 'group-hover:scale-110'}" loading="lazy">
-                                ` : `<span class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Kein Bild</span>`}
-                                <button onclick="event.stopPropagation(); window.openLightbox('${imgStr}')" class="absolute top-2 right-2 bg-black/50 text-white p-2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity backdrop-blur-sm hover:bg-black/70 shadow-lg ${imgStr ? '' : 'hidden'}">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" /></svg>
-                                </button>
-                                <button onclick="window.toggleCompare('${s.id}', event)" class="absolute top-2 left-2 p-2 rounded-full transition-all shadow-lg z-20 backdrop-blur-sm ${isComparing ? 'bg-blue-600 text-white scale-110' : 'bg-white/90 dark:bg-black/80 text-slate-400 hover:text-blue-500 hover:scale-110 opacity-0 group-hover:opacity-100'}" title="Zum Vergleich auswählen">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"></path></svg>
-                                </button>
-                                ${isComparing ? `<div class="absolute inset-0 flex items-center justify-center pointer-events-none"><span class="bg-blue-600 text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-xl">Markiert</span></div>` : ''}
-                            </div>
-                            <div class="p-3 md:p-4 bg-white dark:bg-darkCard relative z-10">
-                                <p class="font-bold text-xs md:text-sm truncate text-slate-800 dark:text-slate-200" title="${s.name}">${s.name}</p>
-                                <p class="text-[10px] md:text-xs font-mono font-bold text-slate-500 mt-1">${new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR'}).format(s.price)} / m²</p>
-                            </div>
-                        </div>
-                    `;
-                    if (s.isDekton) dektonHtml += card;
-                    else naturHtml += card;
-                });
-                dektonContainer.innerHTML = dektonHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Dekton Steine vorhanden.</p>';
-                naturContainer.innerHTML = naturHtml || '<p class="text-sm text-slate-500 col-span-full">Keine Natursteine vorhanden.</p>';
-            }
-
-            const banner = document.getElementById('compare-banner');
-            const count = document.getElementById('compare-count');
-            if (banner && count) {
-                if (window.compareList.length > 0) {
-                    count.innerText = `${window.compareList.length}/2`;
-                    banner.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-4');
-                } else {
-                    banner.classList.add('opacity-0', 'pointer-events-none', '-translate-y-4');
-                }
-            }
-
-            const formatTrend = (arr) => {
-                if (!arr || arr.length === 0) return '--- €';
-                const sum = arr.reduce((a, b) => a + b, 0);
-                const avg = sum / arr.length;
-                const rounded = Math.round(avg / 10) * 10; 
-                return new Intl.NumberFormat('de-DE', {style: 'currency', currency: 'EUR', maximumFractionDigits: 0}).format(rounded);
+            const parseNum = (val) => {
+                if (!val) return 0;
+                if (typeof val === 'number') return val;
+                return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            const elDektonTrend = document.getElementById('trend-dekton');
-            const elNaturTrend = document.getElementById('trend-natur');
-            if (elDektonTrend && window.config.stats) elDektonTrend.innerText = formatTrend(window.config.stats.dekton);
-            if (elNaturTrend && window.config.stats) elNaturTrend.innerText = formatTrend(window.config.stats.natur);
+            rows.forEach(row => {
+                // Finde die Spalten, auch wenn sie leicht anders heißen
+                const getCol = (possibleNames) => {
+                    const key = Object.keys(row).find(k => possibleNames.some(pn => k.toLowerCase().includes(pn)));
+                    return key ? row[key] : '';
+                };
 
-            const fieldsContainer = document.getElementById('admin-fields');
-            if (fieldsContainer) {
-                fieldsContainer.innerHTML = Object.keys(window.config)
-                    .filter(k => k !== 'stats' && !k.startsWith('pdf') && k !== 'beraterList')
-                    .map(k => `
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
-                        <input type="text" inputmode="${k === 'adminPass' ? 'text' : 'decimal'}" value="${window.config[k]}" 
-                            oninput="window.updateConfig('${k}', this.value, ${k !== 'adminPass'})" 
-                            class="input-field text-sm font-mono">
-                    </div>
-                `).join('');
-            }
+                const catRaw = getCol(['katalog', 'hersteller']);
+                const artRaw = getCol(['artikel', 'bezeichnung', 'art.-nr']);
+                const ekRaw = getCol(['ek', 'einkauf']);
+                const vkRaw = getCol(['preis', 'vk', 'verkauf']);
 
-            const kitchenFieldsContainer = document.getElementById('admin-kitchen-fields');
-            if (kitchenFieldsContainer) {
-                kitchenFieldsContainer.innerHTML = `
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">PDF Logo (Dateiname oder URL)</label>
-                        <input type="text" value="${window.config.pdfLogo || ''}" oninput="window.updateConfig('pdfLogo', this.value, false)" class="input-field text-sm font-mono" placeholder="logo.png oder https://...">
-                        <p class="text-[9px] text-slate-400 mt-1">Logo erscheint oben rechts auf dem Angebot. Bild muss im Ordner "images" liegen oder als kompletter Weblink angegeben sein.</p>
-                    </div>
-                    <div class="border-t dark:border-darkBorder pt-4 mt-2">
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Küchen-Einleitungstext</label>
-                        <textarea oninput="window.updateConfig('pdfKuechenText', this.value, false)" class="input-field text-sm min-h-[100px] resize-y">${window.config.pdfKuechenText}</textarea>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Ballerina Qualitätstext</label>
-                        <textarea oninput="window.updateConfig('pdfBallerinaText', this.value, false)" class="input-field text-sm min-h-[150px] resize-y">${window.config.pdfBallerinaText}</textarea>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Service Text (240,- EUR)</label>
-                        <textarea oninput="window.updateConfig('pdfAnschlussText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussText}</textarea>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Anschluss-Rabatt Text</label>
-                        <textarea oninput="window.updateConfig('pdfAnschlussRabattText', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfAnschlussRabattText}</textarea>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Nachtext / Verabschiedung</label>
-                        <textarea oninput="window.updateConfig('pdfNachtext', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfNachtext}</textarea>
-                    </div>
-                    <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Fußzeile (Firmenangaben)</label>
-                        <textarea oninput="window.updateConfig('pdfFooter', this.value, false)" class="input-field text-sm min-h-[80px] resize-y" placeholder="Firmenname | Straße | Ort...">${window.config.pdfFooter}</textarea>
-                        <p class="text-[9px] text-slate-400 mt-1">Erscheint auf jeder PDF-Seite ganz unten zentriert.</p>
-                    </div>
-                `;
-            }
+                const cat = String(catRaw).toLowerCase();
+                const art = String(artRaw);
+                const ek = parseNum(ekRaw);
+                const vk = parseNum(vkRaw);
 
-            const beraterFieldsContainer = document.getElementById('admin-berater-fields');
-            if (beraterFieldsContainer) {
-                beraterFieldsContainer.innerHTML = (window.config.beraterList || []).map(b => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
-                        <input type="text" value="${b.name}" oninput="window.updateBerater(${b.id}, 'name', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Name">
-                        <input type="text" value="${b.email}" oninput="window.updateBerater(${b.id}, 'email', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="E-Mail">
-                        <input type="text" value="${b.phone}" oninput="window.updateBerater(${b.id}, 'phone', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Telefon">
-                        <button onclick="window.removeBerater(${b.id})" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform">✕</button>
-                    </div>
-                `).join('');
-            }
+                // Leere Zeilen ignorieren
+                if (!cat && !art && ek === 0 && vk === 0) return;
 
-            const tableContainer = document.getElementById('admin-table');
-            if (tableContainer) {
-                tableContainer.innerHTML = window.stones.map(s => `
-                    <div class="flex flex-col gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
-                        <div class="flex gap-2">
-                            <input value="${s.name}" oninput="window.updateStone('${s.id}', 'name', this.value)" class="flex-1 bg-transparent font-bold outline-none text-sm px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="Stein Name">
-                            <input value="${s.image || ''}" oninput="window.updateStone('${s.id}', 'image', this.value)" class="w-24 md:w-32 bg-transparent outline-none text-[10px] font-mono text-blue-500 px-1 py-1 border-b border-transparent focus:border-blue-500 placeholder-slate-400/50" placeholder="bild.jpg">
-                        </div>
-                        <div class="flex items-center gap-2 mt-1">
-                            <label class="text-[8px] font-black text-slate-500 uppercase mr-1">EK €/m²</label>
-                            <input type="text" inputmode="decimal" value="${s.price}" oninput="window.updateStone('${s.id}', 'price', this.value, true)" class="bg-white dark:bg-darkCard w-20 text-center font-mono border dark:border-darkBorder rounded-lg p-1 text-xs focus:border-blue-500 outline-none">
-                            <button onclick="window.toggleStoneType('${s.id}')" class="text-[8px] font-black px-3 py-2 rounded-lg ${s.isDekton?'bg-red-500 text-white':'bg-emerald-500 text-white'} uppercase transition-all w-24 active:scale-95">
-                                ${s.isDekton?'Dekton':'Natur'}
-                            </button>
-                            <button onclick="window.deleteStone('${s.id}')" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform ml-auto">✕</button>
-                        </div>
-                    </div>
-                `).join('');
-            }
+                if (cat.includes('miele')) {
+                    newMiele.push({ id: Date.now() + Math.random(), name: art, val: vk || "" });
+                } else if (cat.includes('blanco') || cat.includes('systemceram')) {
+                    newSpuele.push({ id: Date.now() + Math.random(), name: art, val: "" });
+                } else if (cat.includes('quooker')) {
+                    newWasser.push({ id: Date.now() + Math.random(), name: art, val: "3000" });
+                } else if (cat.includes('schellenbaum')) {
+                    apName = art;
+                    apPrice = ek; 
+                } else {
+                    // Alles andere wandert in die Möbel EK Summe
+                    sumMoebelEK += ek;
+                    
+                    // Wenn es bekannte Geräte sind, auch noch auf die PDF-Liste packen (ohne Preis)
+                    if (cat.includes('bosch') || cat.includes('neff') || cat.includes('siemens') || cat.includes('berbel') || cat.includes('naber')) {
+                        newGeraete.push({ id: Date.now() + Math.random(), name: art, val: "" });
+                    }
+                }
+            });
+
+            // Status in die App übertragen
+            if (sumMoebelEK > 0) window.kitchen.ekMoebel = sumMoebelEK.toFixed(2).replace('.', ',');
+            if (newMiele.length > 0) window.kitchen.miele = newMiele;
+            if (newSpuele.length > 0) window.kitchen.spuele = newSpuele;
+            if (newWasser.length > 0) window.kitchen.wasser = newWasser;
+            if (newGeraete.length > 0) window.kitchen.geraete = newGeraete;
             
-            window.renderParts();
-            window.calculate();
+            if (apName !== window.kitchen.apName || apPrice !== window.kitchen.steinVK) {
+                window.kitchen.apName = apName;
+                window.kitchen.steinVK = apPrice > 0 ? apPrice.toFixed(2).replace('.', ',') : window.kitchen.steinVK;
+            }
+
+            window.saveKitchen();
+            window.renderKitchen();
+            
+            showAlert("CARAT-Daten erfolgreich importiert!");
+            updateStatus("Cloud Aktiv", "bg-green-500");
         };
+
+        // --- ENDE CARAT IMPORT LOGIK ---
+
 
         window.toggleTheme = () => {
             const isD = document.documentElement.classList.toggle('dark');
@@ -2581,6 +1925,7 @@
             }
             window.switchTab('calc');
             window.renderKitchen();
+            window.initDragAndDrop(); // Drag and Drop Listener initialisieren
         };
 
         (function() {

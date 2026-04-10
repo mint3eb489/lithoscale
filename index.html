@@ -2130,7 +2130,10 @@
                     const data = new Uint8Array(e.target.result);
                     const workbook = window.XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const rows = window.XLSX.utils.sheet_to_json(firstSheet);
+                    
+                    // header: 1 zwingt SheetJS dazu, ein rohes Array von Arrays zurückzugeben
+                    // So umgehen wir störende Info-Texte in den obersten Excel-Zeilen
+                    const rows = window.XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                     
                     window.processCaratData(rows);
                 } catch (err) {
@@ -2143,7 +2146,7 @@
             document.getElementById('import-file').value = ""; 
         };
 
-        window.processCaratData = (rows) => {
+        window.processCaratData = (rowsAsArrays) => {
             let sumMoebelEK = 0;
             let newMiele = [];
             let newSpuele = [];
@@ -2159,23 +2162,51 @@
                 return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
             };
 
-            rows.forEach(row => {
-                const getCol = (possibleNames) => {
-                    const key = Object.keys(row).find(k => possibleNames.some(pn => k.toLowerCase().includes(pn)));
-                    return key ? row[key] : '';
-                };
+            let colCat = -1, colArt = -1, colEk = -1, colVk = -1;
+            let startRow = -1;
 
-                const catRaw = getCol(['katalog', 'hersteller']);
-                const artRaw = getCol(['artikel', 'bezeichnung', 'art.-nr']);
-                const ekRaw = getCol(['ek', 'einkauf']);
-                const vkRaw = getCol(['preis', 'vk', 'verkauf']);
+            // 1. Überschriften-Zeile dynamisch suchen
+            for (let i = 0; i < rowsAsArrays.length; i++) {
+                const row = rowsAsArrays[i];
+                if (!Array.isArray(row)) continue;
 
-                const cat = String(catRaw).toLowerCase();
-                const art = String(artRaw);
-                const ek = parseNum(ekRaw);
-                const vk = parseNum(vkRaw);
+                let foundHeaders = 0;
+                for (let j = 0; j < row.length; j++) {
+                    const cell = String(row[j] || '').toLowerCase().trim();
+                    if (cell.includes('katalog') || cell.includes('hersteller')) { colCat = j; foundHeaders++; }
+                    if (cell === 'artikel' || cell.includes('bezeichnung') || cell.includes('art.-nr')) { colArt = j; foundHeaders++; }
+                    if (cell === 'ek' || cell.includes('einkauf')) { colEk = j; foundHeaders++; }
+                    if (cell === 'vk' || cell === 'preis' || cell.includes('verkauf')) { colVk = j; foundHeaders++; }
+                }
 
-                if (!cat && !art && ek === 0 && vk === 0) return;
+                // Wenn wir mindestens 2 passende Spaltennamen in einer Zeile finden, ist das unser Startpunkt
+                if (foundHeaders >= 2) {
+                    startRow = i + 1;
+                    break;
+                }
+            }
+
+            if (startRow === -1) {
+                showAlert("Fehler: Konnte die Spalten 'Artikel', 'EK', 'Preis' oder 'Katalog' nicht finden.");
+                updateStatus("Cloud Aktiv", "bg-green-500");
+                return;
+            }
+
+            let itemsCount = 0;
+
+            // 2. Daten auslesen (ab der Zeile unter den Überschriften)
+            for (let i = startRow; i < rowsAsArrays.length; i++) {
+                const row = rowsAsArrays[i];
+                if (!row || !Array.isArray(row)) continue;
+
+                const cat = colCat > -1 ? String(row[colCat] || '').toLowerCase() : '';
+                const art = colArt > -1 ? String(row[colArt] || '') : '';
+                const ek = colEk > -1 ? parseNum(row[colEk]) : 0;
+                const vk = colVk > -1 ? parseNum(row[colVk]) : 0;
+
+                // Leerzeilen überspringen
+                if (!cat && !art && ek === 0 && vk === 0) continue;
+                itemsCount++;
 
                 if (cat.includes('miele')) {
                     newMiele.push({ id: Date.now() + Math.random(), name: art, val: vk || "" });
@@ -2193,8 +2224,15 @@
                         newGeraete.push({ id: Date.now() + Math.random(), name: art, val: "" });
                     }
                 }
-            });
+            }
 
+            if (itemsCount === 0) {
+                showAlert("Datei gelesen, aber keine Artikel gefunden (leer?).");
+                updateStatus("Cloud Aktiv", "bg-green-500");
+                return;
+            }
+
+            // Status in die App übertragen
             if (sumMoebelEK > 0) window.kitchen.ekMoebel = sumMoebelEK.toFixed(2).replace('.', ',');
             if (newMiele.length > 0) window.kitchen.miele = newMiele;
             if (newSpuele.length > 0) window.kitchen.spuele = newSpuele;
@@ -2209,7 +2247,7 @@
             window.saveKitchen();
             window.renderKitchen();
             
-            showAlert("CARAT-Daten erfolgreich importiert!");
+            showAlert(`Erfolg: ${itemsCount} Artikel geprüft und eingelesen!`);
             updateStatus("Cloud Aktiv", "bg-green-500");
         };
 

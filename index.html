@@ -721,6 +721,19 @@
         </div>
     </div>
 
+    <!-- Fallback: Falls das Skript durch Firewall/Adblocker blockiert wird -->
+    <script>
+        setTimeout(() => {
+            const statusText = document.getElementById('status-text');
+            if (statusText && statusText.innerText === 'Status unbekannt') {
+                statusText.innerText = 'Offline (Blockiert)';
+                document.getElementById('status-icon').className = 'w-2 h-2 rounded-full bg-amber-500';
+                document.getElementById('error-display').innerText = 'Cloud-Skripte konnten nicht geladen werden (Adblocker oder Firmen-Firewall?). App läuft im lokalen Modus.';
+                document.getElementById('error-display').classList.remove('hidden');
+            }
+        }, 3500);
+    </script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -865,18 +878,29 @@
             return cfg;
         };
 
-        let localStones = JSON.parse(localStorage.getItem('ls_stones')) || JSON.parse(JSON.stringify(DEFAULTS.stones));
+        const safeParse = (key, defaultObj) => {
+            try {
+                const val = localStorage.getItem(key);
+                if (val === null || val === 'undefined' || val === '') return defaultObj;
+                return JSON.parse(val);
+            } catch (e) {
+                console.warn(`Fehler beim Lesen von ${key} aus LocalStorage`, e);
+                return defaultObj;
+            }
+        };
+
+        let localStones = safeParse('ls_stones', JSON.parse(JSON.stringify(DEFAULTS.stones)));
         localStones.forEach(s => { if (!s.id) s.id = generateId(); });
         window.stones = localStones;
         
-        window.config = migrateConfig(JSON.parse(localStorage.getItem('ls_config')) || JSON.parse(JSON.stringify(DEFAULTS.config)));
+        window.config = migrateConfig(safeParse('ls_config', JSON.parse(JSON.stringify(DEFAULTS.config))));
         let activeServices = { measure: false, delivery: false };
         window.activeFilter = 'all'; 
 
         const defaultParts = [{ id: Date.now(), name: "Platte 1", l: "", w: "", edges: { v: true, h: false, l: false, r: false } }];
-        window.parts = JSON.parse(localStorage.getItem('ls_parts')) || JSON.parse(JSON.stringify(defaultParts));
+        window.parts = safeParse('ls_parts', JSON.parse(JSON.stringify(defaultParts)));
         
-        let savedKitchen = JSON.parse(localStorage.getItem('ls_kitchen')) || {};
+        let savedKitchen = safeParse('ls_kitchen', {});
         
         let initialWasser = [{id: Date.now()+2, name: "", val: ""}];
         if (savedKitchen.wasser) {
@@ -998,6 +1022,7 @@
         };
 
         const initFirebase = async () => {
+            updateStatus("Init Cloud...", "bg-amber-500 animate-pulse");
             if (!activeConfig.apiKey && typeof __firebase_config === 'undefined') {
                 updateStatus("Keys fehlen", "bg-red-500", "Keine API-Konfiguration gefunden.");
                 window.render();
@@ -1007,19 +1032,23 @@
                 app = initializeApp(activeConfig);
                 auth = getAuth(app);
                 db = getFirestore(app);
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+                
                 onAuthStateChanged(auth, (user) => {
                     currentUser = user; 
                     if (user) {
                         startCloudListener();
                     }
                 });
+
+                updateStatus("Login Cloud...", "bg-blue-500 animate-pulse");
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
             } catch (e) {
-                updateStatus("Auth-Fehler", "bg-red-600", "Firebase Login prüfen!");
+                console.error("Firebase Auth Fehler:", e);
+                updateStatus("Offline-Modus", "bg-amber-500", "Login blockiert (Firewall?)");
                 window.render();
             }
         };

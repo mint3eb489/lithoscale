@@ -2179,7 +2179,6 @@
                     if (cell === 'vk' || cell === 'preis' || cell.includes('verkauf')) { colVk = j; foundHeaders++; }
                 }
 
-                // Wenn wir mindestens 2 passende Spaltennamen in einer Zeile finden, ist das unser Startpunkt
                 if (foundHeaders >= 2) {
                     startRow = i + 1;
                     break;
@@ -2206,6 +2205,10 @@
 
                 // Leerzeilen überspringen
                 if (!cat && !art && ek === 0 && vk === 0) continue;
+
+                // NEU: Katalog "Lager" komplett ignorieren
+                if (cat.includes('lager')) continue;
+
                 itemsCount++;
 
                 if (cat.includes('miele')) {
@@ -2227,12 +2230,11 @@
             }
 
             if (itemsCount === 0) {
-                showAlert("Datei gelesen, aber keine Artikel gefunden (leer?).");
+                showAlert("Datei gelesen, aber keine relevanten Artikel gefunden.");
                 updateStatus("Cloud Aktiv", "bg-green-500");
                 return;
             }
 
-            // Status in die App übertragen
             if (sumMoebelEK > 0) window.kitchen.ekMoebel = sumMoebelEK.toFixed(2).replace('.', ',');
             if (newMiele.length > 0) window.kitchen.miele = newMiele;
             if (newSpuele.length > 0) window.kitchen.spuele = newSpuele;
@@ -2245,7 +2247,9 @@
             }
 
             window.saveKitchen();
-            window.renderKitchen();
+            
+            // Tab neu laden, um die Kalkulation und UI sicher auszulösen
+            window.switchTab('kitchen');
             
             showAlert(`Erfolg: ${itemsCount} Artikel geprüft und eingelesen!`);
             updateStatus("Cloud Aktiv", "bg-green-500");

@@ -360,7 +360,7 @@
                             </div>
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Berater</label>
-                                <select id="k-berater" onchange="window.updateKitchen('berater', this.value)" class="input-field text-sm"></select>
+                                <select id="k-berater" onchange="window.updateKitchen('beraterId', this.value)" class="input-field text-sm"></select>
                             </div>
                         </div>
 
@@ -474,7 +474,6 @@
 
                     </div>
 
-                    <!-- NEU: Optionale Mehrpreise -->
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
                             <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">3. Optionale Mehrpreise</h2>
@@ -626,6 +625,13 @@
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Standard-Texte für das Angebot (PDF)</h3>
                         <div id="admin-kitchen-fields" class="space-y-6"></div>
                     </div>
+                    
+                    <!-- NEU: Berater-Verwaltung in der Küchen-Ansicht -->
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Berater-Team</h3>
+                        <div id="admin-berater-fields" class="space-y-3"></div>
+                        <button onclick="window.addBerater()" class="mt-4 bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-colors">+ Berater hinzufügen</button>
+                    </div>
                 </div>
 
             </div>
@@ -721,7 +727,6 @@
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Deine echten Firebase-Daten
         const firebaseConfig = {
             apiKey: "AIzaSyCAoHre4UD7u88JyGvyPYzrfm50OsMOrZ8",
             authDomain: "lithoscalepro.firebaseapp.com",
@@ -787,13 +792,17 @@
                 notch: 45, hole: 25,
                 miter: 45, adminPass: "1234",
                 stats: { dekton: [], natur: [] },
-                beraterList: "Berater 1, Berater 2",
+                beraterList: [
+                    { id: 1, name: "Max Müller", email: "max@musterfirma.de", phone: "01234 56789" },
+                    { id: 2, name: "Lisa Schmidt", email: "lisa@musterfirma.de", phone: "09876 54321" }
+                ],
                 pdfLogo: "",
                 pdfKuechenText: "Vielen Dank für Ihren Besuch und das angenehme Planungsgespräch. Wir freuen uns sehr, Ihnen das folgende Angebot für Ihre neue Einbauküche unterbreiten zu dürfen.",
                 pdfBallerinaText: "Qualität des Herstellers: Ballerina ist aktuell auf Platz 1 der deutschen Küchenhersteller und überzeugt mit einem robusten Korpus, 8mm starken geschraubten Rückwänden und 19mm starken Fachböden. Ebenso die kostenfreie Möglichkeit der farblichen Gestaltung des Innenkorpus sowie Glaszargen und Anti-Rutschmatten sind bei unseren Kunden sehr beliebt. Alle Schubkästen, Auszüge und Türen sind gedämpft. Die Belastbarkeit beträgt je nach Breite zwischen 50 kg und 80 kg. Ein entsprechendes Qualitäts-Zertifikat ist dieser E-Mail beigefügt.",
                 pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
                 pdfAnschlussRabattText: "Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.",
-                pdfNachtext: "Wir hoffen, unser Angebot sagt Ihnen zu und stehen für Rückfragen jederzeit gerne zur Verfügung."
+                pdfNachtext: "Wir hoffen, unser Angebot sagt Ihnen zu und stehen für Rückfragen jederzeit gerne zur Verfügung.",
+                pdfFooter: "Musterfirma GmbH | Musterstraße 1 | 12345 Musterstadt\nTelefon: 01234 56789 | E-Mail: info@musterfirma.de | Web: www.musterfirma.de"
             }
         };
 
@@ -828,14 +837,27 @@
             if (cfg.hole === undefined) cfg.hole = 25;
 
             if (!cfg.stats) cfg.stats = { dekton: [], natur: [] };
-            if (!cfg.beraterList) cfg.beraterList = DEFAULTS.config.beraterList;
-            if (cfg.pdfLogo === undefined) cfg.pdfLogo = "";
             
+            // Berater Migration von String zu Array aus Objekten
+            if (typeof cfg.beraterList === 'string') {
+                cfg.beraterList = cfg.beraterList.split(',').map((name, index) => ({
+                    id: Date.now() + index,
+                    name: name.trim(),
+                    email: "",
+                    phone: ""
+                })).filter(b => b.name !== "");
+            }
+            if (!Array.isArray(cfg.beraterList)) {
+                cfg.beraterList = DEFAULTS.config.beraterList;
+            }
+
+            if (cfg.pdfLogo === undefined) cfg.pdfLogo = "";
             if (!cfg.pdfKuechenText) cfg.pdfKuechenText = DEFAULTS.config.pdfKuechenText;
             if (!cfg.pdfBallerinaText) cfg.pdfBallerinaText = DEFAULTS.config.pdfBallerinaText;
             if (!cfg.pdfAnschlussText) cfg.pdfAnschlussText = DEFAULTS.config.pdfAnschlussText;
             if (!cfg.pdfAnschlussRabattText) cfg.pdfAnschlussRabattText = DEFAULTS.config.pdfAnschlussRabattText;
             if (!cfg.pdfNachtext) cfg.pdfNachtext = DEFAULTS.config.pdfNachtext;
+            if (!cfg.pdfFooter) cfg.pdfFooter = DEFAULTS.config.pdfFooter;
 
             if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
                 cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
@@ -865,10 +887,17 @@
             initialWasser = [{id: Date.now()+2, name: savedKitchen.quookerName || "", val: savedKitchen.quooker || ""}];
         }
 
+        // Migration Berater Name -> ID in der Küchen-Kalkulation
+        let savedBeraterId = savedKitchen.beraterId || "";
+        if (!savedBeraterId && savedKitchen.berater) {
+            const foundBerater = (window.config.beraterList || []).find(b => b.name === savedKitchen.berater);
+            if (foundBerater) savedBeraterId = foundBerater.id;
+        }
+
         window.kitchen = { 
             offerId: savedKitchen.offerId || null,
             kunde: savedKitchen.kunde || "",
-            berater: savedKitchen.berater || "",
+            beraterId: savedBeraterId,
             front1: savedKitchen.front1 || "", 
             front2: savedKitchen.front2 || "", 
             griff: savedKitchen.griff || "",
@@ -923,6 +952,28 @@
                 window.config[key] = value;
             }
             window.markLocalUpdate();
+        };
+
+        // --- BERATER VERWALTUNG ---
+        window.addBerater = () => {
+            window.config.beraterList = window.config.beraterList || [];
+            window.config.beraterList.push({ id: Date.now(), name: "", email: "", phone: "" });
+            window.markLocalUpdate();
+            window.render();
+        };
+
+        window.updateBerater = (id, field, val) => {
+            const b = (window.config.beraterList || []).find(x => x.id === id);
+            if (b) {
+                b[field] = val;
+                window.markLocalUpdate();
+            }
+        };
+
+        window.removeBerater = (id) => {
+            window.config.beraterList = (window.config.beraterList || []).filter(x => x.id !== id);
+            window.markLocalUpdate();
+            window.render();
         };
 
         window.setFilter = (type) => {
@@ -1076,7 +1127,7 @@
             const offerData = {
                 id: offerId,
                 kunde: window.kitchen.kunde.trim(),
-                berater: window.kitchen.berater || "",
+                beraterId: window.kitchen.beraterId || "", // ID speichern
                 timestamp: Date.now(),
                 totalVK: totalVK,
                 kitchen: window.kitchen,
@@ -1129,7 +1180,7 @@
             if(!confirm(`Möchtest du das Angebot für "${kundeName}" unwiderruflich aus der Cloud löschen?`)) return;
             try {
                 await deleteDoc(doc(db, 'artifacts', internalAppId, 'public', 'data', 'offers', id));
-                if (window.kitchen.offerId === id) window.kitchen.offerId = null; // Decouple if loaded
+                if (window.kitchen.offerId === id) window.kitchen.offerId = null; 
                 showAlert("Angebot gelöscht.");
             } catch(e) {
                 console.error(e);
@@ -1158,23 +1209,24 @@
 
             const filterSelect = document.getElementById('offer-berater-filter');
             if (filterSelect && filterSelect.options.length <= 1) {
-                const beraterList = window.config.beraterList ? window.config.beraterList.split(',').map(b => b.trim()).filter(b => b) : [];
+                const beraterList = window.config.beraterList || [];
                 filterSelect.innerHTML = `<option value="all">Alle Berater</option>` + 
-                    beraterList.map(b => `<option value="${b}">${b}</option>`).join('');
-                filterSelect.value = filterBerater; // Restore value
+                    beraterList.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+                filterSelect.value = filterBerater; 
             }
 
             if (!container) return;
 
             let filtered = window.offers.filter(o => {
-                if (filterBerater !== "all" && o.berater !== filterBerater) return false;
+                let matchId = String(o.beraterId || (o.kitchen && o.kitchen.beraterId) || "");
+                if (filterBerater !== "all" && matchId !== String(filterBerater)) return false;
                 if (searchVal && !o.kunde.toLowerCase().includes(searchVal)) return false;
                 return true;
             });
 
             filtered.sort((a, b) => {
                 if (sortVal === 'newest') return b.timestamp - a.timestamp;
-                if (sortVal === 'berater') return (a.berater || "").localeCompare(b.berater || "");
+                if (sortVal === 'berater') return String(a.beraterId || "").localeCompare(String(b.beraterId || ""));
                 return 0;
             });
 
@@ -1184,6 +1236,15 @@
             }
 
             container.innerHTML = filtered.map(o => {
+                let bName = 'Ohne Berater';
+                let oBeraterId = o.beraterId || (o.kitchen && o.kitchen.beraterId);
+                if (oBeraterId) {
+                    const bObj = (window.config.beraterList || []).find(x => String(x.id) === String(oBeraterId));
+                    if (bObj) bName = bObj.name;
+                } else if (o.berater) {
+                    bName = o.berater; // Fallback für alte DB-Einträge
+                }
+
                 const date = new Date(o.timestamp).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute:'2-digit' });
                 const money = new Intl.NumberFormat('de-DE', { style: 'currency', currency: 'EUR' }).format(o.totalVK || 0);
                 return `
@@ -1196,7 +1257,7 @@
                             <div class="flex items-center gap-3 text-[10px] uppercase font-bold text-slate-400 tracking-widest">
                                 <span>${date}</span>
                                 <span>•</span>
-                                <span class="text-blue-500">${o.berater || 'Ohne Berater'}</span>
+                                <span class="text-blue-500">${bName}</span>
                             </div>
                         </div>
                         <div class="flex items-center gap-4 w-full md:w-auto">
@@ -1819,7 +1880,7 @@
             window.kitchen = { 
                 offerId: null,
                 kunde: "",
-                berater: window.kitchen.berater || "", 
+                beraterId: window.kitchen.beraterId || "", 
                 front1: "", front2: "", griff: "", apName: "", 
                 hauspreis: "",
                 ekMoebel: "", 
@@ -1875,11 +1936,11 @@
             // Render Berater Dropdown
             const beraterSelect = document.getElementById('k-berater');
             if (beraterSelect) {
-                const beraterList = window.config.beraterList ? window.config.beraterList.split(',').map(b => b.trim()).filter(b => b) : [];
-                const currentVal = window.kitchen.berater || "";
+                const beraterList = window.config.beraterList || [];
+                const currentVal = window.kitchen.beraterId || "";
                 
                 beraterSelect.innerHTML = `<option value="">-- Bitte wählen --</option>` + 
-                    beraterList.map(b => `<option value="${b}" ${b === currentVal ? 'selected' : ''}>${b}</option>`).join('');
+                    beraterList.map(b => `<option value="${b.id}" ${String(b.id) === String(currentVal) ? 'selected' : ''}>${b.name}</option>`).join('');
             }
 
             const geraeteContainer = document.getElementById('geraete-container');
@@ -2105,9 +2166,34 @@
                         alignment: 'right'
                     });
                 }
+                
+                // Berater-Details für das PDF laden
+                const beraterObj = (window.config.beraterList || []).find(b => String(b.id) === String(k.beraterId));
+                let beraterBlock = { text: '', margin: [0,0,0,0] };
+                if (beraterObj && beraterObj.name) {
+                    let details = [];
+                    if (beraterObj.phone) details.push(`Tel: ${beraterObj.phone}`);
+                    if (beraterObj.email) details.push(`E-Mail: ${beraterObj.email}`);
+                    
+                    let beraterText = [ { text: `Ihr Berater: ${beraterObj.name}`, italics: true } ];
+                    if (details.length > 0) {
+                        beraterText.push({ text: `\n${details.join(' | ')}`, fontSize: 9, italics: false });
+                    }
+                    beraterBlock = { text: beraterText, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b' };
+                }
 
                 const docDefinition = {
                     info: { title: 'Küchenangebot', author: 'LithoScale PRO' },
+                    pageMargins: [40, 40, 40, 80],
+                    footer: function(currentPage, pageCount) {
+                        return {
+                            text: window.config.pdfFooter || '',
+                            alignment: 'center',
+                            fontSize: 8,
+                            color: '#94a3b8',
+                            margin: [40, 20, 40, 0]
+                        };
+                    },
                     content: [
                         { columns: headerColumns, margin: [0, 0, 0, 15] },
                         
@@ -2115,9 +2201,7 @@
                             ? { text: `Projekt / Kommission: ${k.kunde}`, margin: [0, 0, 0, 15], fontSize: 12, bold: true, color: '#2563eb' }
                             : { text: 'Ihre neue Traumküche', margin: [0, 0, 0, 15], color: '#64748b' },
                             
-                        k.berater && k.berater.trim() !== '' 
-                            ? { text: `Ihr Berater: ${k.berater}`, margin: [0, -10, 0, 15], fontSize: 10, color: '#64748b', italics: true }
-                            : { text: '', margin: [0,0,0,0] },
+                        beraterBlock,
                         
                         k.optKuechenText && window.config.pdfKuechenText ? { 
                             text: window.config.pdfKuechenText, 
@@ -2353,16 +2437,6 @@
                             class="input-field text-sm font-mono">
                     </div>
                 `).join('');
-                
-                fieldsContainer.innerHTML += `
-                    <div class="col-span-full mt-4 border-t dark:border-darkBorder pt-4">
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Berater (Kommagetrennt)</label>
-                        <input type="text" value="${window.config.beraterList || ''}" 
-                            oninput="window.updateConfig('beraterList', this.value, false)" 
-                            class="input-field text-sm" placeholder="Max Müller, Lisa Schmidt">
-                        <p class="text-[9px] text-slate-400 mt-1">Diese Namen erscheinen im Dropdown bei der Küchen-Kalkulation.</p>
-                    </div>
-                `;
             }
 
             const kitchenFieldsContainer = document.getElementById('admin-kitchen-fields');
@@ -2393,7 +2467,24 @@
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Nachtext / Verabschiedung</label>
                         <textarea oninput="window.updateConfig('pdfNachtext', this.value, false)" class="input-field text-sm min-h-[80px] resize-y">${window.config.pdfNachtext}</textarea>
                     </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Fußzeile (Firmenangaben)</label>
+                        <textarea oninput="window.updateConfig('pdfFooter', this.value, false)" class="input-field text-sm min-h-[80px] resize-y" placeholder="Firmenname | Straße | Ort...">${window.config.pdfFooter}</textarea>
+                        <p class="text-[9px] text-slate-400 mt-1">Erscheint auf jeder PDF-Seite ganz unten zentriert.</p>
+                    </div>
                 `;
+            }
+
+            const beraterFieldsContainer = document.getElementById('admin-berater-fields');
+            if (beraterFieldsContainer) {
+                beraterFieldsContainer.innerHTML = (window.config.beraterList || []).map(b => `
+                    <div class="flex flex-col sm:flex-row items-center gap-2 p-3 bg-slate-50 dark:bg-black rounded-xl border dark:border-darkBorder group transition-all hover:border-slate-300 dark:hover:border-slate-700">
+                        <input type="text" value="${b.name}" oninput="window.updateBerater(${b.id}, 'name', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Name">
+                        <input type="text" value="${b.email}" oninput="window.updateBerater(${b.id}, 'email', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="E-Mail">
+                        <input type="text" value="${b.phone}" oninput="window.updateBerater(${b.id}, 'phone', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="Telefon">
+                        <button onclick="window.removeBerater(${b.id})" class="text-red-500 px-3 py-2 font-bold hover:scale-110 active:scale-90 transition-transform">✕</button>
+                    </div>
+                `).join('');
             }
 
             const tableContainer = document.getElementById('admin-table');

@@ -371,8 +371,13 @@
                             </div>
                             <div>
                                 <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Front 2</label>
-                                <input type="text" id="k-front2" oninput="window.updateKitchen('front2', this.value)" class="input-field text-sm" placeholder="Entfällt">
+                                <input type="text" id="k-front2" oninput="window.updateKitchen('front2', this.value)" class="input-field text-sm" placeholder="Optional">
                             </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="text-[10px] font-black text-slate-500 uppercase block mb-1">Griffausführung / Griffleiste</label>
+                            <input type="text" id="k-griff" oninput="window.updateKitchen('griff', this.value)" class="input-field text-sm" placeholder="Ausführung (z.B. grifflos, Edelstahl)">
                         </div>
 
                         <div class="border-t dark:border-darkBorder pt-5">
@@ -866,6 +871,7 @@
             berater: savedKitchen.berater || "",
             front1: savedKitchen.front1 || "", 
             front2: savedKitchen.front2 || "", 
+            griff: savedKitchen.griff || "",
             apName: savedKitchen.apName || "", 
             hauspreis: savedKitchen.hauspreis || "",
             ekMoebel: savedKitchen.ekMoebel || "", 
@@ -1814,7 +1820,7 @@
                 offerId: null,
                 kunde: "",
                 berater: window.kitchen.berater || "", 
-                front1: "", front2: "", apName: "", 
+                front1: "", front2: "", griff: "", apName: "", 
                 hauspreis: "",
                 ekMoebel: "", 
                 rabattMoebel: "",
@@ -1969,6 +1975,7 @@
             setVal('k-kunde', window.kitchen.kunde);
             setVal('k-front1', window.kitchen.front1);
             setVal('k-front2', window.kitchen.front2);
+            setVal('k-griff', window.kitchen.griff);
             setVal('k-apName', window.kitchen.apName);
             setVal('k-hauspreis', window.kitchen.hauspreis);
             
@@ -2126,12 +2133,18 @@
                                 { text: k.front1 || 'Nicht definiert' }
                             ], margin: [0, 0, 0, 4]
                         },
-                        { 
+                        (k.front2 && k.front2.trim() !== '') ? { 
                             columns: [
                                 { text: 'Front 2:', width: 100, bold: true },
-                                { text: k.front2 || 'Entfällt' }
+                                { text: k.front2 }
                             ], margin: [0, 0, 0, 4]
-                        },
+                        } : { text: '', margin: [0, 0, 0, 0] },
+                        (k.griff && k.griff.trim() !== '') ? { 
+                            columns: [
+                                { text: 'Griffausführung:', width: 100, bold: true },
+                                { text: k.griff }
+                            ], margin: [0, 0, 0, 4]
+                        } : { text: '', margin: [0, 0, 0, 0] },
                         { 
                             columns: [
                                 { text: 'Arbeitsplatte:', width: 100, bold: true },

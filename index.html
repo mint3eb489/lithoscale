@@ -1526,6 +1526,255 @@
             window.animateValue('stickyVK', res.vk);
         };
 
+        window.saveStat = (btnId) => {
+            const sel = document.getElementById('stoneSelect');
+            if (!sel) return;
+            const stone = window.stones.find(s => s.id === sel.value);
+            if (!stone) return;
+
+            const res = window.calculateForStone(stone);
+            if (res.vk <= 0) return; 
+
+            const type = stone.isDekton ? 'dekton' : 'natur';
+            
+            if (!window.config.stats) window.config.stats = { dekton: [], natur: [] };
+            if (!window.config.stats[type]) window.config.stats[type] = [];
+
+            window.config.stats[type].push(res.vk);
+            if (window.config.stats[type].length > 10) window.config.stats[type].shift();
+
+            window.markLocalUpdate();
+            window.pushToCloud(true); 
+            window.render();
+
+            const btn = document.getElementById(btnId);
+            const originalHtml = btn.innerHTML;
+            
+            btn.innerHTML = `<svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Übernommen!`;
+            btn.classList.add('bg-green-500', 'text-white', 'border-green-500');
+            btn.classList.remove('text-slate-500', 'border-slate-200', 'dark:border-darkBorder', 'hover:bg-slate-50', 'dark:hover:bg-white/5');
+            
+            setTimeout(() => {
+                btn.innerHTML = originalHtml;
+                btn.classList.remove('bg-green-500', 'text-white', 'border-green-500');
+                btn.classList.add('text-slate-500', 'border-slate-200', 'dark:border-darkBorder', 'hover:bg-slate-50', 'dark:hover:bg-white/5');
+            }, 2500);
+        };
+
+        window.toggleService = (service) => {
+            activeServices[service] = !activeServices[service];
+            document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
+                btn.className = activeServices[service] 
+                    ? `btn-srv-${service} flex-1 py-3 px-2 border border-blue-500 rounded-xl text-[10px] font-bold text-blue-500 uppercase bg-blue-500/10 shadow-inner transition-all active:scale-95`
+                    : `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
+            });
+            window.calculate();
+        };
+
+        window.toggleGlue = () => {
+            const cb = document.getElementById('gluingCheck');
+            const lbl = document.getElementById('gluingLabel');
+            lbl.className = cb.checked ? 'flex items-center justify-center border-2 border-blue-500 rounded-xl cursor-pointer bg-blue-500/10 text-blue-500 h-full py-2.5 shadow-inner active:scale-[0.98]' : 'flex items-center justify-center border-2 border-dashed rounded-xl cursor-pointer hover:bg-slate-100 dark:hover:bg-white/5 border-slate-200 dark:border-darkBorder h-full py-2.5 active:scale-[0.98]';
+            window.calculate();
+        };
+
+        window.updateCounter = (id, d) => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.innerText = Math.max(0, parseInt(el.innerText) + d);
+                window.calculate();
+            }
+        };
+
+        window.resetCalculator = () => {
+            window.parts = JSON.parse(JSON.stringify(defaultParts));
+            window.saveParts();
+            window.renderParts();
+            
+            document.getElementById('miterInput').value = '';
+            document.getElementById('flushCount').innerText = '0';
+            document.getElementById('underCount').innerText = '0';
+            document.getElementById('topCount').innerText = '0';
+            document.getElementById('notchCount').innerText = '0';
+            document.getElementById('holeCount').innerText = '0';
+            document.getElementById('gluingCheck').checked = false;
+            
+            activeServices.measure = false;
+            activeServices.delivery = false;
+            ['measure', 'delivery'].forEach(service => {
+                document.querySelectorAll(`.btn-srv-${service}`).forEach(btn => {
+                    btn.className = `btn-srv-${service} flex-1 py-3 px-2 border border-slate-700 rounded-xl text-[10px] font-bold text-slate-400 uppercase hover:bg-white/5 transition-all active:scale-95`;
+                });
+            });
+            
+            window.toggleGlue();
+            window.calculate();
+        };
+
+        window.saveKitchen = () => localStorage.setItem('ls_kitchen', JSON.stringify(window.kitchen));
+
+        window.updateKitchen = (field, value, id = null) => {
+            if (id !== null) {
+                const mieleItem = (window.kitchen.miele || []).find(m => m.id === id);
+                if (mieleItem) {
+                    if (field === 'mieleName') mieleItem.name = value;
+                    if (field === 'mieleVal') mieleItem.val = value;
+                }
+                const geraeteItem = (window.kitchen.geraete || []).find(g => g.id === id);
+                if (geraeteItem) {
+                    if (field === 'geraeteName') geraeteItem.name = value;
+                    if (field === 'geraeteVal') geraeteItem.val = value;
+                }
+                const spueleItem = (window.kitchen.spuele || []).find(s => s.id === id);
+                if (spueleItem) {
+                    if (field === 'spueleName') spueleItem.name = value;
+                    if (field === 'spueleVal') spueleItem.val = value;
+                }
+                const wasserItem = (window.kitchen.wasser || []).find(w => w.id === id);
+                if (wasserItem) {
+                    if (field === 'wasserName') wasserItem.name = value;
+                    if (field === 'wasserVal') wasserItem.val = value;
+                }
+                const mpItem = (window.kitchen.mehrpreise || []).find(m => m.id === id);
+                if (mpItem) {
+                    if (field === 'mehrpreisName') mpItem.name = value;
+                    if (field === 'mehrpreisVal') mpItem.val = value;
+                }
+            } else {
+                if (field === 'rabattMoebel') {
+                    let num = parseFloat(value.replace(',', '.'));
+                    if (num > 5) {
+                        value = "5";
+                        const el = document.getElementById('k-rabatt');
+                        if (el) el.value = value;
+                        showAlert("Möbel-Rabatt ist auf maximal 5% begrenzt.");
+                    }
+                }
+                if (field === 'rabattMiele') {
+                    let num = parseFloat(value.replace(',', '.'));
+                    if (num > 3) {
+                        value = "3";
+                        const el = document.getElementById('k-rabatt-miele');
+                        if (el) el.value = value;
+                        showAlert("Miele-Rabatt ist auf maximal 3% begrenzt.");
+                    }
+                }
+                window.kitchen[field] = value;
+            }
+            window.saveKitchen();
+            window.calcKitchen();
+        };
+
+        window.appendZubehoer = (text) => {
+            let current = (window.kitchen.zubehoer || '').trim();
+            let newText = current.length > 0 ? current + '\n' + text : text;
+            window.kitchen.zubehoer = newText;
+            window.saveKitchen();
+            
+            const textarea = document.getElementById('k-zubehoer');
+            if (textarea) textarea.value = newText;
+            
+            window.calcKitchen();
+        };
+
+        window.addMiele = () => {
+            window.kitchen.miele = window.kitchen.miele || [];
+            window.kitchen.miele.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeMiele = (id) => {
+            window.kitchen.miele = (window.kitchen.miele || []).filter(m => m.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        window.addGeraet = () => {
+            window.kitchen.geraete = window.kitchen.geraete || [];
+            window.kitchen.geraete.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeGeraet = (id) => {
+            window.kitchen.geraete = (window.kitchen.geraete || []).filter(g => g.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        window.addSpuele = () => {
+            window.kitchen.spuele = window.kitchen.spuele || [];
+            window.kitchen.spuele.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeSpuele = (id) => {
+            window.kitchen.spuele = (window.kitchen.spuele || []).filter(s => s.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        window.addWasser = () => {
+            window.kitchen.wasser = window.kitchen.wasser || [];
+            window.kitchen.wasser.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeWasser = (id) => {
+            window.kitchen.wasser = (window.kitchen.wasser || []).filter(w => w.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+            window.calcKitchen();
+        };
+
+        window.addMehrpreis = () => {
+            window.kitchen.mehrpreise = window.kitchen.mehrpreise || [];
+            window.kitchen.mehrpreise.push({id: Date.now(), name: "", val: ""});
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+        window.removeMehrpreis = (id) => {
+            window.kitchen.mehrpreise = (window.kitchen.mehrpreise || []).filter(m => m.id !== id);
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+
+        window.pullStein = () => {
+            if (window.currentStoneVK > 0) {
+                window.kitchen.steinVK = window.currentStoneVK.toFixed(2).replace('.', ',');
+                window.kitchen.apName = window.currentStoneName;
+                window.saveKitchen();
+                window.renderKitchen();
+            } else {
+                showAlert("Kein Stein kalkuliert!");
+            }
+        };
+
+        window.resetKitchen = () => {
+            if(!confirm("Küchenkalkulation leeren?")) return;
+            window.kitchen = { 
+                offerId: null,
+                kunde: "",
+                beraterId: window.kitchen.beraterId || "", 
+                front1: "", front2: "", griff: "", apName: "", 
+                hauspreis: "",
+                ekMoebel: "", 
+                rabattMoebel: "",
+                rabattMiele: "",
+                geraete: [{id: Date.now(), name: "", val: ""}],
+                miele: [{id: Date.now()+1, name: "", val: ""}], 
+                spuele: [{id: Date.now()+3, name: "", val: ""}],
+                wasser: [{id: Date.now()+2, name: "", val: ""}],
+                mehrpreise: [{id: Date.now()+4, name: "", val: ""}],
+                steinVK: "", zubehoer: "",
+                optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
+            };
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+
         window.calcKitchen = () => {
             const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
             const ekMoebel = parseVal(window.kitchen.ekMoebel);

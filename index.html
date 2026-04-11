@@ -9,7 +9,6 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -42,13 +41,10 @@
         .tab-btn { padding: 0.8rem 1rem; font-weight: 700; font-size: 0.85rem; border-radius: 0.8rem; flex: 1; text-align: center; transition: all 0.2s; }
         .active-tab { background: #1a1a1a; color: white; }
         .dark .active-tab { background: #ffffff; color: #000000; }
-        
         .badge-dekton { background: #ef4444; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
         .badge-natur { background: #10b981; color: white; padding: 2px 8px; border-radius: 6px; font-size: 10px; font-weight: 900; }
-
         .modal-fade { animation: fadeIn 0.2s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
-        
         .font-mono-tabular { font-variant-numeric: tabular-nums; }
         .pb-safe { padding-bottom: env(safe-area-inset-bottom); }
     </style>
@@ -70,7 +66,7 @@
                 <div id="status-icon" class="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></div>
             </div>
             <div id="error-display" class="hidden text-[8px] text-red-500 bg-red-500/10 p-2 px-3 rounded-lg border border-red-500/20 max-w-[250px] text-right"></div>
-            <button id="manual-init-btn" onclick="resetAndForceSync()" class="hidden text-[8px] bg-blue-600 text-white p-2 px-3 rounded-xl mt-1 uppercase font-black shadow-lg">Katalog-Reset</button>
+            <button id="manual-init-btn" onclick="window.resetAndForceSync()" class="hidden text-[8px] bg-blue-600 text-white p-2 px-3 rounded-xl mt-1 uppercase font-black shadow-lg">Katalog-Reset</button>
         </div>
 
         <header class="flex flex-col md:flex-row justify-between items-center mb-10 gap-4 mt-8 lg:mt-0">
@@ -99,15 +95,15 @@
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
                     </button>
-                    <button onclick="toggleTheme()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Design wechseln">
+                    <button onclick="window.toggleTheme()" class="p-3 rounded-xl transition-all active:scale-95 text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800" title="Design wechseln">
                         <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
                         <svg id="moonIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                     </button>
                 </div>
                 
                 <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm flex-1">
-                    <button onclick="switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest text-[10px]">Rechner</button>
-                    <button onclick="switchTab('gallery')" id="btn-gallery" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Galerie</button>
+                    <button onclick="window.switchTab('calc')" id="btn-calc" class="tab-btn active-tab uppercase tracking-widest text-[10px]">Rechner</button>
+                    <button onclick="window.switchTab('gallery')" id="btn-gallery" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Galerie</button>
                 </div>
             </div>
         </header>
@@ -151,7 +147,6 @@
                                 </div>
                                 <button onclick="window.addPart()" class="bg-blue-500 text-white shadow-md hover:scale-105 active:scale-95 transition-all w-8 h-8 rounded-xl flex items-center justify-center font-black pb-0.5 hidden md:flex" title="Neue Platte hinzufügen">+</button>
                             </div>
-                            
                             <div id="parts-container" class="space-y-4"></div>
                         </div>
                     </div>
@@ -311,7 +306,6 @@
 
             <!-- GALERIE TAB -->
             <div id="tab-gallery" class="hidden pb-20 space-y-10 relative">
-                
                 <div id="compare-banner" class="fixed top-24 left-1/2 -translate-x-1/2 bg-blue-600 text-white px-6 py-3 rounded-full shadow-2xl font-bold text-sm z-40 flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none transform -translate-y-4">
                     <span id="compare-count">0/2</span> Steine für Vergleich markiert
                 </div>
@@ -424,7 +418,7 @@
                                 <input type="text" id="k-moebel" inputmode="decimal" oninput="window.updateKitchen('ekMoebel', this.value)" class="input-field font-mono text-lg" placeholder="0,00">
                                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase">€</span>
                             </div>
-                            <p class="text-[9px] text-slate-400 mt-2 font-bold">Wird im Hintergrund × 2 gerechnet (abzgl. Rabatt): <span id="kitchenMoebelVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
+                            <p class="text-[9px] text-slate-400 mt-2 font-bold">Wird im Hintergrund × <span id="moebel-factor-display">2</span> gerechnet (abzgl. Rabatt): <span id="kitchenMoebelVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
                         </div>
 
                         <div class="mb-6 border-t dark:border-darkBorder pt-6">
@@ -822,6 +816,7 @@
                 dekCutUnder: 177, dekCutFlush: 177, dekCutTop: 85,
                 notch: 45, hole: 25,
                 miter: 45, adminPass: "1234",
+                moebelFactor: 2.0,
                 stats: { dekton: [], natur: [] },
                 beraterList: [
                     { id: 1, name: "Max Müller", email: "max@musterfirma.de", phone: "01234 56789" },
@@ -840,7 +835,8 @@
                 importStein: "schellenbaum",
                 importGeraete: "bosch, neff, siemens, berbel, naber",
                 importBlancoChoiceArt1: "527656",
-                importBlancoChoiceArt2: "527660"
+                importBlancoChoiceArt2: "527660",
+                importMoebel: "edition 700, concept130"
             }
         };
 
@@ -850,7 +846,8 @@
             natCutUnder: "UB-Ausschnitt Natur (€/Stk)", natCutFlush: "FB-Ausschnitt Natur (€/Stk)", natCutTop: "Auflage Natur (€/Stk)",
             dekCutUnder: "UB-Ausschnitt Dekton (€/Stk)", dekCutFlush: "FB-Ausschnitt Dekton (€/Stk)", dekCutTop: "Auflage Dekton (€/Stk)",
             notch: "Ausklinkung (€/Stk)", hole: "Bohrung (€/Stk)",
-            miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort"
+            miter: "Gehrung (€/Lfm)", adminPass: "Admin Passwort",
+            moebelFactor: "Möbel-Faktor (VK)"
         };
 
         const migrateConfig = (cfg) => {
@@ -903,6 +900,8 @@
             if (cfg.importGeraete === undefined) cfg.importGeraete = DEFAULTS.config.importGeraete;
             if (cfg.importBlancoChoiceArt1 === undefined) cfg.importBlancoChoiceArt1 = DEFAULTS.config.importBlancoChoiceArt1;
             if (cfg.importBlancoChoiceArt2 === undefined) cfg.importBlancoChoiceArt2 = DEFAULTS.config.importBlancoChoiceArt2;
+            if (cfg.importMoebel === undefined) cfg.importMoebel = DEFAULTS.config.importMoebel;
+            if (cfg.moebelFactor === undefined) cfg.moebelFactor = DEFAULTS.config.moebelFactor;
 
             if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
                 cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
@@ -1643,56 +1642,37 @@
 
         window.saveKitchen = () => localStorage.setItem('ls_kitchen', JSON.stringify(window.kitchen));
 
-        window.updateKitchen = (field, value, id = null) => {
-            if (id !== null) {
-                const mieleItem = (window.kitchen.miele || []).find(m => m.id === id);
-                if (mieleItem) {
-                    if (field === 'mieleName') mieleItem.name = value;
-                    if (field === 'mieleVal') mieleItem.val = value;
+        window.updateKitchen = (field, value) => {
+            if (field === 'rabattMoebel') {
+                let num = parseFloat(value.replace(',', '.'));
+                if (num > 5) {
+                    value = "5";
+                    const el = document.getElementById('k-rabatt');
+                    if (el) el.value = value;
+                    showAlert("Möbel-Rabatt ist auf maximal 5% begrenzt.");
                 }
-                const geraeteItem = (window.kitchen.geraete || []).find(g => g.id === id);
-                if (geraeteItem) {
-                    if (field === 'geraeteName') geraeteItem.name = value;
-                    if (field === 'geraeteVal') geraeteItem.val = value;
-                }
-                const spueleItem = (window.kitchen.spuele || []).find(s => s.id === id);
-                if (spueleItem) {
-                    if (field === 'spueleName') spueleItem.name = value;
-                    if (field === 'spueleVal') spueleItem.val = value;
-                }
-                const wasserItem = (window.kitchen.wasser || []).find(w => w.id === id);
-                if (wasserItem) {
-                    if (field === 'wasserName') wasserItem.name = value;
-                    if (field === 'wasserVal') wasserItem.val = value;
-                }
-                const mpItem = (window.kitchen.mehrpreise || []).find(m => m.id === id);
-                if (mpItem) {
-                    if (field === 'mehrpreisName') mpItem.name = value;
-                    if (field === 'mehrpreisVal') mpItem.val = value;
-                }
-            } else {
-                if (field === 'rabattMoebel') {
-                    let num = parseFloat(value.replace(',', '.'));
-                    if (num > 5) {
-                        value = "5";
-                        const el = document.getElementById('k-rabatt');
-                        if (el) el.value = value;
-                        showAlert("Möbel-Rabatt ist auf maximal 5% begrenzt.");
-                    }
-                }
-                if (field === 'rabattMiele') {
-                    let num = parseFloat(value.replace(',', '.'));
-                    if (num > 3) {
-                        value = "3";
-                        const el = document.getElementById('k-rabatt-miele');
-                        if (el) el.value = value;
-                        showAlert("Miele-Rabatt ist auf maximal 3% begrenzt.");
-                    }
-                }
-                window.kitchen[field] = value;
             }
+            if (field === 'rabattMiele') {
+                let num = parseFloat(value.replace(',', '.'));
+                if (num > 3) {
+                    value = "3";
+                    const el = document.getElementById('k-rabatt-miele');
+                    if (el) el.value = value;
+                    showAlert("Miele-Rabatt ist auf maximal 3% begrenzt.");
+                }
+            }
+            window.kitchen[field] = value;
             window.saveKitchen();
             window.calcKitchen();
+        };
+
+        window.updateKitchenItem = (type, id, field, value) => {
+            const item = (window.kitchen[type] || []).find(x => x.id === id);
+            if (item) {
+                item[field] = value;
+                window.saveKitchen();
+                window.calcKitchen();
+            }
         };
 
         window.appendZubehoer = (text) => {
@@ -1707,75 +1687,35 @@
             window.calcKitchen();
         };
 
-        window.addMiele = () => {
-            window.kitchen.miele = window.kitchen.miele || [];
-            window.kitchen.miele.push({id: Date.now(), name: "", val: ""});
+        window.addKitchenItem = (type, defaultVal = "") => {
+            window.kitchen[type] = window.kitchen[type] || [];
+            window.kitchen[type].push({id: Date.now() + Math.random(), name: "", val: defaultVal});
             window.saveKitchen();
             window.renderKitchen();
         };
-        window.removeMiele = (id) => {
-            window.kitchen.miele = (window.kitchen.miele || []).filter(m => m.id !== id);
+
+        window.removeKitchenItem = (type, id) => {
+            window.kitchen[type] = (window.kitchen[type] || []).filter(item => item.id !== id);
             window.saveKitchen();
             window.renderKitchen();
             window.calcKitchen();
         };
 
-        window.addGeraet = () => {
-            window.kitchen.geraete = window.kitchen.geraete || [];
-            window.kitchen.geraete.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeGeraet = (id) => {
-            window.kitchen.geraete = (window.kitchen.geraete || []).filter(g => g.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        window.addSpuele = () => {
-            window.kitchen.spuele = window.kitchen.spuele || [];
-            window.kitchen.spuele.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeSpuele = (id) => {
-            window.kitchen.spuele = (window.kitchen.spuele || []).filter(s => s.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        window.addWasser = () => {
-            window.kitchen.wasser = window.kitchen.wasser || [];
-            window.kitchen.wasser.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeWasser = (id) => {
-            window.kitchen.wasser = (window.kitchen.wasser || []).filter(w => w.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-            window.calcKitchen();
-        };
-
-        window.addMehrpreis = () => {
-            window.kitchen.mehrpreise = window.kitchen.mehrpreise || [];
-            window.kitchen.mehrpreise.push({id: Date.now(), name: "", val: ""});
-            window.saveKitchen();
-            window.renderKitchen();
-        };
-        window.removeMehrpreis = (id) => {
-            window.kitchen.mehrpreise = (window.kitchen.mehrpreise || []).filter(m => m.id !== id);
-            window.saveKitchen();
-            window.renderKitchen();
-        };
+        window.addMiele = () => window.addKitchenItem('miele');
+        window.removeMiele = (id) => window.removeKitchenItem('miele', id);
+        window.addGeraet = () => window.addKitchenItem('geraete');
+        window.removeGeraet = (id) => window.removeKitchenItem('geraete', id);
+        window.addSpuele = () => window.addKitchenItem('spuele');
+        window.removeSpuele = (id) => window.removeKitchenItem('spuele', id);
+        window.addWasser = () => window.addKitchenItem('wasser');
+        window.removeWasser = (id) => window.removeKitchenItem('wasser', id);
+        window.addMehrpreis = () => window.addKitchenItem('mehrpreise');
+        window.removeMehrpreis = (id) => window.removeKitchenItem('mehrpreise', id);
 
         window.pullStein = () => {
             if (window.currentStoneVK > 0) {
                 window.kitchen.steinVK = window.currentStoneVK.toFixed(2).replace('.', ',');
                 
-                // Falls intern EK benötigt wird, können wir das anpassen. Für jetzt VK ziehen
                 const sel = document.getElementById('stoneSelect');
                 if (sel) {
                     const stone = window.stones.find(s => s.id === sel.value);
@@ -1820,7 +1760,10 @@
             const parseVal = (str) => parseFloat(String(str).replace(',', '.')) || 0;
             const ekMoebel = parseVal(window.kitchen.ekMoebel);
             const rabattMoebel = parseVal(window.kitchen.rabattMoebel);
-            const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+            
+            const moebelFactor = window.config.moebelFactor || 2.0;
+            const vkMoebel = (ekMoebel * moebelFactor) * (1 - (rabattMoebel / 100));
+            
             const vkStein = parseVal(window.kitchen.steinVK);
             
             let sumMieleBrutto = 0;
@@ -1859,85 +1802,31 @@
                     beraterList.map(b => `<option value="${b.id}" ${String(b.id) === String(currentVal) ? 'selected' : ''}>${b.name}</option>`).join('');
             }
 
-            const geraeteContainer = document.getElementById('geraete-container');
-            if(geraeteContainer) {
-                geraeteContainer.innerHTML = (window.kitchen.geraete || []).map((g, i) => `
+            const generateItemListHTML = (items, type, phName, phVal) => {
+                return (items || []).map(item => `
                     <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${g.name}" oninput="window.updateKitchen('geraeteName', this.value, ${g.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Art.-Nr. & Bezeichnung (z.B. Siemens)">
+                        <input type="text" value="${item.name}" oninput="window.updateKitchenItem('${type}', ${item.id}, 'name', this.value)" class="input-field py-2 px-3 text-sm flex-1" placeholder="${phName}">
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${g.val}" oninput="window.updateKitchen('geraeteVal', this.value, ${g.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
+                                <input type="text" inputmode="decimal" value="${item.val}" oninput="window.updateKitchenItem('${type}', ${item.id}, 'val', this.value)" class="input-field py-2 px-3 font-mono text-center" placeholder="${phVal}">
                                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
                             </div>
-                            ${(window.kitchen.geraete || []).length > 1 ? `<button onclick="window.removeGeraet(${g.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
+                            ${(items || []).length > 1 ? `<button onclick="window.removeKitchenItem('${type}', ${item.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
                         </div>
                     </div>
                 `).join('');
-            }
+            };
 
-            const mieleContainer = document.getElementById('miele-container');
-            if(mieleContainer) {
-                mieleContainer.innerHTML = (window.kitchen.miele || []).map((m, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mieleName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Miele Backofen)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mieleVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${(window.kitchen.miele || []).length > 1 ? `<button onclick="window.removeMiele(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            const spueleContainer = document.getElementById('spuele-container');
-            if(spueleContainer) {
-                spueleContainer.innerHTML = (window.kitchen.spuele || []).map((s, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${s.name}" oninput="window.updateKitchen('spueleName', this.value, ${s.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="Bezeichnung (z.B. Blanco Spüle)">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${s.val}" oninput="window.updateKitchen('spueleVal', this.value, ${s.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Optional">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${(window.kitchen.spuele || []).length > 1 ? `<button onclick="window.removeSpuele(${s.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
+            const renderBlock = (containerId, type, phName, phVal) => {
+                const container = document.getElementById(containerId);
+                if (container) container.innerHTML = generateItemListHTML(window.kitchen[type], type, phName, phVal);
+            };
 
-            const wasserContainer = document.getElementById('wasser-container');
-            if(wasserContainer) {
-                wasserContainer.innerHTML = (window.kitchen.wasser || []).map((w, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${w.name}" oninput="window.updateKitchen('wasserName', this.value, ${w.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Quooker Flex PRO3">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${w.val}" oninput="window.updateKitchen('wasserVal', this.value, ${w.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="VK Brutto">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${(window.kitchen.wasser || []).length > 1 ? `<button onclick="window.removeWasser(${w.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
-
-            const mehrpreisContainer = document.getElementById('mehrpreis-container');
-            if (mehrpreisContainer) {
-                mehrpreisContainer.innerHTML = (window.kitchen.mehrpreise || []).map((m, i) => `
-                    <div class="flex flex-col sm:flex-row items-center gap-2 mb-3">
-                        <input type="text" value="${m.name}" oninput="window.updateKitchen('mehrpreisName', this.value, ${m.id})" class="input-field py-2 px-3 text-sm flex-1" placeholder="z.B. Aufpreis für Siemens Backofen HN678G4S6">
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <div class="relative w-full sm:w-32">
-                                <input type="text" inputmode="decimal" value="${m.val}" oninput="window.updateKitchen('mehrpreisVal', this.value, ${m.id})" class="input-field py-2 px-3 font-mono text-center" placeholder="Mehrpreis">
-                                <span class="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
-                            </div>
-                            ${(window.kitchen.mehrpreise || []).length > 1 ? `<button onclick="window.removeMehrpreis(${m.id})" class="text-slate-300 hover:text-red-500 w-10 h-10 shrink-0 flex items-center justify-center rounded-xl hover:bg-red-500/10 font-bold bg-slate-100 dark:bg-white/5 active:scale-95 transition-all">✕</button>` : `<div class="w-10 shrink-0 hidden sm:block"></div>`}
-                        </div>
-                    </div>
-                `).join('');
-            }
+            renderBlock('geraete-container', 'geraete', 'Art.-Nr. & Bezeichnung (z.B. Siemens)', 'Optional');
+            renderBlock('miele-container', 'miele', 'Bezeichnung (z.B. Miele Backofen)', 'VK Brutto');
+            renderBlock('spuele-container', 'spuele', 'Bezeichnung (z.B. Blanco Spüle)', 'Optional');
+            renderBlock('wasser-container', 'wasser', 'z.B. Quooker Flex PRO3', 'VK Brutto');
+            renderBlock('mehrpreis-container', 'mehrpreise', 'z.B. Aufpreis für Siemens Backofen HN678G4S6', 'Mehrpreis');
             
             const setVal = (id, val) => {
                 const el = document.getElementById(id);
@@ -1968,6 +1857,9 @@
             
             setVal('k-stein', window.kitchen.steinVK);
             setVal('k-steinek', window.kitchen.steinEK);
+
+            const factorDisplay = document.getElementById('moebel-factor-display');
+            if (factorDisplay) factorDisplay.innerText = window.config.moebelFactor || 2.0;
 
             window.calcKitchen();
         };
@@ -2012,7 +1904,8 @@
 
                 const ekMoebel = parseVal(k.ekMoebel);
                 const rabattMoebel = parseVal(k.rabattMoebel);
-                const vkMoebel = (ekMoebel * 2) * (1 - (rabattMoebel / 100));
+                const moebelFactor = window.config.moebelFactor || 2.0;
+                const vkMoebel = (ekMoebel * moebelFactor) * (1 - (rabattMoebel / 100));
                 const vkStein = parseVal(k.steinVK);
                 
                 let sumMieleBrutto = 0; 
@@ -2516,7 +2409,6 @@
                         (window.config.importBlancoChoiceArt2 && artStr.includes(window.config.importBlancoChoiceArt2))) {
                         foundBlancoChoice = true;
                     } else {
-                        // Reguläre Spüle: EK wandert in die Möbel, Artikel in die Liste ohne Preis
                         sumMoebelEK += ek;
                         newSpuele.push({ id: Date.now() + Math.random(), name: art, val: "" });
                     }
@@ -2527,6 +2419,8 @@
                     apName = art;
                     apPriceVK = vk; 
                     apPriceEK = ek; 
+                } else if (checkMatch(cat, window.config.importMoebel)) {
+                    sumMoebelEK += ek;
                 } else {
                     sumMoebelEK += ek;
                     
@@ -2719,6 +2613,11 @@
             const importFieldsContainer = document.getElementById('admin-import-fields');
             if (importFieldsContainer) {
                 importFieldsContainer.innerHTML = `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Küchenmöbel (Kataloge)</label>
+                        <input type="text" value="${window.config.importMoebel || ''}" oninput="window.updateConfig('importMoebel', this.value, false)" class="input-field text-sm font-mono">
+                        <p class="text-[9px] text-slate-400 mt-1">Diese Artikel fließen in den Möbel-EK. (Unbekannte Kataloge fließen als Fallback ebenfalls dorthin).</p>
+                    </div>
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Miele-Geräte (Zieht VK-Preis)</label>
                         <input type="text" value="${window.config.importMiele || ''}" oninput="window.updateConfig('importMiele', this.value, false)" class="input-field text-sm font-mono">

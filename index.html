@@ -608,9 +608,10 @@
                     </div>
                 </div>
                 
-                <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm w-full md:w-auto md:inline-flex">
-                    <button onclick="window.switchAdminTab('admin-litho')" id="btn-admin-litho" class="tab-btn active-tab uppercase tracking-widest text-[10px]">LithoScale</button>
-                    <button onclick="window.switchAdminTab('admin-kitchen')" id="btn-admin-kitchen" class="tab-btn inactive-tab uppercase tracking-widest text-[10px]">Küchen-Texte (PDF)</button>
+                <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm w-full md:w-auto overflow-x-auto">
+                    <button onclick="window.switchAdminTab('admin-litho')" id="btn-admin-litho" class="tab-btn active-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap">LithoScale</button>
+                    <button onclick="window.switchAdminTab('admin-kitchen')" id="btn-admin-kitchen" class="tab-btn inactive-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap">Küchen-Texte</button>
+                    <button onclick="window.switchAdminTab('admin-import')" id="btn-admin-import" class="tab-btn inactive-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap">CARAT Import</button>
                 </div>
 
                 <div id="admin-litho" class="grid grid-cols-1 md:grid-cols-2 gap-6 items-stretch">
@@ -637,6 +638,14 @@
                         <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Berater-Team</h3>
                         <div id="admin-berater-fields" class="space-y-3"></div>
                         <button onclick="window.addBerater()" class="mt-4 bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 px-4 py-2 rounded-lg text-xs font-bold transition-colors">+ Berater hinzufügen</button>
+                    </div>
+                </div>
+
+                <div id="admin-import" class="hidden grid grid-cols-1 gap-6 items-stretch">
+                    <div class="card p-6">
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Regeln für den CARAT-Import (Excel/CSV)</h3>
+                        <p class="text-xs text-slate-500 mb-6">Trage hier kommagetrennt die Katalog- oder Herstellernamen ein, nach denen in der Spalte gesucht werden soll (z. B. <span class="font-bold">bosch, neff</span>). Groß-/Kleinschreibung wird dabei automatisch ignoriert. Alle Zeilen, die auf <span class="font-bold text-red-500">keine</span> der untenstehenden Regeln zutreffen, fließen automatisch addiert in den Möbel-EK.</p>
+                        <div id="admin-import-fields" class="space-y-5"></div>
                     </div>
                 </div>
 
@@ -819,7 +828,12 @@
                 pdfAnschlussText: "Die Anschlüsse für Wasser und Elektro werden separat in Höhe von 240,- EUR mit unserem zertifizierten Monteur vor Ort abgerechnet.",
                 pdfAnschlussRabattText: "Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.",
                 pdfNachtext: "Wir hoffen, unser Angebot sagt Ihnen zu und stehen für Rückfragen jederzeit gerne zur Verfügung.",
-                pdfFooter: "Musterfirma GmbH | Musterstraße 1 | 12345 Musterstadt\nTelefon: 01234 56789 | E-Mail: info@musterfirma.de | Web: www.musterfirma.de"
+                pdfFooter: "Musterfirma GmbH | Musterstraße 1 | 12345 Musterstadt\nTelefon: 01234 56789 | E-Mail: info@musterfirma.de | Web: www.musterfirma.de",
+                importMiele: "miele, miele class",
+                importSpuele: "blanco, systemceram",
+                importWasser: "quooker",
+                importStein: "schellenbaum",
+                importGeraete: "bosch, neff, siemens, berbel, naber"
             }
         };
 
@@ -874,6 +888,12 @@
             if (!cfg.pdfAnschlussRabattText) cfg.pdfAnschlussRabattText = DEFAULTS.config.pdfAnschlussRabattText;
             if (!cfg.pdfNachtext) cfg.pdfNachtext = DEFAULTS.config.pdfNachtext;
             if (!cfg.pdfFooter) cfg.pdfFooter = DEFAULTS.config.pdfFooter;
+            
+            if (cfg.importMiele === undefined) cfg.importMiele = DEFAULTS.config.importMiele;
+            if (cfg.importSpuele === undefined) cfg.importSpuele = DEFAULTS.config.importSpuele;
+            if (cfg.importWasser === undefined) cfg.importWasser = DEFAULTS.config.importWasser;
+            if (cfg.importStein === undefined) cfg.importStein = DEFAULTS.config.importStein;
+            if (cfg.importGeraete === undefined) cfg.importGeraete = DEFAULTS.config.importGeraete;
 
             if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
                 cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
@@ -2205,8 +2225,10 @@
             window.activeAdminTab = t;
             document.getElementById('admin-litho').classList.toggle('hidden', t !== 'admin-litho');
             document.getElementById('admin-kitchen').classList.toggle('hidden', t !== 'admin-kitchen');
-            document.getElementById('btn-admin-litho').className = t === 'admin-litho' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
-            document.getElementById('btn-admin-kitchen').className = t === 'admin-kitchen' ? 'tab-btn active-tab uppercase tracking-widest text-[10px]' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px]';
+            document.getElementById('admin-import').classList.toggle('hidden', t !== 'admin-import');
+            document.getElementById('btn-admin-litho').className = t === 'admin-litho' ? 'tab-btn active-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap';
+            document.getElementById('btn-admin-kitchen').className = t === 'admin-kitchen' ? 'tab-btn active-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap';
+            document.getElementById('btn-admin-import').className = t === 'admin-import' ? 'tab-btn active-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap' : 'tab-btn inactive-tab uppercase tracking-widest text-[10px] shrink-0 whitespace-nowrap';
         };
 
         window.switchTab = (t) => {
@@ -2380,8 +2402,6 @@
                     const workbook = window.XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     
-                    // header: 1 zwingt SheetJS dazu, ein rohes Array von Arrays zurückzugeben
-                    // So umgehen wir störende Info-Texte in den obersten Excel-Zeilen
                     const rows = window.XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                     
                     window.processCaratData(rows);
@@ -2411,10 +2431,15 @@
                 return parseFloat(String(val).replace(/\./g, '').replace(',', '.')) || 0;
             };
 
+            const checkMatch = (val, configStr) => {
+                if (!configStr) return false;
+                const rules = configStr.split(',').map(s => s.trim().toLowerCase()).filter(s => s !== '');
+                return rules.some(rule => val.includes(rule));
+            };
+
             let colCat = -1, colArt = -1, colEk = -1, colVk = -1;
             let startRow = -1;
 
-            // 1. Überschriften-Zeile dynamisch suchen
             for (let i = 0; i < rowsAsArrays.length; i++) {
                 const row = rowsAsArrays[i];
                 if (!Array.isArray(row)) continue;
@@ -2442,7 +2467,6 @@
 
             let itemsCount = 0;
 
-            // 2. Daten auslesen (ab der Zeile unter den Überschriften)
             for (let i = startRow; i < rowsAsArrays.length; i++) {
                 const row = rowsAsArrays[i];
                 if (!row || !Array.isArray(row)) continue;
@@ -2452,27 +2476,24 @@
                 const ek = colEk > -1 ? parseNum(row[colEk]) : 0;
                 const vk = colVk > -1 ? parseNum(row[colVk]) : 0;
 
-                // Leerzeilen überspringen
                 if (!cat && !art && ek === 0 && vk === 0) continue;
-
-                // NEU: Katalog "Lager" komplett ignorieren
                 if (cat.includes('lager')) continue;
 
                 itemsCount++;
 
-                if (cat.includes('miele')) {
+                if (checkMatch(cat, window.config.importMiele)) {
                     newMiele.push({ id: Date.now() + Math.random(), name: art, val: vk || "" });
-                } else if (cat.includes('blanco') || cat.includes('systemceram')) {
+                } else if (checkMatch(cat, window.config.importSpuele)) {
                     newSpuele.push({ id: Date.now() + Math.random(), name: art, val: "" });
-                } else if (cat.includes('quooker')) {
+                } else if (checkMatch(cat, window.config.importWasser)) {
                     newWasser.push({ id: Date.now() + Math.random(), name: art, val: "3000" });
-                } else if (cat.includes('schellenbaum')) {
+                } else if (checkMatch(cat, window.config.importStein)) {
                     apName = art;
                     apPrice = ek; 
                 } else {
                     sumMoebelEK += ek;
                     
-                    if (cat.includes('bosch') || cat.includes('neff') || cat.includes('siemens') || cat.includes('berbel') || cat.includes('naber')) {
+                    if (checkMatch(cat, window.config.importGeraete)) {
                         newGeraete.push({ id: Date.now() + Math.random(), name: art, val: "" });
                     }
                 }
@@ -2496,8 +2517,6 @@
             }
 
             window.saveKitchen();
-            
-            // Tab neu laden, um die Kalkulation und UI sicher auszulösen
             window.switchTab('kitchen');
             
             showAlert(`Erfolg: ${itemsCount} Artikel geprüft und eingelesen!`);
@@ -2608,7 +2627,7 @@
             const fieldsContainer = document.getElementById('admin-fields');
             if (fieldsContainer) {
                 fieldsContainer.innerHTML = Object.keys(window.config)
-                    .filter(k => k !== 'stats' && !k.startsWith('pdf') && k !== 'beraterList')
+                    .filter(k => k !== 'stats' && !k.startsWith('pdf') && k !== 'beraterList' && !k.startsWith('import'))
                     .map(k => `
                     <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">${configLabels[k] || k}</label>
@@ -2651,6 +2670,33 @@
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Fußzeile (Firmenangaben)</label>
                         <textarea oninput="window.updateConfig('pdfFooter', this.value, false)" class="input-field text-sm min-h-[80px] resize-y" placeholder="Firmenname | Straße | Ort...">${window.config.pdfFooter}</textarea>
                         <p class="text-[9px] text-slate-400 mt-1">Erscheint auf jeder PDF-Seite ganz unten zentriert.</p>
+                    </div>
+                `;
+            }
+
+            const importFieldsContainer = document.getElementById('admin-import-fields');
+            if (importFieldsContainer) {
+                importFieldsContainer.innerHTML = `
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Miele-Geräte (Zieht VK-Preis)</label>
+                        <input type="text" value="${window.config.importMiele || ''}" oninput="window.updateConfig('importMiele', this.value, false)" class="input-field text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Spülen (Zieht keinen Preis)</label>
+                        <input type="text" value="${window.config.importSpuele || ''}" oninput="window.updateConfig('importSpuele', this.value, false)" class="input-field text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Wasseraufbereitung (Setzt VK auf 3000,- €)</label>
+                        <input type="text" value="${window.config.importWasser || ''}" oninput="window.updateConfig('importWasser', this.value, false)" class="input-field text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Allgemeine Elektrogeräte (Listet Geräte ohne Preis auf)</label>
+                        <input type="text" value="${window.config.importGeraete || ''}" oninput="window.updateConfig('importGeraete', this.value, false)" class="input-field text-sm font-mono">
+                        <p class="text-[9px] text-slate-400 mt-1">Hinweis: Die EK-Preise dieser Kataloge fließen automatisch in die Summe des Möbel-EKs.</p>
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Arbeitsplatte / Naturstein (Zieht EK-Preis)</label>
+                        <input type="text" value="${window.config.importStein || ''}" oninput="window.updateConfig('importStein', this.value, false)" class="input-field text-sm font-mono">
                     </div>
                 `;
             }

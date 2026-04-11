@@ -391,9 +391,15 @@
                             </div>
                             <div class="flex gap-2">
                                 <input type="text" id="k-apName" oninput="window.updateKitchen('apName', this.value)" class="input-field text-sm flex-1" placeholder="z.B. Schichtstoff Eiche">
-                                <div class="relative w-32 shrink-0">
-                                    <input type="text" id="k-stein" inputmode="decimal" oninput="window.updateKitchen('steinVK', this.value)" class="input-field text-sm font-mono text-center px-1" placeholder="0,00">
-                                    <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                                <div class="flex flex-col gap-1 w-32 shrink-0">
+                                    <div class="relative w-full">
+                                        <input type="text" id="k-stein" inputmode="decimal" oninput="window.updateKitchen('steinVK', this.value)" class="input-field text-sm font-mono text-center px-1 text-blue-500" placeholder="VK Brutto">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">€</span>
+                                    </div>
+                                    <div class="relative w-full">
+                                        <input type="text" id="k-steinek" inputmode="decimal" oninput="window.updateKitchen('steinEK', this.value)" class="input-field text-[10px] py-1 font-mono text-center px-1 text-slate-400 border-dashed bg-slate-50 dark:bg-black" placeholder="EK Netto" title="EK (Nur für interne Übersicht)">
+                                        <span class="absolute right-2 top-1/2 -translate-y-1/2 text-[8px] font-black text-slate-400 uppercase">€</span>
+                                    </div>
                                 </div>
                             </div>
                             <p class="text-[9px] text-slate-400 mt-2 font-bold italic">Hinweis: Bei Schichtstoff Preis leer lassen, läuft in Möbel-EK.</p>
@@ -735,7 +741,6 @@
         </div>
     </div>
 
-    <!-- Fallback: Falls das Skript durch Firewall/Adblocker blockiert wird -->
     <script>
         setTimeout(() => {
             const statusText = document.getElementById('status-text');
@@ -833,7 +838,9 @@
                 importSpuele: "blanco, systemceram",
                 importWasser: "quooker",
                 importStein: "schellenbaum",
-                importGeraete: "bosch, neff, siemens, berbel, naber"
+                importGeraete: "bosch, neff, siemens, berbel, naber",
+                importBlancoChoiceArt1: "527656",
+                importBlancoChoiceArt2: "527660"
             }
         };
 
@@ -894,6 +901,8 @@
             if (cfg.importWasser === undefined) cfg.importWasser = DEFAULTS.config.importWasser;
             if (cfg.importStein === undefined) cfg.importStein = DEFAULTS.config.importStein;
             if (cfg.importGeraete === undefined) cfg.importGeraete = DEFAULTS.config.importGeraete;
+            if (cfg.importBlancoChoiceArt1 === undefined) cfg.importBlancoChoiceArt1 = DEFAULTS.config.importBlancoChoiceArt1;
+            if (cfg.importBlancoChoiceArt2 === undefined) cfg.importBlancoChoiceArt2 = DEFAULTS.config.importBlancoChoiceArt2;
 
             if (cfg.pdfAnschlussText && cfg.pdfAnschlussText.includes("Damit Sie effektiv keinen Mehrpreis haben")) {
                 cfg.pdfAnschlussText = cfg.pdfAnschlussText.replace(" Damit Sie effektiv keinen Mehrpreis haben, ziehe ich Ihnen diese Summe immer vom Endpreis ab.", "").trim();
@@ -958,6 +967,7 @@
             wasser: initialWasser,
             mehrpreise: savedKitchen.mehrpreise || [{id: Date.now()+4, name: "", val: ""}],
             steinVK: savedKitchen.steinVK || "", 
+            steinEK: savedKitchen.steinEK || "",
             zubehoer: savedKitchen.zubehoer || "",
             optKuechenText: savedKitchen.optKuechenText !== false,
             optBallerina: savedKitchen.optBallerina !== false, 
@@ -1764,6 +1774,17 @@
         window.pullStein = () => {
             if (window.currentStoneVK > 0) {
                 window.kitchen.steinVK = window.currentStoneVK.toFixed(2).replace('.', ',');
+                
+                // Falls intern EK benötigt wird, können wir das anpassen. Für jetzt VK ziehen
+                const sel = document.getElementById('stoneSelect');
+                if (sel) {
+                    const stone = window.stones.find(s => s.id === sel.value);
+                    if (stone) {
+                        const res = window.calculateForStone(stone);
+                        window.kitchen.steinEK = res.ek.toFixed(2).replace('.', ',');
+                    }
+                }
+
                 window.kitchen.apName = window.currentStoneName;
                 window.saveKitchen();
                 window.renderKitchen();
@@ -1788,7 +1809,7 @@
                 spuele: [{id: Date.now()+3, name: "", val: ""}],
                 wasser: [{id: Date.now()+2, name: "", val: ""}],
                 mehrpreise: [{id: Date.now()+4, name: "", val: ""}],
-                steinVK: "", zubehoer: "",
+                steinVK: "", steinEK: "", zubehoer: "",
                 optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
             };
             window.saveKitchen();
@@ -1944,7 +1965,9 @@
             setVal('k-moebel', window.kitchen.ekMoebel);
             setVal('k-rabatt', window.kitchen.rabattMoebel);
             setVal('k-rabatt-miele', window.kitchen.rabattMiele);
+            
             setVal('k-stein', window.kitchen.steinVK);
+            setVal('k-steinek', window.kitchen.steinEK);
 
             window.calcKitchen();
         };
@@ -2423,7 +2446,10 @@
             let newGeraete = [];
             
             let apName = window.kitchen.apName;
-            let apPrice = window.kitchen.steinVK;
+            let apPriceVK = window.kitchen.steinVK;
+            let apPriceEK = window.kitchen.steinEK;
+
+            let foundBlancoChoice = false;
 
             const parseNum = (val) => {
                 if (!val) return 0;
@@ -2480,16 +2506,27 @@
                 if (cat.includes('lager')) continue;
 
                 itemsCount++;
+                const artStr = art.toString();
 
                 if (checkMatch(cat, window.config.importMiele)) {
                     newMiele.push({ id: Date.now() + Math.random(), name: art, val: vk || "" });
                 } else if (checkMatch(cat, window.config.importSpuele)) {
-                    newSpuele.push({ id: Date.now() + Math.random(), name: art, val: "" });
+                    
+                    if ((window.config.importBlancoChoiceArt1 && artStr.includes(window.config.importBlancoChoiceArt1)) ||
+                        (window.config.importBlancoChoiceArt2 && artStr.includes(window.config.importBlancoChoiceArt2))) {
+                        foundBlancoChoice = true;
+                    } else {
+                        // Reguläre Spüle: EK wandert in die Möbel, Artikel in die Liste ohne Preis
+                        sumMoebelEK += ek;
+                        newSpuele.push({ id: Date.now() + Math.random(), name: art, val: "" });
+                    }
+
                 } else if (checkMatch(cat, window.config.importWasser)) {
                     newWasser.push({ id: Date.now() + Math.random(), name: art, val: "3000" });
                 } else if (checkMatch(cat, window.config.importStein)) {
                     apName = art;
-                    apPrice = ek; 
+                    apPriceVK = vk; 
+                    apPriceEK = ek; 
                 } else {
                     sumMoebelEK += ek;
                     
@@ -2505,15 +2542,20 @@
                 return;
             }
 
+            if (foundBlancoChoice) {
+                newWasser.push({ id: Date.now() + Math.random(), name: "Blanco Choice All", val: "3000" });
+            }
+
             if (sumMoebelEK > 0) window.kitchen.ekMoebel = sumMoebelEK.toFixed(2).replace('.', ',');
             if (newMiele.length > 0) window.kitchen.miele = newMiele;
             if (newSpuele.length > 0) window.kitchen.spuele = newSpuele;
             if (newWasser.length > 0) window.kitchen.wasser = newWasser;
             if (newGeraete.length > 0) window.kitchen.geraete = newGeraete;
             
-            if (apName !== window.kitchen.apName || apPrice !== window.kitchen.steinVK) {
+            if (apName !== window.kitchen.apName || apPriceVK !== window.kitchen.steinVK || apPriceEK !== window.kitchen.steinEK) {
                 window.kitchen.apName = apName;
-                window.kitchen.steinVK = apPrice > 0 ? apPrice.toFixed(2).replace('.', ',') : window.kitchen.steinVK;
+                window.kitchen.steinVK = apPriceVK > 0 ? apPriceVK.toFixed(2).replace('.', ',') : window.kitchen.steinVK;
+                window.kitchen.steinEK = apPriceEK > 0 ? apPriceEK.toFixed(2).replace('.', ',') : window.kitchen.steinEK;
             }
 
             window.saveKitchen();
@@ -2686,6 +2728,14 @@
                         <input type="text" value="${window.config.importSpuele || ''}" oninput="window.updateConfig('importSpuele', this.value, false)" class="input-field text-sm font-mono">
                     </div>
                     <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Blanco Choice Art.-Nr. 1 (Ausnahme 3000€)</label>
+                        <input type="text" value="${window.config.importBlancoChoiceArt1 || ''}" oninput="window.updateConfig('importBlancoChoiceArt1', this.value, false)" class="input-field text-sm font-mono">
+                    </div>
+                    <div>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Blanco Choice Art.-Nr. 2 (Ausnahme 3000€)</label>
+                        <input type="text" value="${window.config.importBlancoChoiceArt2 || ''}" oninput="window.updateConfig('importBlancoChoiceArt2', this.value, false)" class="input-field text-sm font-mono">
+                    </div>
+                    <div>
                         <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Wasseraufbereitung (Setzt VK auf 3000,- €)</label>
                         <input type="text" value="${window.config.importWasser || ''}" oninput="window.updateConfig('importWasser', this.value, false)" class="input-field text-sm font-mono">
                     </div>
@@ -2695,7 +2745,7 @@
                         <p class="text-[9px] text-slate-400 mt-1">Hinweis: Die EK-Preise dieser Kataloge fließen automatisch in die Summe des Möbel-EKs.</p>
                     </div>
                     <div>
-                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Arbeitsplatte / Naturstein (Zieht EK-Preis)</label>
+                        <label class="text-[9px] font-black text-slate-500 uppercase block mb-1">Arbeitsplatte / Naturstein (Zieht EK & VK Preis)</label>
                         <input type="text" value="${window.config.importStein || ''}" oninput="window.updateConfig('importStein', this.value, false)" class="input-field text-sm font-mono">
                     </div>
                 `;

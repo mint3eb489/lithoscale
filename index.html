@@ -1995,7 +1995,7 @@
                 if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
                 
                 const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
-                    stack: parseHTML(anschlussTextArray.join(' ')), 
+                    text: parseHTML(anschlussTextArray.join(' ')), 
                     margin: [0, 5, 0, 0],
                     fontSize: 10,
                     color: '#475569'
@@ -2049,7 +2049,7 @@
                         beraterBlock,
                         
                         k.optKuechenText && window.config.pdfKuechenText ? { 
-                            stack: parseHTML(window.config.pdfKuechenText), 
+                            text: parseHTML(window.config.pdfKuechenText), 
                             margin: [0, 0, 0, 20], 
                             fontSize: 11,
                             color: '#334155'
@@ -2082,7 +2082,7 @@
                         },
                         
                         k.optBallerina && window.config.pdfBallerinaText ? { 
-                            stack: parseHTML(window.config.pdfBallerinaText), 
+                            text: parseHTML(window.config.pdfBallerinaText), 
                             margin: [0, 5, 0, 15], 
                             fontSize: 10,
                             color: '#475569',
@@ -2141,7 +2141,7 @@
 
                 if (k.optNachtext && window.config.pdfNachtext) {
                     docDefinition.content.push(
-                        { stack: parseHTML(window.config.pdfNachtext), margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
+                        { text: parseHTML(window.config.pdfNachtext), margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
                     );
                 }
 

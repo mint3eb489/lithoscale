@@ -1910,9 +1910,10 @@
                 }
 
                 const parseHTML = (htmlString) => {
-                    if (!htmlString) return '';
+                    if (!htmlString) return [];
                     const formattedStr = htmlString.replace(/\n/g, '<br>');
-                    return htmlToPdfmake(formattedStr);
+                    const parsed = htmlToPdfmake(formattedStr, { window: window });
+                    return Array.isArray(parsed) ? parsed : [parsed];
                 };
 
                 let logoDataUrl = null;
@@ -2149,16 +2150,25 @@
                 let fileName = 'Kuechenangebot.pdf';
                 if (k.kunde && k.kunde.trim() !== '') {
                     const safeName = k.kunde.trim().replace(/[^a-zA-Z0-9\u00C0-\u017F]/g, '');
-                    fileName = safeName + 'Kuechenangebot.pdf';
+                    fileName = safeName + '_Kuechenangebot.pdf';
                 }
 
                 const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 
-                if (isIOS) {
-                    pdf.open(); 
-                } else {
-                    pdf.download(fileName); 
-                }
+                pdf.getBase64((data) => {
+                    const base64Url = 'data:application/pdf;base64,' + data;
+                    if (isIOS) {
+                        setTimeout(() => { window.location.href = base64Url; }, 100);
+                    } else {
+                        const a = document.createElement('a');
+                        a.href = base64Url;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    }
+                    showAlert("PDF erfolgreich erstellt!");
+                });
 
             } catch(e) {
                 console.error("PDF-Fehler:", e);

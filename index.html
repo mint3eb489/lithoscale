@@ -11,6 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html-to-pdfmake/browser.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <script>
@@ -406,19 +407,24 @@
                         <div class="mb-6">
                             <div class="flex justify-between items-center mb-4">
                                 <label class="text-[10px] font-black text-slate-500 uppercase">Möbel inkl. Elektro (EK Netto)</label>
-                                <div class="flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded-lg border border-slate-200 dark:border-darkBorder">
-                                    <span class="text-[9px] font-black text-slate-400 uppercase">Rabatt:</span>
-                                    <div class="relative w-12 shrink-0">
-                                        <input type="text" id="k-rabatt" inputmode="decimal" oninput="window.updateKitchen('rabattMoebel', this.value)" class="bg-transparent border-b border-transparent focus:border-blue-500 outline-none font-mono text-sm text-center text-red-500 w-full py-0.5 placeholder-slate-300" placeholder="0">
-                                        <span class="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">%</span>
+                                <div class="flex items-center gap-3">
+                                    <button onclick="window.toggleMoebelEK()" id="btn-toggle-ek" class="text-slate-400 hover:text-blue-500 transition-colors focus:outline-none flex items-center" title="EK ein-/ausblenden">
+                                        <!-- SVG wird per JS geladen -->
+                                    </button>
+                                    <div class="flex items-center gap-2 bg-slate-50 dark:bg-white/5 px-2 py-1 rounded-lg border border-slate-200 dark:border-darkBorder">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase">Rabatt:</span>
+                                        <div class="relative w-12 shrink-0">
+                                            <input type="text" id="k-rabatt" inputmode="decimal" oninput="window.updateKitchen('rabattMoebel', this.value)" class="bg-transparent border-b border-transparent focus:border-blue-500 outline-none font-mono text-sm text-center text-red-500 w-full py-0.5 placeholder-slate-300" placeholder="0">
+                                            <span class="absolute right-0 top-1/2 -translate-y-1/2 text-[9px] font-black text-slate-400 uppercase">%</span>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="relative">
+                            <div id="moebel-ek-wrapper" class="relative">
                                 <input type="text" id="k-moebel" inputmode="decimal" oninput="window.updateKitchen('ekMoebel', this.value)" class="input-field font-mono text-lg" placeholder="0,00">
                                 <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-black text-slate-400 uppercase">€</span>
                             </div>
-                            <p class="text-[9px] text-slate-400 mt-2 font-bold">Wird im Hintergrund × <span id="moebel-factor-display">2</span> gerechnet (abzgl. Rabatt): <span id="kitchenMoebelVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
+                            <p id="moebel-ek-hint" class="text-[9px] text-slate-400 mt-2 font-bold">Wird im Hintergrund × <span id="moebel-factor-display">2</span> gerechnet (abzgl. Rabatt): <span id="kitchenMoebelVK" class="text-blue-500 font-mono-tabular">0,00 €</span></p>
                         </div>
 
                         <div class="mb-6 border-t dark:border-darkBorder pt-6">
@@ -477,7 +483,7 @@
 
                     <div class="card p-6">
                         <div class="flex justify-between items-center mb-5 border-b dark:border-darkBorder pb-3">
-                            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">3. Optionale Mehrpreise</h2>
+                            <h2 class="text-[10px] font-black text-slate-400 uppercase tracking-widest">3. Optionale Mehrpreise & Anmerkungen</h2>
                             <button onclick="window.addMehrpreis()" class="bg-slate-200 dark:bg-darkBorder text-slate-500 hover:text-blue-500 w-6 h-6 rounded-md flex items-center justify-center font-black pb-0.5 transition-colors">+</button>
                         </div>
                         <div id="mehrpreis-container" class="space-y-2"></div>
@@ -491,6 +497,7 @@
                             <label class="text-[10px] font-black text-slate-500 uppercase block mb-2">Ebenso enthalten sind (Zubehör):</label>
                             <div class="flex flex-wrap gap-1.5 mb-3">
                                 <button onclick="window.appendZubehoer('Besteckeinsatz')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Besteckeinsatz</button>
+                                <button onclick="window.appendZubehoer('Mülltrennsystem')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Mülltrennsystem</button>
                                 <button onclick="window.appendZubehoer('LED-Beleuchtung')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ LED-Beleuchtung</button>
                                 <button onclick="window.appendZubehoer('Glaszargen in sämtlichen hohen Auszügen')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Glaszargen</button>
                                 <button onclick="window.appendZubehoer('Anti-Rutschmatten in sämtlichen Schubkästen/Auszügen')" class="bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20 px-2 py-1 rounded-md text-[9px] font-bold hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-colors active:scale-95">+ Anti-Rutschmatten</button>
@@ -573,9 +580,9 @@
                             <p id="kitchenMontage" class="text-lg font-black text-emerald-400 font-mono-tabular">0,00 €</p>
                         </div>
 
-                        <button onclick="window.generatePDF()" class="w-full py-4 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-black uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mb-3">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Angebot als PDF generieren
+                        <button onclick="window.generatePDF()" class="w-full py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-blue-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 mb-3">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            PDF generieren
                         </button>
                         
                         <button onclick="window.saveOffer()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all active:scale-95 flex items-center justify-center gap-2 mb-6">
@@ -630,7 +637,8 @@
 
                 <div id="admin-kitchen" class="hidden grid grid-cols-1 gap-6 items-stretch">
                     <div class="card p-6">
-                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-4">Standard-Texte für das Angebot (PDF)</h3>
+                        <h3 class="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em] mb-1">Standard-Texte für das Angebot (PDF)</h3>
+                        <p class="text-[9px] text-blue-500 mb-4 font-bold">Tipp: Du kannst HTML-Tags wie &lt;b&gt;fett&lt;/b&gt;, &lt;i&gt;kursiv&lt;/i&gt; oder &lt;u&gt;unterstrichen&lt;/u&gt; nutzen.</p>
                         <div id="admin-kitchen-fields" class="space-y-6"></div>
                     </div>
                     
@@ -968,6 +976,7 @@
             steinVK: savedKitchen.steinVK || "", 
             steinEK: savedKitchen.steinEK || "",
             zubehoer: savedKitchen.zubehoer || "",
+            showMoebelEK: savedKitchen.hasOwnProperty('showMoebelEK') ? savedKitchen.showMoebelEK : true,
             optKuechenText: savedKitchen.optKuechenText !== false,
             optBallerina: savedKitchen.optBallerina !== false, 
             optAnschluss: savedKitchen.optAnschluss !== false,
@@ -1733,6 +1742,12 @@
             }
         };
 
+        window.toggleMoebelEK = () => {
+            window.kitchen.showMoebelEK = !window.kitchen.showMoebelEK;
+            window.saveKitchen();
+            window.renderKitchen();
+        };
+
         window.resetKitchen = () => {
             if(!confirm("Küchenkalkulation leeren?")) return;
             window.kitchen = { 
@@ -1750,6 +1765,7 @@
                 wasser: [{id: Date.now()+2, name: "", val: ""}],
                 mehrpreise: [{id: Date.now()+4, name: "", val: ""}],
                 steinVK: "", steinEK: "", zubehoer: "",
+                showMoebelEK: true,
                 optKuechenText: true, optBallerina: true, optAnschluss: true, optAnschlussRabatt: false, optNachtext: true
             };
             window.saveKitchen();
@@ -1861,6 +1877,22 @@
             const factorDisplay = document.getElementById('moebel-factor-display');
             if (factorDisplay) factorDisplay.innerText = window.config.moebelFactor || 2.0;
 
+            const ekWrapper = document.getElementById('moebel-ek-wrapper');
+            const ekHint = document.getElementById('moebel-ek-hint');
+            const btnToggleEk = document.getElementById('btn-toggle-ek');
+            
+            if (ekWrapper && ekHint && btnToggleEk) {
+                if (window.kitchen.showMoebelEK) {
+                    ekWrapper.classList.remove('hidden');
+                    ekHint.classList.remove('hidden');
+                    btnToggleEk.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>`;
+                } else {
+                    ekWrapper.classList.add('hidden');
+                    ekHint.classList.add('hidden');
+                    btnToggleEk.innerHTML = `<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.29 3.29m0 0a9.97 9.97 0 013.028-1.563M21.543 12c-1.274 4.057-5.064 7-9.542 7a10.05 10.05 0 01-1.875-.175m4.243-4.243l3.29 3.29m-3.29-3.29l4.242-4.242" /></svg>`;
+                }
+            }
+
             window.calcKitchen();
         };
 
@@ -1876,6 +1908,12 @@
                 if (window.pdfMakeFonts && window.pdfMakeFonts.pdfMake && window.pdfMakeFonts.pdfMake.vfs) {
                     window.pdfMake.vfs = window.pdfMakeFonts.pdfMake.vfs;
                 }
+
+                const parseHTML = (htmlString) => {
+                    if (!htmlString) return '';
+                    const formattedStr = htmlString.replace(/\n/g, '<br>');
+                    return htmlToPdfmake(formattedStr);
+                };
 
                 let logoDataUrl = null;
                 if (window.config.pdfLogo && window.config.pdfLogo.trim() !== '') {
@@ -1956,7 +1994,7 @@
                 if (k.optAnschlussRabatt && window.config.pdfAnschlussRabattText) anschlussTextArray.push(window.config.pdfAnschlussRabattText);
                 
                 const anschlussPdfBlock = anschlussTextArray.length > 0 ? { 
-                    text: anschlussTextArray.join(' '), 
+                    stack: parseHTML(anschlussTextArray.join(' ')), 
                     margin: [0, 5, 0, 0],
                     fontSize: 10,
                     color: '#475569'
@@ -2010,7 +2048,7 @@
                         beraterBlock,
                         
                         k.optKuechenText && window.config.pdfKuechenText ? { 
-                            text: window.config.pdfKuechenText, 
+                            stack: parseHTML(window.config.pdfKuechenText), 
                             margin: [0, 0, 0, 20], 
                             fontSize: 11,
                             color: '#334155'
@@ -2043,7 +2081,7 @@
                         },
                         
                         k.optBallerina && window.config.pdfBallerinaText ? { 
-                            text: window.config.pdfBallerinaText, 
+                            stack: parseHTML(window.config.pdfBallerinaText), 
                             margin: [0, 5, 0, 15], 
                             fontSize: 10,
                             color: '#475569',
@@ -2067,7 +2105,7 @@
                             ' an.'
                         ], margin: [0, 0, 0, 8] },
                         
-                        { text: `(Darin enthalten: Arbeitsplatte ${vkStein > 0 ? formatMoney(vkStein) : 'im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
+                        { text: `(Darin enthalten: ${vkStein > 0 ? 'Stein-Arbeitsplatte ' + formatMoney(vkStein) : 'Arbeitsplatte im Möbelpreis'} | Anteil für Lieferung & Montage ${formatMoney(montage)})`, italics: true, color: '#64748b', fontSize: 10, margin: [0, 0, 0, 4] },
                         
                         { text: '* Alle Preise verstehen sich inkl. 19 % MwSt.', fontSize: 10, color: '#64748b', margin: [0, 0, 0, 15] },
 
@@ -2102,7 +2140,7 @@
 
                 if (k.optNachtext && window.config.pdfNachtext) {
                     docDefinition.content.push(
-                        { text: window.config.pdfNachtext, margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
+                        { stack: parseHTML(window.config.pdfNachtext), margin: [0, 30, 0, 0], fontSize: 11, color: '#334155' }
                     );
                 }
 
@@ -2396,7 +2434,9 @@
                 const vk = colVk > -1 ? parseNum(row[colVk]) : 0;
 
                 if (!cat && !art && ek === 0 && vk === 0) continue;
-                if (cat.includes('lager')) continue;
+                
+                // Lager-Artikel ignorieren, AUSSER es handelt sich um "Anschlüsse"
+                if (cat.includes('lager') && !art.toLowerCase().includes('anschlüsse')) continue;
 
                 itemsCount++;
                 const artStr = art.toString();

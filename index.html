@@ -2799,10 +2799,14 @@
 
         const initUIStates = () => {
             const t = localStorage.getItem('ls_theme');
-            if (t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)) {
+            if (t === 'dark') {
                 document.documentElement.classList.add('dark');
                 document.getElementById('sunIcon').classList.remove('hidden');
                 document.getElementById('moonIcon').classList.add('hidden');
+            } else {
+                document.documentElement.classList.remove('dark');
+                document.getElementById('sunIcon').classList.add('hidden');
+                document.getElementById('moonIcon').classList.remove('hidden');
             }
             window.switchTab('calc');
             window.renderKitchen();

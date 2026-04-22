@@ -100,6 +100,9 @@
                         <svg id="sunIcon" class="w-5 h-5 text-amber-500 hidden" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"></path></svg>
                         <svg id="moonIcon" class="w-5 h-5 text-slate-700 dark:text-slate-300" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                     </button>
+                    <button onclick="window.logout()" class="p-3 rounded-xl transition-all active:scale-95 text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10" title="Abmelden">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    </button>
                 </div>
                 
                 <div class="flex bg-white dark:bg-darkCard p-1 rounded-2xl border dark:border-darkBorder shadow-sm flex-1">
@@ -741,6 +744,26 @@
                 <span id="alert-text"></span>
             </div>
         </div>
+
+        <div id="login-overlay" class="fixed inset-0 z-[1000] bg-slate-50 dark:bg-trueBlack flex items-center justify-center p-4 transition-opacity duration-500">
+            <div class="card p-8 max-w-sm w-full shadow-2xl modal-fade">
+                <div class="text-center mb-8">
+                    <div class="w-16 h-16 bg-black dark:bg-white rounded-2xl flex items-center justify-center shadow-lg border border-white/10 mx-auto mb-4">
+                        <svg class="w-8 h-8 text-blue-500 dark:text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M3 3h18v18H3zM3 9h18M9 3v18" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="text-2xl font-black tracking-tight">LithoScale <span class="text-blue-500">PRO</span></h2>
+                    <p class="text-xs text-slate-500 mt-2 uppercase tracking-widest font-bold">Team-Login</p>
+                </div>
+                <div class="space-y-4">
+                    <input type="email" id="login-email" placeholder="E-Mail Adresse" class="input-field w-full text-center" onkeypress="if(event.key === 'Enter') document.getElementById('login-password').focus()">
+                    <input type="password" id="login-password" placeholder="Passwort" class="input-field w-full text-center" onkeypress="if(event.key === 'Enter') window.loginWithEmail()">
+                    <button id="btn-login" onclick="window.loginWithEmail()" class="w-full py-3 mt-4 rounded-xl font-black text-sm uppercase tracking-widest bg-blue-600 text-white shadow-lg shadow-blue-600/20 hover:scale-[1.02] active:scale-95 transition-all">Anmelden</button>
+                </div>
+                <p id="login-error" class="text-[10px] text-red-500 font-bold mt-4 text-center hidden"></p>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -757,7 +780,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, onSnapshot, collection, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -1078,21 +1101,69 @@
                 
                 onAuthStateChanged(auth, (user) => {
                     currentUser = user; 
+                    const overlay = document.getElementById('login-overlay');
                     if (user) {
+                        if (overlay) {
+                            overlay.classList.add('opacity-0');
+                            setTimeout(() => overlay.classList.add('hidden'), 500);
+                        }
                         startCloudListener();
+                    } else {
+                        if (overlay) {
+                            overlay.classList.remove('hidden');
+                            setTimeout(() => overlay.classList.remove('opacity-0'), 10);
+                        }
+                        updateStatus("Bitte anmelden", "bg-amber-500");
+                        if (unsubCloud) { unsubCloud(); unsubCloud = null; }
+                        if (unsubOffers) { unsubOffers(); unsubOffers = null; }
                     }
                 });
 
-                updateStatus("Login Cloud...", "bg-blue-500 animate-pulse");
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
             } catch (e) {
                 console.error("Firebase Auth Fehler:", e);
-                updateStatus("Offline-Modus", "bg-amber-500", "Login blockiert (Firewall?)");
+                updateStatus("Offline-Modus", "bg-amber-500", "Login blockiert");
                 window.render();
+            }
+        };
+
+        window.loginWithEmail = async () => {
+            const email = document.getElementById('login-email').value.trim();
+            const pass = document.getElementById('login-password').value;
+            const errEl = document.getElementById('login-error');
+            const btn = document.getElementById('btn-login');
+            
+            if (!email || !pass) {
+                errEl.innerText = "Bitte E-Mail und Passwort eingeben.";
+                errEl.classList.remove('hidden');
+                return;
+            }
+
+            errEl.classList.add('hidden');
+            btn.innerText = "LÄDT...";
+            btn.disabled = true;
+
+            try {
+                await signInWithEmailAndPassword(auth, email, pass);
+            } catch (error) {
+                console.error(error);
+                errEl.innerText = "Anmeldung fehlgeschlagen. E-Mail oder Passwort falsch.";
+                errEl.classList.remove('hidden');
+                btn.innerText = "ANMELDEN";
+                btn.disabled = false;
+            }
+        };
+
+        window.logout = async () => {
+            if (!auth) return;
+            try {
+                await signOut(auth);
+                document.getElementById('login-email').value = '';
+                document.getElementById('login-password').value = '';
+                const btn = document.getElementById('btn-login');
+                if(btn) { btn.innerText = "ANMELDEN"; btn.disabled = false; }
+                showAlert("Erfolgreich abgemeldet.");
+            } catch (error) {
+                console.error("Logout Fehler", error);
             }
         };
 
